@@ -18,6 +18,7 @@ import {
   urlVideo,
   VIDEO_MAX_OCTETS,
 } from "../../lib/mediasMoodboard";
+import { tr } from "../../lib/i18n";
 
 /** Octets → base64, par morceaux (une vidéo entière ferait déborder la pile). */
 function enBase64(octets: Uint8Array): string {
@@ -263,7 +264,10 @@ export default function MoodboardView({
   // première demi-seconde) montrée tant qu'elle ne joue pas.
   const ajouterVideo = async (file: File, point: { x: number; y: number }) => {
     if (file.size > VIDEO_MAX_OCTETS) {
-      notify(false, `« ${file.name} » dépasse ${Math.round(VIDEO_MAX_OCTETS / 1024 / 1024)} Mo : raccourcis-la ou compresse-la avant de l'ajouter.`);
+      notify(false, tr(
+          `« ${file.name} » dépasse ${Math.round(VIDEO_MAX_OCTETS / 1024 / 1024)} Mo : raccourcis-la ou compresse-la avant de l'ajouter.`,
+          `“${file.name}” is larger than ${Math.round(VIDEO_MAX_OCTETS / 1024 / 1024)} MB: trim or compress it before adding it.`
+        ));
       return;
     }
     setEnAjout((n) => n + 1);
@@ -286,7 +290,10 @@ export default function MoodboardView({
         meta: { apercu, titre: file.name.replace(/\.[^.]+$/, "") },
       });
     } catch (err) {
-      notify(false, `« ${file.name} » n'a pas pu être ajoutée : ${err instanceof Error ? err.message : String(err)}`);
+      notify(false, tr(
+          `« ${file.name} » n'a pas pu être ajoutée : ${err instanceof Error ? err.message : String(err)}`,
+          `“${file.name}” couldn't be added: ${err instanceof Error ? err.message : String(err)}`
+        ));
     } finally {
       setEnAjout((n) => n - 1);
     }
@@ -315,7 +322,7 @@ export default function MoodboardView({
         meta: { url: infos.url, videoId: infos.videoId, titre: infos.titre, auteur: infos.auteur },
       });
     } catch (err) {
-      notify(false, err instanceof ErreurTikTok ? err.message : `Le lien TikTok n'a pas pu être ajouté : ${String(err)}`);
+      notify(false, err instanceof ErreurTikTok ? err.message : tr(`Le lien TikTok n'a pas pu être ajouté : ${String(err)}`, `The TikTok link couldn't be added: ${String(err)}`));
     } finally {
       setEnAjout((n) => n - 1);
     }
@@ -467,8 +474,8 @@ export default function MoodboardView({
                 >
                   {it.manquante
                     ? it.genre === "image"
-                      ? "Image introuvable sur le disque"
-                      : "Aperçu introuvable sur le disque"
+                      ? tr("Image introuvable sur le disque", "Image not found on disk")
+                      : tr("Aperçu introuvable sur le disque", "Preview not found on disk")
                     : "Chargement…"}
                 </div>
               ) : it.genre === "video" ? (
@@ -559,26 +566,32 @@ export default function MoodboardView({
                         title={
                           targetPageId
                             ? it.genre === "tiktok"
-                              ? `Ajouter le lien de cette vidéo à « ${targetPageTitle || "Sans titre"} »`
-                              : `Ajouter cette image à « ${targetPageTitle || "Sans titre"} »`
-                            : "Ouvre d'abord une page dans la vue Notes"
+                              ? tr(
+                                  `Ajouter le lien de cette vidéo à « ${targetPageTitle || "Sans titre"} »`,
+                                  `Add this video's link to “${targetPageTitle || "Untitled"}”`
+                                )
+                              : tr(
+                                  `Ajouter cette image à « ${targetPageTitle || "Sans titre"} »`,
+                                  `Add this image to “${targetPageTitle || "Untitled"}”`
+                                )
+                            : tr("Ouvre d'abord une page dans la vue Notes", "Open a page in the Notes view first")
                         }
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={() => {
                           if (it.genre === "tiktok" && it.meta?.url) {
-                            onSendLinkToPage(it.meta.url, it.meta.titre || it.meta.auteur || "Vidéo TikTok");
+                            onSendLinkToPage(it.meta.url, it.meta.titre || it.meta.auteur || tr("Vidéo TikTok", "TikTok video"));
                             setEnvoyee(true);
                             window.setTimeout(() => setEnvoyee(false), 2200);
                           } else envoyerVersPage(it.assetPath);
                         }}
                         style={{ ...barButton, color: targetPageId ? "var(--text-dim)" : "var(--border)" }}
                       >
-                        {envoyee ? "✓ Ajouté" : "→ Vers la page"}
+                        {envoyee ? tr("✓ Ajouté", "✓ Added") : tr("→ Vers la page", "→ To the page")}
                       </button>
                     )}
                     {it.genre === "tiktok" && it.meta?.url && (
                       <button
-                        title="Ouvrir la vidéo dans ton navigateur"
+                        title={tr("Ouvrir la vidéo dans ton navigateur", "Open the video in your browser")}
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={() => openExternal(it.meta!.url!)}
                         style={barButton}
@@ -589,7 +602,7 @@ export default function MoodboardView({
                     {it.genre !== "image" ? null : enRognage ? (
                       <>
                         <button
-                          title="Appliquer la zone choisie"
+                          title={tr("Appliquer la zone choisie", "Apply the selected area")}
                           onMouseDown={(e) => e.stopPropagation()}
                           onClick={() => {
                             const zone = cropEnCours.draft;
@@ -607,27 +620,27 @@ export default function MoodboardView({
                           ✓ Valider
                         </button>
                         <button
-                          title="Revenir à la zone précédente"
+                          title={tr("Revenir à la zone précédente", "Go back to the previous area")}
                           onMouseDown={(e) => e.stopPropagation()}
                           onClick={() => setCropEnCours(null)}
                           style={barButton}
                         >
-                          Annuler
+                          {tr("Annuler", "Cancel")}
                         </button>
                       </>
                     ) : (
                       <button
-                        title="Choisir la partie de l’image à garder"
+                        title={tr("Choisir la partie de l’image à garder", "Choose the part of the image to keep")}
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={() => setCropEnCours({ id: it.id, draft: it.crop ?? FULL_CROP })}
                         style={{ ...barButton, color: it.crop ? "var(--accent)" : "var(--text-dim)" }}
                       >
-                        Rogner
+                        {tr("Rogner", "Crop")}
                       </button>
                     )}
                     {it.genre === "image" && it.crop && !enRognage && (
                       <button
-                        title="Afficher de nouveau l’image entière"
+                        title={tr("Afficher de nouveau l’image entière", "Show the whole image again")}
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={() => {
                           cropItem(it.id, null);
@@ -637,23 +650,29 @@ export default function MoodboardView({
                         }}
                         style={barButton}
                       >
-                        Image entière
+                        {tr("Image entière", "Whole image")}
                       </button>
                     )}
                     <button
                       title={
                         it.genre === "image"
-                          ? "L'IA nomme le style, l'explique et donne des mots pour chercher d'autres références"
-                          : "L'IA analyse l'image d'aperçu de la vidéo (elle ne voit pas la vidéo elle-même)"
+                          ? tr(
+                            "L'IA nomme le style, l'explique et donne des mots pour chercher d'autres références",
+                            "The AI names the style, explains it and suggests words to search for more references"
+                          )
+                          : tr(
+                            "L'IA analyse l'image d'aperçu de la vidéo (elle ne voit pas la vidéo elle-même)",
+                            "The AI analyses the video's preview image (it can't see the video itself)"
+                          )
                       }
                       onMouseDown={(e) => e.stopPropagation()}
                       onClick={() => setAnalyse([it.id])}
                       style={{ ...barButton, color: "var(--accent)" }}
                     >
-                      {it.genre === "image" ? "✦ Analyser" : "✦ Analyser l'aperçu"}
+                      {it.genre === "image" ? tr("✦ Analyser", "✦ Analyse") : tr("✦ Analyser l'aperçu", "✦ Analyse preview")}
                     </button>
                     <button
-                      title="Retirer du moodboard"
+                      title={tr("Retirer du moodboard", "Remove from moodboard")}
                       onMouseDown={(e) => e.stopPropagation()}
                       onClick={() => {
                         removeItem(it.id);
@@ -661,7 +680,7 @@ export default function MoodboardView({
                       }}
                       style={{ ...barButton, color: "var(--danger)" }}
                     >
-                      Supprimer
+                      {tr("Supprimer", "Delete")}
                     </button>
                   </div>
                 </>
@@ -684,7 +703,10 @@ export default function MoodboardView({
             pointerEvents: "none",
           }}
         >
-          Glisse-dépose des images ou des vidéos ici, ou colle un lien TikTok (Ctrl+V).
+          {tr(
+            "Glisse-dépose des images ou des vidéos ici, ou colle un lien TikTok (Ctrl+V).",
+            "Drag and drop images or videos here, or paste a TikTok link (Ctrl+V)."
+          )}
         </div>
       )}
 
@@ -699,18 +721,21 @@ export default function MoodboardView({
       {multi.length > 0 && (
         <div style={barreComparaison} onMouseDown={(e) => e.stopPropagation()}>
           <span style={{ fontSize: 12, color: "var(--text-dim)" }}>
-            {multi.length} image{multi.length > 1 ? "s" : ""} sélectionnée{multi.length > 1 ? "s" : ""}
-            {multi.length < 2 ? " — Ctrl+clic sur une autre pour comparer" : ""}
+            {tr(
+              `${multi.length} image${multi.length > 1 ? "s" : ""} sélectionnée${multi.length > 1 ? "s" : ""}`,
+              `${multi.length} image${multi.length > 1 ? "s" : ""} selected`
+            )}
+            {multi.length < 2 ? tr(" — Ctrl+clic sur une autre pour comparer", " — Ctrl+click another one to compare") : ""}
           </span>
           <button
             disabled={multi.length < 2}
             onClick={() => setAnalyse(multi)}
             style={{ ...boutonBarre, ...(multi.length >= 2 ? boutonBarreActif : {}) }}
           >
-            ✦ Comparer
+            ✦ {tr("Comparer", "Compare")}
           </button>
           <button onClick={() => setMulti([])} style={boutonBarre}>
-            Effacer
+            {tr("Effacer", "Clear")}
           </button>
         </div>
       )}
@@ -726,7 +751,10 @@ export default function MoodboardView({
       )}
 
       <div style={legend}>
-        Clic droit : déplacer la vue · Clic gauche : saisir · Ctrl+clic : comparer · Molette : zoom · Ctrl+V : coller une image ou un lien TikTok
+        {tr(
+          "Clic droit : déplacer la vue · Clic gauche : saisir · Ctrl+clic : comparer · Molette : zoom · Ctrl+V : coller une image ou un lien TikTok",
+          "Right-click: move the view · Left-click: grab · Ctrl+click: compare · Wheel: zoom · Ctrl+V: paste an image or a TikTok link"
+        )}
       </div>
 
       <div
@@ -788,11 +816,11 @@ function VideoMoodboard({ item }: { item: CanvasItem }) {
           style={{ width: "100%", height: "100%", objectFit: "cover", display: survol ? "block" : "none" }}
         />
       )}
-      {!survol && <span style={{ ...pastilleMedia, left: 6, bottom: 6 }}>▶ vidéo</span>}
+      {!survol && <span style={{ ...pastilleMedia, left: 6, bottom: 6 }}>▶ {tr("vidéo", "video")}</span>}
       {echec && <span style={{ ...pastilleMedia, left: 6, top: 6, color: "var(--danger)" }}>Vidéo introuvable sur le disque</span>}
       {survol && url && (
         <button
-          title={son ? "Couper le son" : "Activer le son"}
+          title={son ? tr("Couper le son", "Mute") : tr("Activer le son", "Unmute")}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={() => setSon((s) => !s)}
           style={{ ...pastilleMedia, right: 6, top: 6, cursor: "pointer", border: "none" }}
@@ -828,9 +856,9 @@ function TikTokMoodboard({
     return (
       <div style={{ position: "absolute", inset: 0, background: "#000", display: "flex", flexDirection: "column" }}>
         <div style={bandeauLecture}>
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>⠿ TikTok · {meta.auteur || "vidéo"}</span>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>⠿ TikTok · {meta.auteur || tr("vidéo", "video")}</span>
           <button
-            title="Arrêter la lecture"
+            title={tr("Arrêter la lecture", "Stop playback")}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={onArreter}
             style={{ border: "none", background: "transparent", color: "#fff", cursor: "pointer", fontSize: 13, padding: "0 2px" }}
@@ -840,7 +868,7 @@ function TikTokMoodboard({
         </div>
         <iframe
           src={lecteurTikTok(meta.videoId)}
-          title={meta.titre || "Vidéo TikTok"}
+          title={meta.titre || tr("Vidéo TikTok", "TikTok video")}
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           style={{ flex: 1, width: "100%", border: 0, display: "block", pointerEvents: geste ? "none" : "auto" }}
         />
@@ -852,7 +880,7 @@ function TikTokMoodboard({
       <img src={item.src} draggable={false} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       <span style={{ ...pastilleMedia, left: 6, top: 6 }}>♪ TikTok</span>
       <button
-        title="Lire la vidéo (il faut internet)"
+        title={tr("Lire la vidéo (il faut internet)", "Play the video (needs internet)")}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={onLire}
         style={boutonLecture}

@@ -8,6 +8,7 @@ import { preparerImage } from "../../lib/vision";
 import { useBlocksStore } from "../../store/blocksStore";
 import type { CanvasItem } from "../../store/canvasStore";
 import TexteRiche from "../TexteRiche";
+import { tr, enAnglais } from "../../lib/i18n";
 
 /**
  * L'IA regarde les images du moodboard — la partie « PureRef » de l'app.
@@ -65,7 +66,7 @@ export default function AnalyseVisuelle({ images, targetPageId, targetPageTitle,
         cumul += morceau;
         setTexte(sansConsigneRecopiee(cumul, consigne));
       }
-      if (!cumul.trim()) throw new Error("Le modèle n'a rien répondu.");
+      if (!cumul.trim()) throw new Error(tr("Le modèle n'a rien répondu.", "The model gave no answer."));
       setEtat("fini");
     } catch (err) {
       if (controleur.signal.aborted) return;
@@ -85,7 +86,7 @@ export default function AnalyseVisuelle({ images, targetPageId, targetPageTitle,
   const ajouterALaPage = () => {
     if (!targetPageId || !texte.trim()) return;
     const noeuds: JSONContent[] = [
-      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: comparaison ? "Comparaison visuelle" : "Analyse visuelle" }] },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: comparaison ? tr("Comparaison visuelle", "Visual comparison") : tr("Analyse visuelle", "Visual analysis") }] },
       // Les images elles-mêmes accompagnent l'analyse : un texte qui décrit une
       // image qu'on ne voit plus perd l'essentiel.
       ...images.map((i) => ({ type: "image", attrs: { src: i.assetPath, align: "none", crop: i.crop } })),
@@ -93,9 +94,9 @@ export default function AnalyseVisuelle({ images, targetPageId, targetPageTitle,
     ];
     if (useBlocksStore.getState().appendNodesToPage(targetPageId, noeuds)) {
       setAjoutee(true);
-      notify(true, `Analyse ajoutée à « ${targetPageTitle || "Sans titre"} ».`);
+      notify(true, tr(`Analyse ajoutée à « ${targetPageTitle || "Sans titre"} ».`, `Analysis added to “${targetPageTitle || "Untitled"}”.`));
     } else {
-      notify(false, "La page visée n'existe plus.");
+      notify(false, tr("La page visée n'existe plus.", "The target page no longer exists."));
     }
   };
 
@@ -104,13 +105,13 @@ export default function AnalyseVisuelle({ images, targetPageId, targetPageTitle,
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ fontWeight: 600, fontSize: 13.5 }}>
-            ✦ {comparaison ? `Comparer ${images.length} images` : "Analyse visuelle"}
+            ✦ {comparaison ? tr(`Comparer ${images.length} images`, `Compare ${images.length} images`) : tr("Analyse visuelle", "Visual analysis")}
           </span>
           <span style={{ fontSize: 10.5, color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
             {modele ? `${modele} · local` : "vision · local"}
           </span>
         </div>
-        <button onClick={onClose} style={fermer} title="Fermer">
+        <button onClick={onClose} style={fermer} title={tr("Fermer", "Close")}>
           ×
         </button>
       </div>
@@ -129,7 +130,11 @@ export default function AnalyseVisuelle({ images, targetPageId, targetPageTitle,
           value={precision}
           onChange={(e) => setPrecision(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && void lancer()}
-          placeholder={comparaison ? "Direction visée (facultatif) : ex. sombre et oppressant" : "Une question sur l'image ? ex. quels symboles y vois-tu"}
+          placeholder={
+            comparaison
+              ? tr("Direction visée (facultatif) : ex. sombre et oppressant", "Target direction (optional): e.g. dark and oppressive")
+              : tr("Une question sur l'image ? ex. quels symboles y vois-tu", "A question about the image? e.g. what symbols do you see")
+          }
           style={champ}
         />
         <button onClick={() => void lancer()} disabled={etat === "analyse"} style={boutonPrincipal}>
@@ -140,14 +145,25 @@ export default function AnalyseVisuelle({ images, targetPageId, targetPageTitle,
       <div className="scroll" style={zoneTexte}>
         {etat === "attente" && (
           <p style={dim}>
-            Précise éventuellement l'ambiance que tu cherches, puis lance la comparaison. L'IA nommera le style de chaque
-            image et te dira laquelle sert le mieux ta direction.
+            {tr(
+              "Précise éventuellement l'ambiance que tu cherches, puis lance la comparaison. L'IA nommera le style de chaque image et te dira laquelle sert le mieux ta direction.",
+              "Optionally describe the mood you're after, then start the comparison. The AI will name each image's style and tell you which one best serves your direction."
+            )}
           </p>
         )}
         {etat === "sans-modele" && (
           <p style={dim}>
-            Aucun modèle capable de voir les images n'est installé. Dans un terminal : <code>ollama pull gemma3:4b</code>{" "}
-            (3,3 Go, gratuit, 100 % local).
+            {enAnglais ? (
+              <>
+                No model able to see images is installed. In a terminal: <code>ollama pull gemma3:4b</code> (3.3 GB, free,
+                100% local).
+              </>
+            ) : (
+              <>
+                Aucun modèle capable de voir les images n'est installé. Dans un terminal : <code>ollama pull gemma3:4b</code>{" "}
+                (3,3 Go, gratuit, 100 % local).
+              </>
+            )}
           </p>
         )}
         {etat === "erreur" && <p style={{ ...dim, color: "var(--danger)" }}>⚠ {erreur}</p>}
@@ -155,8 +171,11 @@ export default function AnalyseVisuelle({ images, targetPageId, targetPageTitle,
           <>
             {!texte && (
               <p style={dim}>
-                <span className="pk-ia-pulse">●</span> L'IA regarde {comparaison ? "les images" : "l'image"}… (le premier
-                appel charge le modèle, comptez 10 à 30 s)
+                <span className="pk-ia-pulse">●</span>{" "}
+                {tr(
+                  `L'IA regarde ${comparaison ? "les images" : "l'image"}… (le premier appel charge le modèle, comptez 10 à 30 s)`,
+                  `The AI is looking at ${comparaison ? "the images" : "the image"}… (the first call loads the model, allow 10 to 30 s)`
+                )}
               </p>
             )}
             <div style={{ fontSize: 13, lineHeight: 1.55 }}>
@@ -171,13 +190,17 @@ export default function AnalyseVisuelle({ images, targetPageId, targetPageTitle,
           onClick={ajouterALaPage}
           disabled={!targetPageId || ajoutee}
           style={targetPageId && !ajoutee ? boutonPrincipal : bouton}
-          title={targetPageId ? "Ajoute les images et l'analyse en bas de la page" : "Ouvre d'abord une page dans la vue Notes"}
+          title={
+            targetPageId
+              ? tr("Ajoute les images et l'analyse en bas de la page", "Adds the images and the analysis at the bottom of the page")
+              : tr("Ouvre d'abord une page dans la vue Notes", "Open a page in the Notes view first")
+          }
         >
           {ajoutee
-            ? "✓ Ajoutée à la page"
+            ? tr("✓ Ajoutée à la page", "✓ Added to the page")
             : targetPageId
-              ? `→ Ajouter à « ${targetPageTitle || "Sans titre"} »`
-              : "Ouvre une page pour y ajouter l'analyse"}
+              ? tr(`→ Ajouter à « ${targetPageTitle || "Sans titre"} »`, `→ Add to “${targetPageTitle || "Untitled"}”`)
+              : tr("Ouvre une page pour y ajouter l'analyse", "Open a page to add the analysis to it")}
         </button>
       )}
     </div>

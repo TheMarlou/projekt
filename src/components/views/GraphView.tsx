@@ -24,6 +24,7 @@ import {
   titreCourt,
   type Noeud,
 } from "../../lib/carteMentale";
+import { tr } from "../../lib/i18n";
 
 /**
  * Carte mentale du projet (refonte spécifiée avec l'utilisateur le 11/09).
@@ -449,14 +450,19 @@ export default function GraphView({
 
     const titreDe = (id: string) => pages.get(id)?.title;
     if (blocks.filter((p) => texteDePage(p, titreDe).length > 20).length < 2) {
-      return erreur("Écris un peu dans au moins deux pages : l'IA s'appuie sur leur contenu pour trouver des liens.");
+      return erreur(
+        tr(
+          "Écris un peu dans au moins deux pages : l'IA s'appuie sur leur contenu pour trouver des liens.",
+          "Write a little in at least two pages: the AI relies on their content to find links."
+        )
+      );
     }
     setSuggestion({ etat: "recherche", propositions: [], debut: Date.now(), gardes: 0 });
     setLienEdite(null);
 
     const disponible = await checkOllamaAvailable();
     if (!disponible.ok) {
-      return erreur("L'IA locale (Ollama) ne répond pas. Lance-la, puis réessaie.");
+      return erreur(tr("L'IA locale (Ollama) ne répond pas. Lance-la, puis réessaie.", "The local AI (Ollama) isn't responding. Start it, then try again."));
     }
     // Paires à ne pas reproposer : l'arbre, les mentions, tes liens, ceux de
     // l'IA déjà gardés… et ceux qu'il a déjà rejetés.
@@ -471,7 +477,10 @@ export default function GraphView({
       setSuggestion({ etat: "pret", propositions, debut: Date.now(), gardes: 0 });
     } catch (err) {
       if (controleur.signal.aborted) return;
-      erreur(`L'IA n'a pas pu répondre : ${err instanceof Error ? err.message : String(err)}`);
+      erreur(tr(
+          `L'IA n'a pas pu répondre : ${err instanceof Error ? err.message : String(err)}`,
+          `The AI couldn't answer: ${err instanceof Error ? err.message : String(err)}`
+        ));
     }
   };
 
@@ -523,7 +532,10 @@ export default function GraphView({
   if (blocks.length === 0) {
     return (
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--text-dim)", fontSize: 13, padding: 24, textAlign: "center" }}>
-        La carte se dessine à partir de tes pages, autour de « {projectName || "ton projet"} ».
+        {tr(
+          `La carte se dessine à partir de tes pages, autour de « ${projectName || "ton projet"} ».`,
+          `The map is drawn from your pages, around “${projectName || "your project"}”.`
+        )}
         <button onClick={() => nouvellePage(null)} style={boutonAccent}>
           + Créer une première page
         </button>
@@ -544,25 +556,28 @@ export default function GraphView({
               }}
               style={bouton}
             >
-              Annuler
+              {tr("Annuler", "Cancel")}
             </button>
           </span>
         ) : (
           <button
             onClick={suggerer}
-            title="L'IA lit tes pages et propose des liens entre elles ; tu gardes ou rejettes chacun."
+            title={tr(
+              "L'IA lit tes pages et propose des liens entre elles ; tu gardes ou rejettes chacun.",
+              "The AI reads your pages and suggests links between them; you keep or reject each one."
+            )}
             style={boutonAccent}
           >
             ✦ Suggérer des liens
           </button>
         )}
-        <button onClick={recadrer} title="Afficher toute la carte" style={bouton}>
+        <button onClick={recadrer} title={tr("Afficher toute la carte", "Show the whole map")} style={bouton}>
           ⤢ Recentrer
         </button>
         {aDesDecalages &&
           (confirmerReorg ? (
             <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-              Remettre toutes les bulles à leur place ?
+              {tr("Remettre toutes les bulles à leur place ?", "Put all bubbles back in place?")}
               <button
                 onClick={() => {
                   reorganiser(projectId);
@@ -570,22 +585,22 @@ export default function GraphView({
                 }}
                 style={boutonAccent}
               >
-                Oui
+                {tr("Oui", "Yes")}
               </button>
               <button onClick={() => setConfirmerReorg(false)} style={bouton}>
-                Non
+                {tr("Non", "No")}
               </button>
             </span>
           ) : (
-            <button onClick={() => setConfirmerReorg(true)} title="Oublier les bulles placées à la main" style={bouton}>
+            <button onClick={() => setConfirmerReorg(true)} title={tr("Oublier les bulles placées à la main", "Forget manually placed bubbles")} style={bouton}>
               ⟲ Réorganiser
             </button>
           ))}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginLeft: 8, fontSize: 11.5, color: "var(--text-dim)" }}>
-          <Legende pointille={false} texte="sous-page" />
+          <Legende pointille={false} texte={tr("sous-page", "sub-page")} />
           <Legende pointille texte="mention" />
-          <Legende pointille={false} texte="tes liens" couleur={couleur} />
-          <Legende pointille={false} texte="liens de l'IA" couleur="var(--lien-ia)" />
+          <Legende pointille={false} texte={tr("tes liens", "your links")} couleur={couleur} />
+          <Legende pointille={false} texte={tr("liens de l'IA", "AI links")} couleur="var(--lien-ia)" />
         </div>
         <span style={{ marginLeft: "auto", fontSize: 11.5, color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
           {blocks.length} page{blocks.length > 1 ? "s" : ""} · {nbMentions} mention{nbMentions > 1 ? "s" : ""} · {Math.round(vue.k * 100)} %
@@ -679,9 +694,9 @@ export default function GraphView({
                   >
                     <title>
                       {type === "proposition"
-                        ? `Proposé par l'IA : ${suggestion?.propositions[proposition!]?.raison ?? ""}`
+                        ? `${tr("Proposé par l'IA", "Suggested by the AI")} : ${suggestion?.propositions[proposition!]?.raison ?? ""}`
                         : type === "ia"
-                          ? `Lien de l'IA : ${lien?.raison}`
+                          ? `${tr("Lien de l'IA", "AI link")} : ${lien?.raison}`
                           : lien?.etiquette || "Clic : couleur, étiquette, supprimer"}
                     </title>
                   </path>
@@ -768,35 +783,41 @@ export default function GraphView({
             {glisseBulle.cible
               ? glisseBulle.cible === pages.get(glisseBulle.id)?.parentId ||
                 (glisseBulle.cible === RACINE && !pages.get(glisseBulle.id)?.parentId)
-                ? "Lâcher ici : remettre à sa place"
-                : `Lâcher ici : ranger dans « ${titreCourt(carte.noeuds.get(glisseBulle.cible)?.titre ?? "")} »`
-              : "Lâcher : placer la bulle ici · sur une autre bulle : l'y ranger · Échap : annuler"}
+                ? tr("Lâcher ici : remettre à sa place", "Drop here: put it back in place")
+                : tr(
+                    `Lâcher ici : ranger dans « ${titreCourt(carte.noeuds.get(glisseBulle.cible)?.titre ?? "")} »`,
+                    `Drop here: file under “${titreCourt(carte.noeuds.get(glisseBulle.cible)?.titre ?? "")}”`
+                  )
+              : tr(
+                "Lâcher : placer la bulle ici · sur une autre bulle : l'y ranger · Échap : annuler",
+                "Drop: place the bubble here · on another bubble: file it there · Esc: cancel"
+              )}
           </div>
         )}
 
         {noeudSel && !glisseBulle?.bouge && !edition && (
           <div data-hors-carte style={barreSelection} onPointerDown={(e) => e.stopPropagation()}>
             <strong style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {noeudSel.titre || "Sans titre"}
+              {noeudSel.titre || tr("Sans titre", "Untitled")}
             </strong>
             {selection !== RACINE && (
-              <button onClick={() => onOpenBlock(noeudSel.id)} style={boutonAccent} title="Ouvrir la page — Entrée">
-                Ouvrir la page
+              <button onClick={() => onOpenBlock(noeudSel.id)} style={boutonAccent} title={tr("Ouvrir la page — Entrée", "Open page — Enter")}>
+                {tr("Ouvrir la page", "Open page")}
               </button>
             )}
             <button
               onClick={() => nouvellePage(selection === RACINE ? null : noeudSel.id)}
               style={bouton}
-              title={selection === RACINE ? "Nouvelle page du projet" : "Nouvelle sous-page de celle-ci"}
+              title={selection === RACINE ? tr("Nouvelle page du projet", "New project page") : tr("Nouvelle sous-page de celle-ci", "New sub-page of this one")}
             >
               {selection === RACINE ? "+ Page" : "+ Sous-page"}
             </button>
             <button
               onClick={() => setEdition({ id: noeudSel.id, valeur: selection === RACINE ? projectName : pages.get(noeudSel.id)?.title ?? "" })}
               style={bouton}
-              title="Double-clic sur la bulle, aussi"
+              title={tr("Double-clic sur la bulle, aussi", "Or double-click the bubble")}
             >
-              Renommer
+              {tr("Renommer", "Rename")}
             </button>
             {noeudSel.aDesEnfants && selection !== RACINE && (
               <button onClick={() => basculer(noeudSel.id)} style={bouton}>
@@ -804,7 +825,7 @@ export default function GraphView({
               </button>
             )}
             {noeudSel.decalee && (
-              <button onClick={() => oublier([noeudSel.id])} style={bouton} title="Revenir à la place automatique">
+              <button onClick={() => oublier([noeudSel.id])} style={bouton} title={tr("Revenir à la place automatique", "Back to the automatic position")}>
                 ↺ Remettre en place
               </button>
             )}
@@ -818,7 +839,7 @@ export default function GraphView({
             // Titre entièrement sélectionné : taper le remplace, comme dans un explorateur.
             onFocus={(e) => e.currentTarget.select()}
             value={edition.valeur}
-            placeholder={edition.id === RACINE ? "Nom du projet" : "Titre de la page"}
+            placeholder={edition.id === RACINE ? tr("Nom du projet", "Project name") : tr("Titre de la page", "Page title")}
             onChange={(e) => setEdition({ ...edition, valeur: e.target.value })}
             onBlur={validerEdition}
             onKeyDown={(e) => {
@@ -848,7 +869,7 @@ export default function GraphView({
                 style={{ ...editeurStyle, left: vue.x + milieu.x * vue.k, top: vue.y + milieu.y * vue.k }}
               >
                 <div style={{ fontSize: 11.5, color: "var(--text-dim)" }}>
-                  Lien de l'IA · « {titreCourt(pages.get(lien.de)?.title ?? "")} » → « {titreCourt(pages.get(lien.vers)?.title ?? "")} »
+                  {tr("Lien de l'IA", "AI link")} · « {titreCourt(pages.get(lien.de)?.title ?? "")} » → « {titreCourt(pages.get(lien.vers)?.title ?? "")} »
                 </div>
                 <div>{lien.raison}</div>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
@@ -860,14 +881,14 @@ export default function GraphView({
                     }}
                     style={{ ...bouton, color: "var(--danger)", borderColor: "transparent", padding: "4px 6px" }}
                   >
-                    Supprimer
+                    {tr("Supprimer", "Delete")}
                   </button>
                   <button
                     onClick={() => modifierLien(lien.id, { type: "humain", couleur })}
                     style={boutonAccent}
-                    title="Il devient un de tes liens : couleur et étiquette au choix"
+                    title={tr("Il devient un de tes liens : couleur et étiquette au choix", "It becomes one of your links: pick a colour and a label")}
                   >
-                    En faire un de mes liens
+                    {tr("En faire un de mes liens", "Make it one of my links")}
                   </button>
                 </div>
               </div>
@@ -900,7 +921,7 @@ export default function GraphView({
         {suggestion && suggestion.etat !== "recherche" && (
           <div data-hors-carte style={panneauPropositions} onPointerDown={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-              <strong style={{ fontSize: 12.5 }}>✦ Liens proposés par l'IA</strong>
+              <strong style={{ fontSize: 12.5 }}>✦ {tr("Liens proposés par l'IA", "Links suggested by the AI")}</strong>
               <button onClick={() => setSuggestion(null)} style={{ ...bouton, border: "none", padding: "0 4px" }} title="Fermer">
                 ×
               </button>
@@ -909,14 +930,20 @@ export default function GraphView({
             {suggestion.etat === "pret" && suggestion.propositions.length === 0 && (
               <div style={{ color: "var(--text-dim)" }}>
                 {suggestion.gardes
-                  ? `${suggestion.gardes} lien${suggestion.gardes > 1 ? "s" : ""} gardé${suggestion.gardes > 1 ? "s" : ""} : ce sont les traits « liens de l'IA » sur la carte.`
-                  : suggestion.message ?? "Aucun nouveau lien évident : l'IA n'en invente pas."}
+                  ? tr(
+                      `${suggestion.gardes} lien${suggestion.gardes > 1 ? "s" : ""} gardé${suggestion.gardes > 1 ? "s" : ""} : ce sont les traits « liens de l'IA » sur la carte.`,
+                      `${suggestion.gardes} link${suggestion.gardes > 1 ? "s" : ""} kept: they are the “AI links” lines on the map.`
+                    )
+                  : suggestion.message ?? tr("Aucun nouveau lien évident : l'IA n'en invente pas.", "No obvious new link: the AI doesn't make them up.")}
               </div>
             )}
             {suggestion.propositions.length > 0 && (
               <>
                 <div style={{ fontSize: 11.5, color: "var(--text-dim)" }}>
-                  Rien n'est ajouté sans toi : garde ou rejette chaque lien. Un lien rejeté ne sera plus proposé.
+                  {tr(
+                    "Rien n'est ajouté sans toi : garde ou rejette chaque lien. Un lien rejeté ne sera plus proposé.",
+                    "Nothing is added without you: keep or reject each link. A rejected link won't be suggested again."
+                  )}
                 </div>
                 <div className="scroll" style={{ display: "flex", flexDirection: "column", gap: 6, overflowY: "auto", maxHeight: 320 }}>
                   {suggestion.propositions.map((p, i) => (
@@ -946,10 +973,10 @@ export default function GraphView({
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <button onClick={() => toutDecider(true)} style={bouton}>
-                    Tout garder
+                    {tr("Tout garder", "Keep all")}
                   </button>
                   <button onClick={() => toutDecider(false)} style={bouton}>
-                    Tout rejeter
+                    {tr("Tout rejeter", "Reject all")}
                   </button>
                 </div>
               </>
@@ -960,8 +987,11 @@ export default function GraphView({
         {trace && (
           <div style={{ ...barreSelection, pointerEvents: "none" }}>
             {trace.cible
-              ? `Lâcher : relier à « ${titreCourt(carte.noeuds.get(trace.cible)?.titre ?? "")} »`
-              : "Tire jusqu'à une autre page pour les relier · Échap : annuler"}
+              ? tr(
+                  `Lâcher : relier à « ${titreCourt(carte.noeuds.get(trace.cible)?.titre ?? "")} »`,
+                  `Drop: link to “${titreCourt(carte.noeuds.get(trace.cible)?.titre ?? "")}”`
+                )
+              : tr("Tire jusqu'à une autre page pour les relier · Échap : annuler", "Drag to another page to link them · Esc: cancel")}
           </div>
         )}
 
@@ -976,8 +1006,10 @@ export default function GraphView({
         )}
 
         <div style={aide}>
-          Glisser le fond : se déplacer · Molette : zoom · Glisser une bulle : la placer, ou la lâcher sur une autre pour l'y ranger ·
-          Tirer le ● d'une bulle : relier deux pages · Double-clic : renommer · Double-clic sur le fond : nouvelle page
+          {tr(
+            "Glisser le fond : se déplacer · Molette : zoom · Glisser une bulle : la placer, ou la lâcher sur une autre pour l'y ranger · Tirer le ● d'une bulle : relier deux pages · Double-clic : renommer · Double-clic sur le fond : nouvelle page",
+            "Drag the background: move · Wheel: zoom · Drag a bubble: place it, or drop it on another to file it there · Pull a bubble's ●: link two pages · Double-click: rename · Double-click the background: new page"
+          )}
         </div>
       </div>
     </div>
@@ -1078,7 +1110,14 @@ function Bulle({
           }}
           onDoubleClick={(e) => e.stopPropagation()}
         >
-          <title>{n.caches ? `Déplier : ${n.caches} page${n.caches > 1 ? "s" : ""} cachée${n.caches > 1 ? "s" : ""}` : "Replier cette branche"}</title>
+          <title>
+            {n.caches
+              ? tr(
+                  `Déplier : ${n.caches} page${n.caches > 1 ? "s" : ""} cachée${n.caches > 1 ? "s" : ""}`,
+                  `Expand: ${n.caches} hidden page${n.caches > 1 ? "s" : ""}`
+                )
+              : tr("Replier cette branche", "Collapse this branch")}
+          </title>
           <circle r={n.caches ? 10 : 7.5} fill="var(--surface)" stroke="var(--accent)" strokeWidth={1.2} />
           <text
             textAnchor="middle"
@@ -1104,7 +1143,7 @@ function Bulle({
           }}
           onDoubleClick={(e) => e.stopPropagation()}
         >
-          <title>Tirer jusqu'à une autre page pour les relier</title>
+          <title>{tr("Tirer jusqu'à une autre page pour les relier", "Drag to another page to link them")}</title>
           {/* Zone de prise plus large que le point visible. */}
           <circle r={10} fill="transparent" />
           <circle r={5.5} fill={couleurLien} stroke="var(--bg)" strokeWidth={1.5} />
@@ -1178,7 +1217,7 @@ function EditeurLien({
         autoFocus
         value={texte}
         maxLength={40}
-        placeholder="Étiquette (facultative) : allié, ennemi, se trouve à…"
+        placeholder={tr("Étiquette (facultative) : allié, ennemi, se trouve à…", "Label (optional): ally, enemy, located in…")}
         onChange={(e) => setTexte(e.target.value)}
         onBlur={() => texte.trim() !== etiquette && onEtiquette(texte.trim())}
         onKeyDown={(e) => {
@@ -1189,7 +1228,7 @@ function EditeurLien({
       />
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
         <button onClick={onSupprimer} style={{ ...bouton, color: "var(--danger)", borderColor: "transparent", padding: "4px 6px" }}>
-          Supprimer le lien
+          {tr("Supprimer le lien", "Delete link")}
         </button>
         <button onClick={valider} style={boutonAccent}>
           OK
@@ -1221,9 +1260,9 @@ function Apercu({
   const haut = Math.min(y - r.top + 16, r.height - 110);
   return (
     <div style={{ ...apercuStyle, left: Math.max(8, gauche), top: Math.max(8, haut) }}>
-      <div style={{ fontWeight: 600, marginBottom: 4 }}>{page.title || "Sans titre"}</div>
+      <div style={{ fontWeight: 600, marginBottom: 4 }}>{page.title || tr("Sans titre", "Untitled")}</div>
       <div style={{ color: "var(--text-dim)" }}>
-        {texte ? (texte.length > 180 ? `${texte.slice(0, 179)}…` : texte) : "Page vide."}
+        {texte ? (texte.length > 180 ? `${texte.slice(0, 179)}…` : texte) : tr("Page vide.", "Empty page.")}
       </div>
     </div>
   );
