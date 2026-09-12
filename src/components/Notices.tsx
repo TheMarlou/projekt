@@ -18,6 +18,26 @@ export default function Notices() {
           }}
         >
           <span style={{ flex: 1 }}>{n.message}</span>
+          {n.action && (
+            <button
+              onClick={() => {
+                n.action?.run();
+                dismissNotice(n.id);
+              }}
+              style={{
+                border: "1px solid var(--border)",
+                background: "transparent",
+                color: "var(--accent)",
+                borderRadius: 5,
+                cursor: "pointer",
+                fontSize: 12,
+                padding: "1px 8px",
+                flexShrink: 0,
+              }}
+            >
+              {n.action.label}
+            </button>
+          )}
           <button
             onClick={() => dismissNotice(n.id)}
             title="Fermer"

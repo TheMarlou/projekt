@@ -10,6 +10,8 @@ export interface Notice {
   id: number;
   ok: boolean;
   message: string;
+  /** Bouton facultatif à côté du message (« Voir »…). */
+  action?: { label: string; run: () => void };
 }
 
 const DUREE_SUCCES_MS = 6000;
@@ -22,9 +24,9 @@ function publier() {
   auditeurs.forEach((notifier) => notifier());
 }
 
-export function notify(ok: boolean, message: string): number {
+export function notify(ok: boolean, message: string, action?: Notice["action"]): number {
   const id = suivant++;
-  notices = [...notices, { id, ok, message }];
+  notices = [...notices, { id, ok, message, action }];
   publier();
   if (ok) setTimeout(() => dismissNotice(id), DUREE_SUCCES_MS);
   return id;

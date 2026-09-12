@@ -1,4 +1,6 @@
 import type { ContextMenuGroup } from "../components/editor/ContextMenu";
+import { activerVerification, derniereVersion, verificationActivee } from "./misesAJour";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { notify } from "./notify";
 import { exportPageMarkdown, exportProject, importProject, type IOResult } from "./projectIO";
 
@@ -64,5 +66,40 @@ export function fileMenuGroups(options: {
     });
   }
 
+  if (partage) {
+    const active = verificationActivee();
+    groupes.push({
+      caption: "Aide",
+      entries: [
+        {
+          label: "Signaler un problème…",
+          run: () => window.dispatchEvent(new CustomEvent(EVENEMENT_SIGNALER)),
+        },
+        {
+          label: active ? "Mises à jour : vérification activée" : "Mises à jour : vérification désactivée",
+          hint: active ? "désactiver" : "activer",
+          run: () => {
+            activerVerification(!active);
+            if (active) {
+              notify(true, "Vérification des mises à jour désactivée : Projekt ne contacte plus internet de lui-même.");
+              return;
+            }
+            notify(true, "Vérification activée : Projekt demandera à GitHub, une fois par jour au plus, s'il existe une nouvelle version.");
+            void derniereVersion()
+              .then((maj) =>
+                maj
+                  ? notify(true, `Projekt ${maj.version} est disponible.`, { label: "Voir", run: () => void openUrl(maj.url) })
+                  : notify(true, "Tu as la dernière version de Projekt.")
+              )
+              .catch(() => notify(false, "Impossible de joindre GitHub pour l'instant : nouvel essai au prochain démarrage."));
+          },
+        },
+      ],
+    });
+  }
+
   return groupes;
 }
+
+/** Ouvre la fenêtre « Signaler un problème » (écoutée par App). */
+export const EVENEMENT_SIGNALER = "projekt:signaler-probleme";

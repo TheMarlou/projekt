@@ -1,6 +1,7 @@
 import FileMenuButton from "./FileMenu";
 import Logo from "./Logo";
 import SaveStatus from "./SaveStatus";
+import TelephoneMenu from "./TelephoneMenu";
 import ThemeMenu from "./ThemeMenu";
 
 export type ViewId = "notes" | "moodboard" | "graph";
@@ -103,6 +104,7 @@ export default function TopBar({
         </button>
       </div>
 
+      <TelephoneMenu />
       <ThemeMenu />
     </header>
   );

@@ -25,6 +25,8 @@
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
     "@tiptap/suggestion": "^3.31.3",
+    "html-to-image": "^1.11.13",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^4.5.4",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.1.0",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",

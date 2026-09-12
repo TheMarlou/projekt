@@ -12,6 +12,10 @@ import { useBlocksStore } from "./store/blocksStore";
 import { useCanvasStore } from "./store/canvasStore";
 import { useProjectsStore } from "./store/projectsStore";
 import { useCarteStore } from "./store/carteStore";
+import { demarrerReception } from "./lib/telephone";
+import SignalerBug from "./components/SignalerBug";
+import { EVENEMENT_SIGNALER } from "./lib/fileActions";
+import { annoncerMiseAJour } from "./lib/misesAJour";
 
 export default function App() {
   const { projects, addProject, renameProject, deleteProject, moveProject, hydrate: hydrateProjects } =
@@ -36,6 +40,13 @@ export default function App() {
   const [view, setView] = useState<ViewId>("notes");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [recherche, setRecherche] = useState(false);
+  const [signalement, setSignalement] = useState(false);
+
+  useEffect(() => {
+    const ouvrir = () => setSignalement(true);
+    window.addEventListener(EVENEMENT_SIGNALER, ouvrir);
+    return () => window.removeEventListener(EVENEMENT_SIGNALER, ouvrir);
+  }, []);
 
   // Ctrl+P ouvre la recherche partout (et empêche l'impression de la page, que
   // la vue web ferait sinon).
@@ -61,6 +72,18 @@ export default function App() {
       .finally(() => setReady(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Réception depuis Projekt Mobile : seulement une fois les données chargées,
+  // sinon un élément arrivé pendant le démarrage ne trouverait pas son projet.
+  useEffect(() => {
+    if (!ready) return;
+    void annoncerMiseAJour();
+    void demarrerReception((projectId, vue, pageId) => {
+      setSelectedProjectId(projectId);
+      if (pageId) setSelectedId(pageId);
+      setView(vue);
+    });
+  }, [ready]);
 
   const project = projects.find((p) => p.id === selectedProjectId) ?? null;
   const pages = selectedProjectId ? allBlocks.filter((b) => b.projectId === selectedProjectId) : [];
@@ -242,6 +265,7 @@ export default function App() {
         onOpenPage={handleOpenPage}
       />
       <Notices />
+      <SignalerBug ouvert={signalement} onFermer={() => setSignalement(false)} />
       <Recherche
         ouvert={recherche}
         projetCourant={selectedProjectId}

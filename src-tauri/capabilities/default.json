@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Permissions par défaut de Projekt",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "sql:default",
@@ -11,7 +13,17 @@
     "dialog:allow-open",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "http://*" }, { "url": "https://*" }]
+      "allow": [
+        {
+          "url": "http://*"
+        },
+        {
+          "url": "https://*"
+        },
+        {
+          "url": "mailto:*"
+        }
+      ]
     }
   ]
 }
