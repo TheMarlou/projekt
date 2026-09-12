@@ -1,3 +1,4 @@
+import { tr } from "./lib/i18n";
 /**
  * Thèmes de Projekt : un FOND (sombre, clair, ou l'une des variantes colorées)
  * × une COULEUR PRINCIPALE × les deux couleurs de liens de la carte mentale.
@@ -29,7 +30,7 @@ interface ModePalette {
 
 export const PALETTES: Record<ThemeMode, ModePalette> = {
   dark: {
-    label: "Sombre",
+    label: tr("Sombre", "Dark"),
     clair: false,
     bg: "#14161c",
     surface: "#1b1e26",
@@ -41,7 +42,7 @@ export const PALETTES: Record<ThemeMode, ModePalette> = {
     accent2Soft: "#17302b",
   },
   nuit: {
-    label: "Nuit bleue",
+    label: tr("Nuit bleue", "Night blue"),
     clair: false,
     bg: "#0f1626",
     surface: "#151e31",
@@ -53,7 +54,7 @@ export const PALETTES: Record<ThemeMode, ModePalette> = {
     accent2Soft: "#16302f",
   },
   foret: {
-    label: "Forêt",
+    label: tr("Forêt", "Forest"),
     clair: false,
     bg: "#111a15",
     surface: "#16221b",
@@ -65,7 +66,7 @@ export const PALETTES: Record<ThemeMode, ModePalette> = {
     accent2Soft: "#173040",
   },
   prune: {
-    label: "Prune",
+    label: tr("Prune", "Plum"),
     clair: false,
     bg: "#1a1320",
     surface: "#211828",
@@ -77,7 +78,7 @@ export const PALETTES: Record<ThemeMode, ModePalette> = {
     accent2Soft: "#173030",
   },
   light: {
-    label: "Clair",
+    label: tr("Clair", "Light"),
     clair: true,
     bg: "#f2f3f6",
     surface: "#ffffff",
@@ -89,7 +90,7 @@ export const PALETTES: Record<ThemeMode, ModePalette> = {
     accent2Soft: "#dbede8",
   },
   papier: {
-    label: "Papier",
+    label: tr("Papier", "Paper"),
     clair: true,
     bg: "#f4efe4",
     surface: "#fbf8f1",
@@ -101,7 +102,7 @@ export const PALETTES: Record<ThemeMode, ModePalette> = {
     accent2Soft: "#dbece5",
   },
   menthe: {
-    label: "Menthe",
+    label: tr("Menthe", "Mint"),
     clair: true,
     bg: "#eef6f2",
     surface: "#fbfefc",
@@ -129,31 +130,31 @@ export const ACCENTS: Record<AccentId, { label: string; swatch: string; dark: Pa
     light: { accent: "#a86a08", accentSoft: "#f3e3c4" },
   },
   jaune: {
-    label: "Jaune",
+    label: tr("Jaune", "Yellow"),
     swatch: "#e3c345",
     dark: { accent: "#e3c345", accentSoft: "#3a3217" },
     light: { accent: "#8a6d00", accentSoft: "#f3ead0" },
   },
   rouge: {
-    label: "Rouge",
+    label: tr("Rouge", "Red"),
     swatch: "#e5655c",
     dark: { accent: "#e5655c", accentSoft: "#3a1c1a" },
     light: { accent: "#b3261e", accentSoft: "#f6dcda" },
   },
   rose: {
-    label: "Rose",
+    label: tr("Rose", "Pink"),
     swatch: "#ec7fb4",
     dark: { accent: "#ec7fb4", accentSoft: "#3a1d2d" },
     light: { accent: "#b8336f", accentSoft: "#f7dce9" },
   },
   violet: {
-    label: "Violet",
+    label: tr("Violet", "Purple"),
     swatch: "#a98cf0",
     dark: { accent: "#a98cf0", accentSoft: "#2a2440" },
     light: { accent: "#6d43d6", accentSoft: "#e7defb" },
   },
   blue: {
-    label: "Bleu",
+    label: tr("Bleu", "Blue"),
     swatch: "#5fa8ea",
     dark: { accent: "#5fa8ea", accentSoft: "#182a3d" },
     light: { accent: "#1f66c9", accentSoft: "#dae8fb" },
@@ -165,7 +166,7 @@ export const ACCENTS: Record<AccentId, { label: string; swatch: string; dark: Pa
     light: { accent: "#0a7c8c", accentSoft: "#d3eff2" },
   },
   vert: {
-    label: "Vert",
+    label: tr("Vert", "Green"),
     swatch: "#5fbf77",
     dark: { accent: "#5fbf77", accentSoft: "#1b3222" },
     light: { accent: "#1f7a3a", accentSoft: "#d9efe0" },
@@ -182,14 +183,14 @@ export const ACCENT_LIST = Object.entries(ACCENTS).map(([id, v]) => ({ id: id as
 
 /** Couleurs proposées pour les liens de la carte, en version fond sombre / fond clair. */
 export const COULEURS_LIENS: Record<CouleurLienId, { label: string; sombre: string; clair: string }> = {
-  accent: { label: "Couleur principale", sombre: "var(--accent)", clair: "var(--accent)" },
+  accent: { label: tr("Couleur principale", "Main colour"), sombre: "var(--accent)", clair: "var(--accent)" },
   cyan: { label: "Cyan", sombre: "#22d3ee", clair: "#0e7490" },
-  violet: { label: "Violet", sombre: "#a78bfa", clair: "#6d28d9" },
-  rose: { label: "Rose", sombre: "#f472b6", clair: "#be185d" },
-  vert: { label: "Vert", sombre: "#4ade80", clair: "#15803d" },
-  jaune: { label: "Jaune", sombre: "#facc15", clair: "#a16207" },
+  violet: { label: tr("Violet", "Purple"), sombre: "#a78bfa", clair: "#6d28d9" },
+  rose: { label: tr("Rose", "Pink"), sombre: "#f472b6", clair: "#be185d" },
+  vert: { label: tr("Vert", "Green"), sombre: "#4ade80", clair: "#15803d" },
+  jaune: { label: tr("Jaune", "Yellow"), sombre: "#facc15", clair: "#a16207" },
   orange: { label: "Orange", sombre: "#fb923c", clair: "#c2410c" },
-  texte: { label: "Blanc (noir sur fond clair)", sombre: "var(--text)", clair: "var(--text)" },
+  texte: { label: tr("Blanc (noir sur fond clair)", "White (black on light backgrounds)"), sombre: "var(--text)", clair: "var(--text)" },
 };
 
 export const COULEUR_LIEN_LIST = Object.entries(COULEURS_LIENS).map(([id, v]) => ({ id: id as CouleurLienId, ...v }));

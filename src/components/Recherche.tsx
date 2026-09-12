@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { useBlocksStore } from "../store/blocksStore";
 import { useProjectsStore } from "../store/projectsStore";
 import { rechercher } from "../lib/recherche";
+import { tr } from "../lib/i18n";
 
 /**
  * Recherche globale (Ctrl+P, ou le bouton de la barre du haut) : toutes les
@@ -25,7 +26,7 @@ export default function Recherche({
   const projets = useProjectsStore((s) => s.projects);
   const liste = useRef<HTMLDivElement>(null);
 
-  const noms = useMemo(() => new Map(projets.map((p) => [p.id, p.name || "Sans titre"])), [projets]);
+  const noms = useMemo(() => new Map(projets.map((p) => [p.id, p.name || tr("Sans titre", "Untitled")])), [projets]);
   const resultats = useMemo(
     () => (ouvert ? rechercher(pages, noms, requete, projetCourant) : []),
     [ouvert, pages, noms, requete, projetCourant]
@@ -54,7 +55,7 @@ export default function Recherche({
 
   return (
     <div style={voile} onMouseDown={onFermer}>
-      <div style={boite} onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-label="Rechercher dans les pages">
+      <div style={boite} onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Rechercher dans les pages", "Search pages")}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden style={{ color: "var(--text-dim)", flexShrink: 0 }}>
             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
@@ -64,7 +65,7 @@ export default function Recherche({
             autoFocus
             value={requete}
             onChange={(e) => setRequete(e.target.value)}
-            placeholder="Rechercher dans toutes les pages…"
+            placeholder={tr("Rechercher dans toutes les pages…", "Search all pages…")}
             onKeyDown={(e) => {
               if (e.key === "Escape") onFermer();
               else if (e.key === "ArrowDown") {
@@ -80,14 +81,19 @@ export default function Recherche({
             }}
             style={champ}
           />
-          <kbd style={{ fontSize: 10.5 }}>Échap</kbd>
+          <kbd style={{ fontSize: 10.5 }}>{tr("Échap", "Esc")}</kbd>
         </div>
 
         <div ref={liste} className="scroll" style={{ maxHeight: "min(60vh, 460px)", overflowY: "auto", padding: 6 }}>
           {!requete.trim() && (
-            <div style={vide}>Tape un mot : titre ou contenu, sans te soucier des accents ni des majuscules.</div>
+            <div style={vide}>
+              {tr(
+                "Tape un mot : titre ou contenu, sans te soucier des accents ni des majuscules.",
+                "Type a word: title or content, accents and capitals don't matter."
+              )}
+            </div>
           )}
-          {requete.trim() && resultats.length === 0 && <div style={vide}>Aucune page ne contient « {requete.trim()} ».</div>}
+          {requete.trim() && resultats.length === 0 && <div style={vide}>{tr(`Aucune page ne contient « ${requete.trim()} ».`, `No page contains “${requete.trim()}”.`)}</div>}
           {resultats.map((r, i) => (
             <button
               key={r.pageId}
@@ -117,7 +123,7 @@ export default function Recherche({
 
         {resultats.length > 0 && (
           <div style={{ padding: "7px 14px", borderTop: "1px solid var(--border)", fontSize: 11, color: "var(--text-dim)" }}>
-            {resultats.length} page{resultats.length > 1 ? "s" : ""} · <kbd>↑</kbd> <kbd>↓</kbd> choisir · <kbd>Entrée</kbd> ouvrir
+            {resultats.length} page{resultats.length > 1 ? "s" : ""} · <kbd>↑</kbd> <kbd>↓</kbd> {tr("choisir", "select")} · <kbd>{tr("Entrée", "Enter")}</kbd> {tr("ouvrir", "open")}
           </div>
         )}
       </div>

@@ -19,6 +19,7 @@ import InlineAi from "../editor/InlineAi";
 import { setCurrentPageId } from "../editor/PageLink";
 import PagePicker from "../editor/PagePicker";
 import RichTextBlock from "../editor/RichTextBlock";
+import { tr, enAnglais } from "../../lib/i18n";
 
 interface NotesViewProps {
   page: Block | null;
@@ -133,8 +134,8 @@ export default function NotesView({
       >
         <p style={{ margin: 0 }}>
           {pages.length === 0
-            ? "Ce projet n'a pas encore de page."
-            : "Aucune page ouverte — choisis-en une dans la colonne de gauche."}
+            ? tr("Ce projet n'a pas encore de page.", "This project has no pages yet.")
+            : tr("Aucune page ouverte — choisis-en une dans la colonne de gauche.", "No page open — pick one in the left column.")}
         </p>
         <button
           onClick={onCreateRootPage}
@@ -147,7 +148,7 @@ export default function NotesView({
             fontSize: 13,
           }}
         >
-          + Créer une page
+          + {tr("Créer une page", "Create a page")}
         </button>
       </div>
     );
@@ -167,7 +168,7 @@ export default function NotesView({
         <input
           value={page.title}
           onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="Titre de la page"
+          placeholder={tr("Titre de la page", "Page title")}
           style={{
             width: "100%",
             background: "transparent",
@@ -197,8 +198,10 @@ export default function NotesView({
             quelqu'un lit vraiment l'interface, et elle deviendrait du bruit ensuite. */}
         {estVide(page) && (
           <div style={hintStyle}>
-            Clic droit n'importe où pour insérer une sous-page, une mention, une image, un tableau ou un lien — ou tape
-            « / » directement dans le texte. Ctrl+Espace appelle l'IA à l'endroit du curseur.
+            {tr(
+              "Clic droit n'importe où pour insérer une sous-page, une mention, une image, un tableau ou un lien — ou tape « / » directement dans le texte. Ctrl+Espace appelle l'IA à l'endroit du curseur.",
+              "Right-click anywhere to insert a sub-page, a mention, an image, a table or a link — or type “/” straight into the text. Ctrl+Space calls the AI at the cursor."
+            )}
           </div>
         )}
       </div>
@@ -210,31 +213,31 @@ export default function NotesView({
           onClose={() => setMenu(null)}
           groups={[
             {
-              caption: "Insérer ici",
+              caption: tr("Insérer ici", "Insert here"),
               entries: [
                 {
-                  label: "Sous-page",
+                  label: tr("Sous-page", "Sub-page"),
                   hint: "/page",
                   disabled: !activeEditor,
                   run: requestSubPage,
                 },
                 {
-                  label: "Mention de page",
+                  label: tr("Mention de page", "Page mention"),
                   hint: "/mention",
                   disabled: !activeEditor,
                   run: requestMention,
                 },
-                { label: "Hyperlien", hint: "Ctrl+K", disabled: !activeEditor, run: requestLink },
+                { label: tr("Hyperlien", "Hyperlink"), hint: "Ctrl+K", disabled: !activeEditor, run: requestLink },
                 { label: "Image", disabled: !activeEditor, run: requestImage },
-                { label: "Fichier audio", hint: "/audio", disabled: !activeEditor, run: requestAudio },
+                { label: tr("Fichier audio", "Audio file"), hint: "/audio", disabled: !activeEditor, run: requestAudio },
                 {
-                  label: "Cases à cocher",
-                  hint: "Ctrl+Maj+9",
+                  label: tr("Cases à cocher", "Checkboxes"),
+                  hint: tr("Ctrl+Maj+9", "Ctrl+Shift+9"),
                   disabled: !activeEditor,
                   run: () => activeEditor?.chain().focus().toggleTaskList().run(),
                 },
                 {
-                  label: "Tableau",
+                  label: tr("Tableau", "Table"),
                   disabled: !activeEditor,
                   run: () =>
                     activeEditor
@@ -244,15 +247,15 @@ export default function NotesView({
                       .run(),
                 },
                 {
-                  label: "Séparateur",
+                  label: tr("Séparateur", "Divider"),
                   disabled: !activeEditor,
                   run: () => activeEditor?.chain().focus().setHorizontalRule().run(),
                 },
               ],
             },
             {
-              caption: "Ajouter à la page",
-              entries: [{ label: "Bloc de texte", run: onAddText }],
+              caption: tr("Ajouter à la page", "Add to page"),
+              entries: [{ label: tr("Bloc de texte", "Text block"), run: onAddText }],
             },
           ]}
         />
@@ -272,19 +275,20 @@ export default function NotesView({
 
       {pendingDelete && (
         <ConfirmDialog
-          title={`Supprimer la sous-page « ${target?.title?.trim() || "Sans titre"} » ?`}
+          title={tr(
+            `Supprimer la sous-page « ${target?.title?.trim() || "Sans titre"} » ?`,
+            `Delete the sub-page “${target?.title?.trim() || "Untitled"}”?`
+          )}
           body={
             <>
-              {descendants > 0 && (
-                <>
-                  Elle contient {descendants} sous-page{descendants > 1 ? "s" : ""}, qui ser
-                  {descendants > 1 ? "ont" : "a"} supprimée{descendants > 1 ? "s" : ""} aussi.{" "}
-                </>
-              )}
-              Son contenu sera perdu. Cette action est définitive.
+              {descendants > 0 &&
+                (enAnglais
+                  ? `It contains ${descendants} sub-page${descendants > 1 ? "s" : ""}, which will be deleted too. `
+                  : `Elle contient ${descendants} sous-page${descendants > 1 ? "s" : ""}, qui ser${descendants > 1 ? "ont" : "a"} supprimée${descendants > 1 ? "s" : ""} aussi. `)}
+              {tr("Son contenu sera perdu. Cette action est définitive.", "Its content will be lost. This cannot be undone.")}
             </>
           }
-          confirmLabel="Supprimer"
+          confirmLabel={tr("Supprimer", "Delete")}
           onConfirm={confirmDelete}
           onCancel={() => setPendingDelete(null)}
         />

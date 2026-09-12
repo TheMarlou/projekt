@@ -3,6 +3,7 @@ import Logo from "./Logo";
 import SaveStatus from "./SaveStatus";
 import TelephoneMenu from "./TelephoneMenu";
 import ThemeMenu from "./ThemeMenu";
+import { tr } from "../lib/i18n";
 
 export type ViewId = "notes" | "moodboard" | "graph";
 
@@ -81,7 +82,7 @@ export default function TopBar({
         {/* Ctrl+K sert à insérer un lien dans l'éditeur : la recherche prend Ctrl+P, comme dans Notion. */}
         <button
           onClick={onRecherche}
-          title="Rechercher dans toutes les pages — Ctrl+P"
+          title={tr("Rechercher dans toutes les pages — Ctrl+P", "Search all pages — Ctrl+P")}
           style={{
             display: "flex",
             alignItems: "center",
@@ -99,7 +100,7 @@ export default function TopBar({
             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
             <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          Rechercher
+          {tr("Rechercher", "Search")}
           <kbd style={{ fontSize: 10.5 }}>Ctrl P</kbd>
         </button>
       </div>

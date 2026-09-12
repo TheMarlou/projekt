@@ -1,12 +1,14 @@
 import type { ContextMenuGroup } from "../components/editor/ContextMenu";
-import { activerVerification, derniereVersion, verificationActivee } from "./misesAJour";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { changerLangue, langue, tr } from "./i18n";
+import { activerVerification, derniereVersion, verificationActivee } from "./misesAJour";
 import { notify } from "./notify";
 import { exportPageMarkdown, exportProject, importProject, type IOResult } from "./projectIO";
 
 /**
- * Entrées « Sauvegarder sous » / « Importer », partagées entre le bouton de la
- * barre du haut et le clic droit sur un projet dans la barre latérale.
+ * Entrées du menu ☰ (sauvegarder, importer, exporter, aide, langue), partagées
+ * entre le bouton de la barre du haut et le clic droit sur un projet dans la
+ * barre latérale.
  *
  * Le travail réel est dans `projectIO` ; ici on ne fait qu'annoncer le résultat.
  * Ce fichier ne contient aucun composant, pour ne pas casser le rafraîchissement
@@ -19,6 +21,9 @@ async function annoncer(travail: Promise<IOResult>) {
   if (resultat.annule) return;
   notify(resultat.ok, resultat.message);
 }
+
+/** Ouvre la fenêtre « Signaler un problème » (écoutée par App). */
+export const EVENEMENT_SIGNALER = "projekt:signaler-probleme";
 
 export function fileMenuGroups(options: {
   projectId: string | null;
@@ -36,70 +41,104 @@ export function fileMenuGroups(options: {
 
   const groupes: ContextMenuGroup[] = [
     {
-      caption: "Sauvegarder",
+      caption: tr("Sauvegarder", "Save"),
       entries: [
         {
-          label: projectName ? `Sauvegarder « ${projectName} » sous…` : "Sauvegarder le projet sous…",
+          label: projectName
+            ? tr(`Sauvegarder « ${projectName} » sous…`, `Save “${projectName}” as…`)
+            : tr("Sauvegarder le projet sous…", "Save project as…"),
           hint: ".zip",
           disabled: !projectId,
           run: () => projectId && annoncer(exportProject(projectId)),
         },
         {
-          label: "Importer une sauvegarde…",
+          label: tr("Importer une sauvegarde…", "Import a backup…"),
           run: () => annoncer(importProject()),
         },
       ],
     },
   ];
 
-  if (partage) {
-    groupes.push({
-      caption: "Partager",
-      entries: [
-        {
-          label: pageTitle ? `Exporter « ${pageTitle} » en Markdown…` : "Exporter la page en Markdown…",
-          hint: ".zip",
-          disabled: !pageId,
-          run: () => pageId && annoncer(exportPageMarkdown(pageId)),
-        },
-      ],
-    });
-  }
+  if (!partage) return groupes;
 
-  if (partage) {
-    const active = verificationActivee();
-    groupes.push({
-      caption: "Aide",
-      entries: [
-        {
-          label: "Signaler un problème…",
-          run: () => window.dispatchEvent(new CustomEvent(EVENEMENT_SIGNALER)),
-        },
-        {
-          label: active ? "Mises à jour : vérification activée" : "Mises à jour : vérification désactivée",
-          hint: active ? "désactiver" : "activer",
-          run: () => {
-            activerVerification(!active);
-            if (active) {
-              notify(true, "Vérification des mises à jour désactivée : Projekt ne contacte plus internet de lui-même.");
-              return;
-            }
-            notify(true, "Vérification activée : Projekt demandera à GitHub, une fois par jour au plus, s'il existe une nouvelle version.");
-            void derniereVersion()
-              .then((maj) =>
-                maj
-                  ? notify(true, `Projekt ${maj.version} est disponible.`, { label: "Voir", run: () => void openUrl(maj.url) })
-                  : notify(true, "Tu as la dernière version de Projekt.")
+  groupes.push({
+    caption: tr("Partager", "Share"),
+    entries: [
+      {
+        label: pageTitle
+          ? tr(`Exporter « ${pageTitle} » en Markdown…`, `Export “${pageTitle}” as Markdown…`)
+          : tr("Exporter la page en Markdown…", "Export page as Markdown…"),
+        hint: ".zip",
+        disabled: !pageId,
+        run: () => pageId && annoncer(exportPageMarkdown(pageId)),
+      },
+    ],
+  });
+
+  const active = verificationActivee();
+  groupes.push({
+    caption: tr("Aide", "Help"),
+    entries: [
+      {
+        label: tr("Signaler un problème…", "Report a problem…"),
+        run: () => window.dispatchEvent(new CustomEvent(EVENEMENT_SIGNALER)),
+      },
+      {
+        label: active
+          ? tr("Mises à jour : vérification activée", "Updates: checking on")
+          : tr("Mises à jour : vérification désactivée", "Updates: checking off"),
+        hint: active ? tr("désactiver", "turn off") : tr("activer", "turn on"),
+        run: () => {
+          activerVerification(!active);
+          if (active) {
+            notify(
+              true,
+              tr(
+                "Vérification des mises à jour désactivée : Projekt ne contacte plus internet de lui-même.",
+                "Update checking turned off: Projekt no longer goes online on its own."
               )
-              .catch(() => notify(false, "Impossible de joindre GitHub pour l'instant : nouvel essai au prochain démarrage."));
-          },
+            );
+            return;
+          }
+          notify(
+            true,
+            tr(
+              "Vérification activée : Projekt demandera à GitHub, une fois par jour au plus, s'il existe une nouvelle version.",
+              "Update checking turned on: at most once a day, Projekt will ask GitHub whether a new version exists."
+            )
+          );
+          void derniereVersion()
+            .then((maj) =>
+              maj
+                ? notify(true, tr(`Projekt ${maj.version} est disponible.`, `Projekt ${maj.version} is available.`), {
+                    label: tr("Voir", "View"),
+                    run: () => void openUrl(maj.url),
+                  })
+                : notify(true, tr("Tu as la dernière version de Projekt.", "You have the latest version of Projekt."))
+            )
+            .catch(() =>
+              notify(
+                false,
+                tr(
+                  "Impossible de joindre GitHub pour l'instant : nouvel essai au prochain démarrage.",
+                  "Can't reach GitHub right now: Projekt will try again next time it starts."
+                )
+              )
+            );
         },
-      ],
-    });
-  }
+      },
+    ],
+  });
+
+  // Langue : le nom de chaque langue est écrit dans cette langue, pour qu'on la
+  // retrouve même si l'interface est dans l'autre.
+  groupes.push({
+    caption: tr("Langue", "Language"),
+    entries: [
+      { label: "Français", hint: langue === "fr" ? "✓" : undefined, run: () => changerLangue("fr") },
+      { label: "English", hint: langue === "en" ? "✓" : undefined, run: () => changerLangue("en") },
+    ],
+  });
 
   return groupes;
 }
-
-/** Ouvre la fenêtre « Signaler un problème » (écoutée par App). */
-export const EVENEMENT_SIGNALER = "projekt:signaler-probleme";

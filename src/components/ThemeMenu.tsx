@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useThemeStore } from "../store/themeStore";
 import { ACCENT_LIST, COULEUR_LIEN_LIST, couleurResolue, MODE_LIST, type CouleurLienId } from "../theme";
+import { tr } from "../lib/i18n";
 
 export default function ThemeMenu() {
   const theme = useThemeStore();
@@ -24,7 +25,7 @@ export default function ThemeMenu() {
     <div ref={ref} style={{ position: "relative" }}>
       <button
         onClick={() => setOpen((o) => !o)}
-        title="Thème"
+        title={tr("Thème", "Appearance")}
         style={{
           width: 28,
           height: 28,
@@ -45,7 +46,7 @@ export default function ThemeMenu() {
 
       {open && (
         <div className="scroll" style={panneau}>
-          <Titre>Fond</Titre>
+          <Titre>{tr("Fond", "Background")}</Titre>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 14 }}>
             {MODE_LIST.map((m) => (
               <button
@@ -82,22 +83,22 @@ export default function ThemeMenu() {
             ))}
           </div>
 
-          <Titre>Couleur principale</Titre>
+          <Titre>{tr("Couleur principale", "Main colour")}</Titre>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginBottom: 14 }}>
             {ACCENT_LIST.map((a) => (
               <Pastille key={a.id} couleur={a.swatch} titre={a.label} actif={accent === a.id} onClick={() => setAccent(a.id)} />
             ))}
           </div>
 
-          <Titre>Carte mentale</Titre>
+          <Titre>{tr("Carte mentale", "Mind map")}</Titre>
           <LigneLiens
-            libelle="Liens basiques (sous-pages, mentions)"
+            libelle={tr("Liens basiques (sous-pages, mentions)", "Basic links (sub-pages, mentions)")}
             valeur={lienBase}
             onChange={setLienBase}
             resoudre={(id) => couleurResolue(id, theme)}
           />
           <LigneLiens
-            libelle="Liens de l'IA"
+            libelle={tr("Liens de l'IA", "AI links")}
             valeur={lienIa}
             onChange={setLienIa}
             resoudre={(id) => couleurResolue(id, theme)}
@@ -105,7 +106,10 @@ export default function ThemeMenu() {
           />
           {confondus && (
             <div style={{ fontSize: 11.5, color: "var(--danger)", marginTop: 4 }}>
-              Ces deux couleurs sont identiques : les liens de l'IA ne se distingueront pas des autres.
+              {tr(
+                "Ces deux couleurs sont identiques : les liens de l'IA ne se distingueront pas des autres.",
+                "These two colours are the same: AI links won't stand out from the others."
+              )}
             </div>
           )}
         </div>

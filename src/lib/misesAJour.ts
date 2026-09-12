@@ -1,6 +1,7 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { notify } from "./notify";
+import { tr } from "./i18n";
 
 /**
  * Notification de mise à jour (choix du 12/09) : une simple annonce, sans
@@ -71,7 +72,10 @@ export async function annoncerMiseAJour() {
     localStorage.setItem(CLE_DERNIERE, String(Date.now()));
     const maj = await derniereVersion();
     if (maj) {
-      notify(true, `Projekt ${maj.version} est disponible.`, { label: "Voir", run: () => void openUrl(maj.url) });
+      notify(true, tr(`Projekt ${maj.version} est disponible.`, `Projekt ${maj.version} is available.`), {
+        label: tr("Voir", "View"),
+        run: () => void openUrl(maj.url),
+      });
     }
   } catch {
     // Hors ligne ou GitHub injoignable : on réessaiera demain, sans déranger.

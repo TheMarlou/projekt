@@ -1,5 +1,6 @@
 import { CSSProperties, useEffect, useState, useSyncExternalStore } from "react";
 import { getSaveState, subscribeSaveState } from "../db";
+import { tr } from "../lib/i18n";
 
 function heure(ms: number) {
   return new Date(ms).toLocaleTimeString("fr-FR");
@@ -35,17 +36,19 @@ export default function SaveStatus() {
             cursor: "pointer",
           }}
         >
-          ⚠ Échec d'enregistrement
+          ⚠ {tr("Échec d'enregistrement", "Save failed")}
         </button>
         {detail && (
           <div style={panneauStyle}>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Opération : {etat.label}</div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>{tr("Opération", "Operation")} : {etat.label}</div>
             <div style={{ color: "var(--text-dim)", marginBottom: 8, wordBreak: "break-word" }}>
               {etat.message}
             </div>
             <div style={{ color: "var(--text-dim)" }}>
-              À {heure(etat.at)}. Tes modifications sont encore à l'écran mais pas sur le disque —
-              ne ferme pas l'application tant que ce message est affiché.
+              {tr(
+                `À ${heure(etat.at)}. Tes modifications sont encore à l'écran mais pas sur le disque — ne ferme pas l'application tant que ce message est affiché.`,
+                `At ${heure(etat.at)}. Your changes are still on screen but not on disk — don't close the app while this message is shown.`
+              )}
             </div>
           </div>
         )}
@@ -58,11 +61,11 @@ export default function SaveStatus() {
       style={{ ...badgeStyle, color: "var(--text-dim)" }}
       title={
         etat.kind === "pending"
-          ? "Modification en attente d'écriture sur le disque"
-          : `Dernière écriture réussie à ${heure(etat.at)}`
+          ? tr("Modification en attente d'écriture sur le disque", "Change waiting to be written to disk")
+          : tr(`Dernière écriture réussie à ${heure(etat.at)}`, `Last saved at ${heure(etat.at)}`)
       }
     >
-      {etat.kind === "pending" ? "⋯ Enregistrement…" : "✓ Enregistré"}
+      {etat.kind === "pending" ? `⋯ ${tr("Enregistrement…", "Saving…")}` : `✓ ${tr("Enregistré", "Saved")}`}
     </div>
   );
 }

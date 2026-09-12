@@ -18,6 +18,7 @@ import { demarrerReception } from "./lib/telephone";
 import SignalerBug from "./components/SignalerBug";
 import { EVENEMENT_SIGNALER } from "./lib/fileActions";
 import { annoncerMiseAJour } from "./lib/misesAJour";
+import { tr } from "./lib/i18n";
 
 export default function App() {
   const { projects, addProject, renameProject, deleteProject, moveProject, hydrate: hydrateProjects } =
@@ -161,7 +162,7 @@ export default function App() {
           fontSize: 13.5,
         }}
       >
-        Chargement de Projekt…
+        {tr("Chargement de Projekt…", "Loading Projekt…")}
       </div>
     );
   }
@@ -171,7 +172,7 @@ export default function App() {
       <TopBar
         view={view}
         onViewChange={setView}
-        boardName={project ? project.name : "Aucun projet sélectionné"}
+        boardName={project ? project.name : tr("Aucun projet sélectionné", "No project selected")}
         projectId={selectedProjectId}
         projectName={project?.name ?? null}
         pageId={selected?.id ?? null}
@@ -206,7 +207,10 @@ export default function App() {
               fontSize: 13.5,
             }}
           >
-            Choisis un projet à gauche, ou crée-en un : chacun a ses pages, son moodboard et son graphe.
+            {tr(
+              "Choisis un projet à gauche, ou crée-en un : chacun a ses pages, son moodboard et son graphe.",
+              "Pick a project on the left, or create one: each has its own pages, moodboard and graph."
+            )}
           </div>
         )}
 

@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { rapportTechnique } from "../lib/journal";
 import { DEPOT_GITHUB } from "../lib/misesAJour";
 import { notify } from "../lib/notify";
+import { tr } from "../lib/i18n";
 
 /**
  * « Signaler un problème » (demande du 12/09) : par e-mail ou par ticket GitHub,
@@ -68,13 +69,14 @@ export default function SignalerBug({ ouvert, onFermer }: Props) {
 
   if (!ouvert) return null;
 
-  const titre = () => `Problème : ${description.trim().split("\n")[0].slice(0, 70) || "à décrire"}`;
+  const titre = () =>
+    `${tr("Problème", "Problem")} : ${description.trim().split("\n")[0].slice(0, 70) || tr("à décrire", "to be described")}`;
   // Les adresses mailto: et les liens de ticket ont une longueur limitée.
   const corps = (limite: number) => {
-    const parties = [description.trim() || "(pas de description)"];
-    if (joindreJournal) parties.push("", "---- Journal technique ----", journal);
+    const parties = [description.trim() || tr("(pas de description)", "(no description)")];
+    if (joindreJournal) parties.push("", tr("---- Journal technique ----", "---- Technical log ----"), journal);
     const texte = parties.join("\n");
-    return texte.length > limite ? `${texte.slice(0, limite)}\n[… tronqué]` : texte;
+    return texte.length > limite ? `${texte.slice(0, limite)}\n${tr("[… tronqué]", "[… truncated]")}` : texte;
   };
 
   const copierCapture = async () => {
@@ -102,41 +104,58 @@ export default function SignalerBug({ ouvert, onFermer }: Props) {
         );
       }
     } catch (err) {
-      notify(false, `Impossible d'ouvrir ${par === "github" ? "le navigateur" : "la messagerie"} : ${String(err)}`);
+      notify(
+        false,
+        `${par === "github" ? tr("Impossible d'ouvrir le navigateur", "Couldn't open the browser") : tr("Impossible d'ouvrir la messagerie", "Couldn't open your email app")} : ${String(err)}`
+      );
       return;
     }
-    const ou = par === "github" ? "le ticket" : "le message";
+    const ouvert = par === "github"
+      ? tr("Ticket ouvert dans ton navigateur", "Issue opened in your browser")
+      : tr("Message préparé dans ta messagerie", "Message ready in your email app");
+    const ou = par === "github" ? tr("le ticket", "the issue") : tr("le message", "the message");
     notify(
       true,
       copiee
-        ? `${par === "github" ? "Ticket ouvert dans ton navigateur" : "Message préparé dans ta messagerie"}. La capture est copiée : colle-la dans ${ou} (Ctrl+V), puis envoie.`
-        : `${par === "github" ? "Ticket ouvert dans ton navigateur" : "Message préparé dans ta messagerie"} : relis-le, puis envoie-le.`
+        ? tr(
+            `${ouvert}. La capture est copiée : colle-la dans ${ou} (Ctrl+V), puis envoie.`,
+            `${ouvert}. The screenshot is copied: paste it into ${ou} (Ctrl+V), then send.`
+          )
+        : tr(`${ouvert} : relis-le, puis envoie-le.`, `${ouvert}: review it, then send it.`)
     );
     onFermer();
   };
 
   return (
     <div data-signalement="oui" style={fond} onMouseDown={(e) => e.target === e.currentTarget && onFermer()}>
-      <div role="dialog" aria-label="Signaler un problème" style={fenetre}>
-        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>Signaler un problème</div>
+      <div role="dialog" aria-label={tr("Signaler un problème", "Report a problem")} style={fenetre}>
+        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{tr("Signaler un problème", "Report a problem")}</div>
         <p style={dim}>
-          Décris ce que tu faisais et ce qui ne s'est pas passé comme prévu. Rien n'est envoyé d'ici : le message s'ouvre
-          dans ta messagerie ou ton navigateur, et c'est toi qui l'envoies.
+          {tr(
+            "Décris ce que tu faisais et ce qui ne s'est pas passé comme prévu. Rien n'est envoyé d'ici : le message s'ouvre dans ta messagerie ou ton navigateur, et c'est toi qui l'envoies.",
+            "Describe what you were doing and what didn't go as expected. Nothing is sent from here: the message opens in your email app or browser, and you send it yourself."
+          )}
         </p>
 
         <textarea
           autoFocus
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Ex. : j'ai glissé une image dans le moodboard, elle a disparu au redémarrage."
+          placeholder={tr(
+            "Ex. : j'ai glissé une image dans le moodboard, elle a disparu au redémarrage.",
+            "E.g. I dropped an image on the moodboard and it was gone after a restart."
+          )}
           rows={5}
           style={zoneTexte}
         />
 
-        <Case coche={joindreJournal} onChange={setJoindreJournal} titre="Joindre le journal technique">
-          Version, système et dernières erreurs de l'app — jamais le contenu de tes pages.{" "}
+        <Case coche={joindreJournal} onChange={setJoindreJournal} titre={tr("Joindre le journal technique", "Attach the technical log")}>
+          {tr(
+            "Version, système et dernières erreurs de l'app — jamais le contenu de tes pages.",
+            "Version, system and the app's latest errors — never the content of your pages."
+          )}{" "}
           <button style={lien} onClick={() => setVoirJournal((v) => !v)}>
-            {voirJournal ? "Masquer" : "Voir ce qui sera joint"}
+            {voirJournal ? tr("Masquer", "Hide") : tr("Voir ce qui sera joint", "See what will be attached")}
           </button>
         </Case>
         {voirJournal && <pre style={apercuJournal}>{journal || "…"}</pre>}
@@ -144,32 +163,39 @@ export default function SignalerBug({ ouvert, onFermer }: Props) {
         <Case
           coche={joindreCapture}
           onChange={setJoindreCapture}
-          titre="Joindre une capture de la fenêtre"
+          titre={tr("Joindre une capture de la fenêtre", "Attach a screenshot of the window")}
         >
           {joindreCapture && !capture
-            ? "Capture en cours…"
-            : "Elle sera copiée : tu la colleras toi-même dans le message."}
+            ? tr("Capture en cours…", "Taking the screenshot…")
+            : tr("Elle sera copiée : tu la colleras toi-même dans le message.", "It will be copied: you'll paste it into the message yourself.")}
         </Case>
-        {capture && joindreCapture && <img src={capture} alt="Capture qui sera jointe" style={apercuCapture} />}
+        {capture && joindreCapture && <img src={capture} alt={tr("Capture qui sera jointe", "Screenshot to be attached")} style={apercuCapture} />}
 
         <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
           <button style={boutonPrincipal} onClick={() => void envoyer("github")}>
-            Créer un ticket GitHub
+            {tr("Créer un ticket GitHub", "Open a GitHub issue")}
           </button>
           <button
             style={{ ...boutonSecondaire, opacity: ADRESSE_BUGS ? 1 : 0.5 }}
             disabled={!ADRESSE_BUGS}
-            title={ADRESSE_BUGS ? `À ${ADRESSE_BUGS}` : "L'adresse de signalement n'est pas encore configurée"}
+            title={
+              ADRESSE_BUGS
+                ? `${tr("À", "To")} ${ADRESSE_BUGS}`
+                : tr("L'adresse de signalement n'est pas encore configurée", "The reporting address isn't set up yet")
+            }
             onClick={() => void envoyer("email")}
           >
-            Envoyer par e-mail
+            {tr("Envoyer par e-mail", "Send by email")}
           </button>
           <button style={{ ...boutonSecondaire, marginLeft: "auto" }} onClick={onFermer}>
-            Annuler
+            {tr("Annuler", "Cancel")}
           </button>
         </div>
         <p style={{ ...dim, marginTop: 10, marginBottom: 0, fontSize: 11.5 }}>
-          Un ticket GitHub demande un compte GitHub (gratuit) ; l'e-mail, non.
+          {tr(
+            "Un ticket GitHub demande un compte GitHub (gratuit) ; l'e-mail, non.",
+            "A GitHub issue needs a (free) GitHub account; email doesn't."
+          )}
         </p>
       </div>
     </div>

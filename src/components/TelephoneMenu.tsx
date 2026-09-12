@@ -10,6 +10,7 @@ import {
   surContact,
   type EtatTelephone,
 } from "../lib/telephone";
+import { enAnglais, tr } from "../lib/i18n";
 
 /**
  * Bouton 📱 de la barre du haut (choix du 12/09) : appairer Projekt Mobile par
@@ -51,7 +52,13 @@ export default function TelephoneMenu() {
     const nouveau = etat.appareils.find((a) => a.ajouteLe >= qr.depuis);
     if (nouveau) {
       setQr(null);
-      notify(true, `« ${nouveau.nom} » est appairé : partage depuis ton téléphone vers Projekt.`);
+      notify(
+        true,
+        tr(
+          `« ${nouveau.nom} » est appairé : partage depuis ton téléphone vers Projekt.`,
+          `“${nouveau.nom}” is paired: share from your phone to Projekt.`
+        )
+      );
     }
   }, [etat, qr]);
 
@@ -80,7 +87,7 @@ export default function TelephoneMenu() {
       setQr({ image, expireLe, depuis });
       rafraichir();
     } catch (err) {
-      notify(false, `Impossible de préparer l'appairage : ${err instanceof Error ? err.message : String(err)}`);
+      notify(false, `${tr("Impossible de préparer l'appairage", "Couldn't prepare pairing")} : ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -97,7 +104,7 @@ export default function TelephoneMenu() {
     <div ref={ref} style={{ position: "relative" }}>
       <button
         onClick={() => setOuvert((o) => !o)}
-        title={connecte ? "Projekt Mobile — téléphone connecté" : "Projekt Mobile"}
+        title={connecte ? tr("Projekt Mobile — téléphone connecté", "Projekt Mobile — phone connected") : "Projekt Mobile"}
         aria-label="Projekt Mobile"
         aria-expanded={ouvert}
         style={{ ...boutonStyle, background: ouvert ? "var(--surface-2)" : "transparent" }}
@@ -127,48 +134,70 @@ export default function TelephoneMenu() {
         <div className="scroll" style={panneau}>
           <div style={{ fontWeight: 600, fontSize: 13.5, marginBottom: 4 }}>Projekt Mobile</div>
           <p style={texteDim}>
-            Partage un texte, un lien, un TikTok, une image ou un MP3 depuis ton téléphone Android : il arrive dans le
-            projet de ton choix, sans internet ni compte.
+            {tr(
+              "Partage un texte, un lien, un TikTok, une image ou un MP3 depuis ton téléphone Android : il arrive dans le projet de ton choix, sans internet ni compte.",
+              "Share text, a link, a TikTok, an image or an MP3 from your Android phone: it lands in the project of your choice, with no internet and no account."
+            )}
           </p>
 
           {etat === null && (
-            <p style={{ ...texteDim, color: "var(--danger)" }}>La réception n'est disponible que dans l'application Projekt.</p>
+            <p style={{ ...texteDim, color: "var(--danger)" }}>
+              {tr("La réception n'est disponible que dans l'application Projekt.", "Receiving only works in the Projekt app.")}
+            </p>
           )}
 
           {qr ? (
             <div>
-              <Titre>Appairer un téléphone</Titre>
+              <Titre>{tr("Appairer un téléphone", "Pair a phone")}</Titre>
               {qrExpire ? (
-                <p style={texteDim}>Ce QR code a expiré.</p>
+                <p style={texteDim}>{tr("Ce QR code a expiré.", "This QR code has expired.")}</p>
               ) : (
                 <>
                   <img
                     src={qr.image}
-                    alt="QR code d'appairage"
+                    alt={tr("QR code d'appairage", "Pairing QR code")}
                     width={232}
                     height={232}
                     style={{ display: "block", margin: "4px auto 8px", borderRadius: 6 }}
                   />
                   <p style={{ ...texteDim, textAlign: "center" }}>
-                    Dans Projekt Mobile, touche <b>« Appairer un PC »</b> et scanne ce code.
+                    {enAnglais ? (
+                      <>
+                        In Projekt Mobile, tap <b>“Pair a PC”</b> and scan this code.
+                      </>
+                    ) : (
+                      <>
+                        Dans Projekt Mobile, touche <b>« Appairer un PC »</b> et scanne ce code.
+                      </>
+                    )}
                     <br />
-                    Valable encore {Math.max(1, Math.ceil((qr.expireLe - maintenant) / 60000))} min.
+                    {tr("Valable encore", "Valid for")} {Math.max(1, Math.ceil((qr.expireLe - maintenant) / 60000))} min.
                   </p>
                 </>
               )}
               <Astuce>
-                Le téléphone et le PC doivent être sur le <b>même réseau</b> : même Wi-Fi, ou le PC branché au partage de
-                connexion du téléphone. Si Windows demande l'autorisation, coche aussi <b>« Réseaux publics »</b> : le
-                partage de connexion est souvent vu comme public.
+                {enAnglais ? (
+                  <>
+                    The phone and the PC must be on the <b>same network</b>: the same Wi-Fi, or the PC connected to the
+                    phone's hotspot. If Windows asks for permission, also tick <b>“Public networks”</b>: a hotspot is often
+                    treated as public.
+                  </>
+                ) : (
+                  <>
+                    Le téléphone et le PC doivent être sur le <b>même réseau</b> : même Wi-Fi, ou le PC branché au
+                    partage de connexion du téléphone. Si Windows demande l'autorisation, coche aussi{" "}
+                    <b>« Réseaux publics »</b> : le partage de connexion est souvent vu comme public.
+                  </>
+                )}
               </Astuce>
               <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
                 {qrExpire && (
                   <button style={boutonPrincipal} onClick={afficherQr}>
-                    Nouveau QR code
+                    {tr("Nouveau QR code", "New QR code")}
                   </button>
                 )}
                 <button style={boutonSecondaire} onClick={fermerQr}>
-                  Annuler
+                  {tr("Annuler", "Cancel")}
                 </button>
               </div>
             </div>
@@ -177,13 +206,23 @@ export default function TelephoneMenu() {
               <>
                 {appareils.length === 0 ? (
                   <ol style={{ ...texteDim, paddingLeft: 18, margin: "8px 0 10px" }}>
-                    <li>Installe <b>Projekt Mobile</b> sur ton téléphone (fichier <code>Projekt-Mobile.apk</code>).</li>
-                    <li>Mets le téléphone et le PC sur le même réseau.</li>
-                    <li>Affiche le QR code ci-dessous et scanne-le depuis l'app.</li>
+                    {enAnglais ? (
+                      <>
+                        <li>Install <b>Projekt Mobile</b> on your phone (file <code>Projekt-Mobile.apk</code>).</li>
+                        <li>Put the phone and the PC on the same network.</li>
+                        <li>Show the QR code below and scan it from the app.</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Installe <b>Projekt Mobile</b> sur ton téléphone (fichier <code>Projekt-Mobile.apk</code>).</li>
+                        <li>Mets le téléphone et le PC sur le même réseau.</li>
+                        <li>Affiche le QR code ci-dessous et scanne-le depuis l'app.</li>
+                      </>
+                    )}
                   </ol>
                 ) : (
                   <>
-                    <Titre>Téléphones appairés</Titre>
+                    <Titre>{tr("Téléphones appairés", "Paired phones")}</Titre>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
                       {appareils.map((a) => {
                         const enLigne = maintenant - a.vuLe < DELAI_CONNECTE_MS;
@@ -202,7 +241,11 @@ export default function TelephoneMenu() {
                             <span style={{ flex: 1, minWidth: 0 }}>
                               <span style={{ display: "block", fontSize: 12.5 }}>{a.nom}</span>
                               <span style={{ display: "block", fontSize: 11, color: "var(--text-dim)" }}>
-                                {enLigne ? "Connecté" : a.vuLe ? `Vu ${depuis(maintenant - a.vuLe)}` : "Jamais vu"}
+                                {enLigne
+                                  ? tr("Connecté", "Connected")
+                                  : a.vuLe
+                                    ? tr(`Vu ${depuis(maintenant - a.vuLe)}`, `Seen ${depuis(maintenant - a.vuLe)}`)
+                                    : tr("Jamais vu", "Never seen")}
                               </span>
                             </span>
                             {aOublier === a.id ? (
@@ -213,15 +256,15 @@ export default function TelephoneMenu() {
                                   setAOublier(null);
                                 }}
                               >
-                                Confirmer
+                                {tr("Confirmer", "Confirm")}
                               </button>
                             ) : (
                               <button
                                 style={boutonSecondaire}
-                                title="Ce téléphone ne pourra plus rien envoyer, jusqu'à un nouvel appairage."
+                                title={tr("Ce téléphone ne pourra plus rien envoyer, jusqu'à un nouvel appairage.", "This phone won't be able to send anything until it is paired again.")}
                                 onClick={() => setAOublier(a.id)}
                               >
-                                Oublier
+                                {tr("Oublier", "Forget")}
                               </button>
                             )}
                           </div>
@@ -231,11 +274,11 @@ export default function TelephoneMenu() {
                   </>
                 )}
                 <button style={boutonPrincipal} onClick={afficherQr}>
-                  {appareils.length ? "Appairer un autre téléphone" : "Afficher le QR code"}
+                  {appareils.length ? tr("Appairer un autre téléphone", "Pair another phone") : tr("Afficher le QR code", "Show QR code")}
                 </button>
                 {etat.actif && etat.adresses.length > 0 && (
                   <p style={{ ...texteDim, marginTop: 10, marginBottom: 0, fontSize: 11 }}>
-                    Ce PC : {etat.nomPc} · {etat.adresses.join(", ")} · port {etat.port}
+                    {tr("Ce PC", "This PC")} : {etat.nomPc} · {etat.adresses.join(", ")} · port {etat.port}
                   </p>
                 )}
               </>
@@ -249,11 +292,11 @@ export default function TelephoneMenu() {
 
 function depuis(ms: number): string {
   const minutes = Math.round(ms / 60000);
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 60) return tr(`il y a ${minutes} min`, `${minutes} min ago`);
   const heures = Math.round(minutes / 60);
-  if (heures < 24) return `il y a ${heures} h`;
+  if (heures < 24) return tr(`il y a ${heures} h`, `${heures} h ago`);
   const jours = Math.round(heures / 24);
-  return `il y a ${jours} jour${jours > 1 ? "s" : ""}`;
+  return tr(`il y a ${jours} jour${jours > 1 ? "s" : ""}`, `${jours} day${jours > 1 ? "s" : ""} ago`);
 }
 
 function Titre({ children }: { children: ReactNode }) {

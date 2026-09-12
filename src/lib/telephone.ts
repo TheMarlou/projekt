@@ -6,6 +6,7 @@ import { useCanvasStore } from "../store/canvasStore";
 import { useProjectsStore } from "../store/projectsStore";
 import { enregistrerBrut, infosTikTok, lienTikTok, telechargerMiniature } from "./mediasMoodboard";
 import { notify } from "./notify";
+import { localeDates, tr } from "./i18n";
 
 /**
  * Réception depuis Projekt Mobile, côté interface (demande du 12/09).
@@ -19,7 +20,9 @@ import { notify } from "./notify";
  * prochain démarrage : rien ne se perd.
  */
 
-export const TITRE_PAGE_RECUS = "📥 Reçu du téléphone";
+// Le nom dépend de la langue : on retrouve la page sous l'un OU l'autre nom.
+const TITRES_PAGE_RECUS = ["📥 Reçu du téléphone", "📥 From my phone"];
+export const TITRE_PAGE_RECUS = tr(TITRES_PAGE_RECUS[0], TITRES_PAGE_RECUS[1]);
 /** Un téléphone qui s'est manifesté plus récemment est affiché « connecté ». */
 export const DELAI_CONNECTE_MS = 2 * 60 * 1000;
 
@@ -79,13 +82,13 @@ function projetsTries() {
 function projetDestination(id: string | null): string {
   const projets = projetsTries();
   if (id && projets.some((p) => p.id === id)) return id;
-  return projets[0]?.id ?? useProjectsStore.getState().addProject("Reçu du téléphone");
+  return projets[0]?.id ?? useProjectsStore.getState().addProject(tr("Reçu du téléphone", "From my phone"));
 }
 
 function pageRecus(projectId: string): string {
   const existante = useBlocksStore
     .getState()
-    .blocks.find((b) => b.projectId === projectId && !b.parentId && b.title === TITRE_PAGE_RECUS);
+    .blocks.find((b) => b.projectId === projectId && !b.parentId && TITRES_PAGE_RECUS.includes(b.title));
   if (existante) return existante.id;
   const id = useBlocksStore.getState().addBlock(projectId, null);
   useBlocksStore.getState().updateTitle(id, TITRE_PAGE_RECUS);
@@ -114,7 +117,7 @@ function paragraphe(contenu: JSONContent[]): JSONContent {
 }
 
 export function noeudsPourPage(fiche: FicheRecue): JSONContent[] {
-  const quand = new Date(fiche.creeLe).toLocaleString("fr-FR", {
+  const quand = new Date(fiche.creeLe).toLocaleString(localeDates, {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
@@ -129,7 +132,7 @@ export function noeudsPourPage(fiche: FicheRecue): JSONContent[] {
   if (texte) for (const ligne of texte.split(/\r?\n/)) noeuds.push(paragraphe(enLigne(ligne)));
   if (fiche.url && !texte.includes(fiche.url)) noeuds.push(paragraphe(enLigne(fiche.url)));
   if (fiche.genre === "audio" && fiche.fichier) {
-    noeuds.push(paragraphe([{ type: "audioClip", attrs: { src: fiche.fichier, name: fiche.nom ?? "Son" } }]));
+    noeuds.push(paragraphe([{ type: "audioClip", attrs: { src: fiche.fichier, name: fiche.nom ?? tr("Son", "Sound") } }]));
   }
   // Une image n'arrive ici que si le moodboard n'a pas pu la lire.
   if (fiche.genre === "image" && fiche.fichier) noeuds.push({ type: "image", attrs: { src: fiche.fichier, align: "none" } });
@@ -199,12 +202,12 @@ async function tiktokAuMoodboard(lien: string, projectId: string) {
 // ——— Rangement ———————————————————————————————————————————————————————————————
 
 type Quoi = "image" | "vidéo TikTok" | "son" | "lien" | "note";
-const PLURIELS: Record<Quoi, string> = {
-  image: "images",
-  "vidéo TikTok": "vidéos TikTok",
-  son: "sons",
-  lien: "liens",
-  note: "notes",
+const NOMS: Record<Quoi, [string, string]> = {
+  image: [tr("image", "image"), tr("images", "images")],
+  "vidéo TikTok": [tr("vidéo TikTok", "TikTok video"), tr("vidéos TikTok", "TikTok videos")],
+  son: [tr("son", "sound"), tr("sons", "sounds")],
+  lien: [tr("lien", "link"), tr("liens", "links")],
+  note: [tr("note", "note"), tr("notes", "notes")],
 };
 
 interface Rangement {
@@ -268,17 +271,24 @@ export function rangerRecus(): Promise<void> {
       } catch (err) {
         dejaRanges.delete(fiche.id);
         console.error("Élément reçu non rangé :", err);
-        notify(false, `Un élément reçu du téléphone n'a pas pu être rangé : ${err instanceof Error ? err.message : String(err)}. Il sera repris au prochain démarrage.`);
+        const detail = err instanceof Error ? err.message : String(err);
+        notify(
+          false,
+          tr(
+            `Un élément reçu du téléphone n'a pas pu être rangé : ${detail}. Il sera repris au prochain démarrage.`,
+            `An item received from the phone couldn't be filed: ${detail}. It will be retried next time Projekt starts.`
+          )
+        );
       }
     }
 
     for (const [projectId, bilan] of bilans) {
-      const nom = useProjectsStore.getState().projects.find((p) => p.id === projectId)?.name ?? "ton projet";
+      const nom = useProjectsStore.getState().projects.find((p) => p.id === projectId)?.name ?? tr("ton projet", "your project");
       const resume = [...bilan.comptes]
-        .map(([quoi, n]) => `${n} ${n > 1 ? PLURIELS[quoi] : quoi}`)
+        .map(([quoi, n]) => `${n} ${NOMS[quoi][n > 1 ? 1 : 0]}`)
         .join(", ");
-      notify(true, `Reçu du téléphone : ${resume} dans « ${nom} ».`, {
-        label: "Voir",
+      notify(true, tr(`Reçu du téléphone : ${resume} dans « ${nom} ».`, `From your phone: ${resume} in “${nom}”.`), {
+        label: tr("Voir", "View"),
         run: () => ouvrir(projectId, bilan.vue, bilan.pageId),
       });
     }

@@ -1,4 +1,5 @@
 import { Block, extractLinks, extractPageRefs, getBlockText } from "../store/blocksStore";
+import { tr } from "../lib/i18n";
 
 interface RightPanelProps {
   blocks: Block[];
@@ -41,11 +42,14 @@ export default function RightPanel({ blocks, selected, onOpenBlock }: RightPanel
         Backlinks
       </div>
       {!selected && (
-        <p style={{ color: "var(--text-dim)", fontSize: 13 }}>Sélectionne une page pour voir ses liens entrants.</p>
+        <p style={{ color: "var(--text-dim)", fontSize: 13 }}>{tr("Sélectionne une page pour voir ses liens entrants.", "Select a page to see its incoming links.")}</p>
       )}
       {selected && backlinks.length === 0 && (
         <p style={{ color: "var(--text-dim)", fontSize: 13 }}>
-          Aucun lien entrant. Depuis une autre page, clic droit → « Mention de page » pour pointer vers celle-ci.
+          {tr(
+            "Aucun lien entrant. Depuis une autre page, clic droit → « Mention de page » pour pointer vers celle-ci.",
+            "No incoming links. From another page, right-click → “Page mention” to point here."
+          )}
         </p>
       )}
       {backlinks.map((b) => (
@@ -61,7 +65,7 @@ export default function RightPanel({ blocks, selected, onOpenBlock }: RightPanel
             fontSize: 13,
           }}
         >
-          {b.title || "Sans titre"}
+          {b.title || tr("Sans titre", "Untitled")}
         </div>
       ))}
     </aside>

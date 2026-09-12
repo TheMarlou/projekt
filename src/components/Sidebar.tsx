@@ -5,6 +5,7 @@ import ContextMenu from "./editor/ContextMenu";
 import { fileMenuGroups } from "../lib/fileActions";
 import { useDragReorder, type Indicateur } from "./useDragReorder";
 import { useDragArbre, type Repere } from "./useDragArbre";
+import { tr } from "../lib/i18n";
 
 interface SidebarProps {
   projects: Project[];
@@ -107,18 +108,18 @@ export default function Sidebar({
         flexDirection: "column",
       }}
     >
-      <SectionHeader label={`Projets (${projects.length})`} onAdd={onAddProject} addTitle="Nouveau projet" />
+      <SectionHeader label={`${tr("Projets", "Projects")} (${projects.length})`} onAdd={onAddProject} addTitle={tr("Nouveau projet", "New project")} />
       <div className="scroll" style={{ padding: "0 8px 6px", maxHeight: 168, overflowY: "auto" }}>
         {projects.length === 0 && (
           <p style={{ color: "var(--text-dim)", fontSize: 13, padding: "8px 6px" }}>
-            Aucun projet. Le + ci-dessus en crée un.
+            {tr("Aucun projet. Le + ci-dessus en crée un.", "No projects yet. Use the + above to create one.")}
           </p>
         )}
         {projects.map((p) => (
           <Fragment key={p.id}>
             {tombeAvant(indicateur, GROUPE_PROJETS, p.id) && <LigneDepot />}
             <Row
-              label={p.name || "Sans titre"}
+              label={p.name || tr("Sans titre", "Untitled")}
               active={selectedProjectId === p.id}
               onClick={() => onSelectProject(p.id)}
               onRename={(name) => onRenameProject(p.id, name)}
@@ -137,17 +138,17 @@ export default function Sidebar({
       <SectionHeader
         label={`Pages (${pages.length})`}
         onAdd={selectedProjectId ? onAddRootPage : undefined}
-        addTitle="Nouvelle page"
+        addTitle={tr("Nouvelle page", "New page")}
       />
       <div className="scroll" style={{ flex: 1, padding: "0 8px 8px" }}>
         {!selectedProjectId && (
           <p style={{ color: "var(--text-dim)", fontSize: 13, padding: "8px 6px" }}>
-            Sélectionne un projet pour voir ses pages.
+            {tr("Sélectionne un projet pour voir ses pages.", "Select a project to see its pages.")}
           </p>
         )}
         {selectedProjectId && pages.length === 0 && (
           <p style={{ color: "var(--text-dim)", fontSize: 13, padding: "8px 6px" }}>
-            Aucune page. Le + ci-dessus en crée une.
+            {tr("Aucune page. Le + ci-dessus en crée une.", "No pages yet. Use the + above to create one.")}
           </p>
         )}
         {selectedProjectId && (
@@ -236,7 +237,10 @@ function PageTree({
             <div
               {...glisser.poignee(page.id, parentId, isOpen ? sousPages.map((p) => p.id) : [])}
               onClick={() => onSelect(page.id)}
-              title="Glisser pour déplacer · lâcher au milieu d'une page pour en faire une sous-page"
+              title={tr(
+                "Glisser pour déplacer · lâcher au milieu d'une page pour en faire une sous-page",
+                "Drag to move · drop in the middle of a page to make it a sub-page"
+              )}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -266,7 +270,7 @@ function PageTree({
                     e.stopPropagation();
                     toggleExpand(page.id);
                   }}
-                  title={isOpen ? "Replier les sous-pages" : `Déplier les sous-pages (${sousPages.length})`}
+                  title={isOpen ? tr("Replier les sous-pages", "Collapse sub-pages") : `${tr("Déplier les sous-pages", "Expand sub-pages")} (${sousPages.length})`}
                   style={{
                     width: 16,
                     height: 16,
@@ -296,14 +300,14 @@ function PageTree({
                   whiteSpace: "nowrap",
                 }}
               >
-                {page.title || "Sans titre"}
+                {page.title || tr("Sans titre", "Untitled")}
               </span>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(page.id);
                 }}
-                title="Supprimer"
+                title={tr("Supprimer", "Delete")}
                 style={{ background: "transparent", border: "none", color: "var(--text-dim)", fontSize: 13, padding: "0 3px" }}
               >
                 ×
@@ -415,7 +419,14 @@ function Row({
             }
           : undefined
       }
-      title={editing ? undefined : "Double-clic pour renommer, clic droit pour sauvegarder, glisser pour réordonner"}
+      title={
+        editing
+          ? undefined
+          : tr(
+              "Double-clic pour renommer, clic droit pour sauvegarder, glisser pour réordonner",
+              "Double-click to rename, right-click to save, drag to reorder"
+            )
+      }
       style={{
         display: "flex",
         alignItems: "center",
@@ -460,7 +471,7 @@ function Row({
           e.stopPropagation();
           onDelete();
         }}
-        title="Supprimer"
+        title={tr("Supprimer", "Delete")}
         style={{ background: "transparent", border: "none", color: "var(--text-dim)", fontSize: 13, padding: "0 3px" }}
       >
         ×
