@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Projekt Mobile</string>
+
+    <!-- PC -->
+    <string name="pc_aucun">Aucun PC appairé</string>
+    <string name="pc_aide">Sur le PC, ouvre Projekt, clique sur le bouton du téléphone en haut à droite, puis sur « Afficher le QR code ».</string>
+    <string name="bouton_appairer">Appairer un PC</string>
+    <string name="bouton_changer_pc">Changer de PC</string>
+    <string name="scan_invite">Scanne le QR code affiché par Projekt sur le PC</string>
+    <string name="pc_nom">PC : %1$s</string>
+    <string name="pc_connecte">Connecté</string>
+    <string name="pc_recherche">Recherche du PC…</string>
+    <string name="pc_injoignable">Injoignable : vérifie que Projekt est ouvert sur le PC et que les deux appareils sont sur le même réseau (Wi-Fi ou partage de connexion).</string>
+    <string name="pc_oublie">Ce PC ne reconnaît plus ce téléphone : appaire-le à nouveau.</string>
+    <string name="pc_introuvable">PC introuvable sur le réseau. Le téléphone et le PC sont-ils sur le même réseau, et Projekt est-il ouvert ?</string>
+    <string name="bouton_actualiser">Actualiser</string>
+    <string name="bouton_oublier_pc">Oublier ce PC</string>
+    <string name="oublier_pc_titre">Oublier ce PC ?</string>
+    <string name="oublier_pc_message">Le téléphone ne pourra plus rien envoyer à « %1$s » tant que tu ne l\'auras pas appairé à nouveau. Les éléments en attente sont conservés.</string>
+    <string name="oublier">Oublier</string>
+    <string name="annuler">Annuler</string>
+    <string name="fermer">Fermer</string>
+
+    <!-- Appairage -->
+    <string name="appairage_en_cours">Appairage…</string>
+    <string name="appairage_ok">Appairé avec « %1$s »</string>
+    <string name="appairage_echec">Appairage impossible : %1$s</string>
+    <string name="qr_invalide">Ce QR code ne vient pas de Projekt.</string>
+
+    <!-- Note rapide -->
+    <string name="note_titre">Note rapide</string>
+    <string name="note_indice">Une idée, un lien…</string>
+    <string name="projet">Projet</string>
+    <string name="aucun_projet">Aucun projet connu : ouvre Projekt sur le PC, puis « Actualiser ».</string>
+    <string name="envoyer">Envoyer</string>
+
+    <!-- File d'attente -->
+    <string name="file_titre">File d\'attente et historique</string>
+    <string name="file_vide">Rien pour l\'instant. Depuis TikTok, la galerie ou Mes fichiers : « Partager » → Projekt Mobile.</string>
+    <string name="envoyer_maintenant">Envoyer maintenant (%1$d)</string>
+    <string name="etat_attente">En attente</string>
+    <string name="etat_envoye">Envoyé le %1$s</string>
+    <string name="etat_refuse">Refusé : %1$s</string>
+    <string name="renvoyer">Renvoyer</string>
+    <string name="supprimer">Supprimer</string>
+    <string name="genre_image">Image</string>
+    <string name="genre_audio">Son</string>
+    <string name="genre_texte">Note</string>
+    <string name="genre_lien">Lien</string>
+
+    <!-- Partage -->
+    <string name="partage_titre">Envoyer à Projekt</string>
+    <string name="partage_non_appaire">Aucun PC appairé : l\'élément attendra que tu appaires ton PC dans Projekt Mobile.</string>
+    <string name="partage_vide">Ce contenu n\'est pas pris en charge : texte, lien, image ou son uniquement.</string>
+    <string name="envoi_en_cours">Envoi…</string>
+    <string name="envoye_ok">Envoyé à Projekt ✓</string>
+    <string name="envoye_attente">En attente : partira dès que le PC sera joignable.</string>
+    <string name="trop_gros">« %1$s » dépasse 25 Mo.</string>
+    <string name="n_elements">%1$d éléments</string>
+
+    <!-- Thème -->
+    <string name="theme_titre">Thème</string>
+    <string name="theme_fond">Fond</string>
+    <string name="theme_couleur">Couleur principale</string>
+
+    <string name="version">Projekt Mobile %1$s</string>
+
+    <!-- Mise à jour transmise par le PC -->
+    <string name="maj_disponible">Nouvelle version sur le PC : %1$s</string>
+    <string name="bouton_maj">Mettre à jour</string>
+    <string name="maj_telechargement">Téléchargement de la mise à jour…</string>
+    <string name="maj_echec">Mise à jour impossible : %1$s</string>
+    <string name="maj_autoriser">Autorise Projekt Mobile à installer des applications, puis touche à nouveau « Mettre à jour ».</string>
+</resources>

@@ -1,0 +1,8 @@
+.gradle/
+build/
+local.properties
+# La clé de signature ne doit JAMAIS finir sur GitHub : sans elle, impossible de
+# publier une mise à jour installable par-dessus l'app existante.
+signature/
+# APK construits (distribués à part, pas dans le code).
+sortie/

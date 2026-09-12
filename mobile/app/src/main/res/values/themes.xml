@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Les couleurs réelles viennent du thème choisi dans l'app (Themes.kt) ;
+         celles-ci ne servent qu'au tout premier affichage : sombre, comme le PC. -->
+    <color name="fond_initial">#14161C</color>
+
+    <style name="Theme.Projekt" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/fond_initial</item>
+    </style>
+
+    <!-- Panneau de partage : l'app d'origine reste visible derrière, assombrie. -->
+    <style name="Theme.Projekt.Panneau" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.InputMethod</item>
+    </style>
+</resources>

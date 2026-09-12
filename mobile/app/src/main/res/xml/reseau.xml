@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le PC est joint en http:// sur le réseau local. Ce n'est pas un trou de
+     sécurité : tout ce qui passe est chiffré et authentifié (AES-256-GCM) avec la
+     clé reçue par le QR code. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
