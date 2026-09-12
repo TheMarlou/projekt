@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import TopBar, { ViewId } from "./components/TopBar";
 import Sidebar from "./components/Sidebar";
 import RightPanel from "./components/RightPanel";
 import NotesView from "./components/views/NotesView";
-import MoodboardView from "./components/views/MoodboardView";
-import GraphView from "./components/views/GraphView";
+// Moodboard et carte mentale chargés à la première ouverture : l'app s'affiche
+// plus vite, et beaucoup de sessions ne passent que par les notes.
+const MoodboardView = lazy(() => import("./components/views/MoodboardView"));
+const GraphView = lazy(() => import("./components/views/GraphView"));
 import AIPanel from "./components/AIPanel";
 import Notices from "./components/Notices";
 import Recherche from "./components/Recherche";
@@ -222,6 +224,7 @@ export default function App() {
             onCreateRootPage={handleAddRootPage}
           />
         )}
+        <Suspense fallback={<div style={{ flex: 1 }} />}>
         {selectedProjectId && view === "moodboard" && (
           <MoodboardView
             projectId={selectedProjectId}
@@ -252,6 +255,7 @@ export default function App() {
             onMovePage={movePageTo}
           />
         )}
+        </Suspense>
 
         {selectedProjectId && view === "notes" && (
           <RightPanel blocks={pages} selected={selected} onOpenBlock={handleOpenPage} />

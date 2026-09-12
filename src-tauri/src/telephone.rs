@@ -222,7 +222,7 @@ pub fn traiter(etat: &mut Etat, req: &Requete, maintenant: i64) -> Reponse {
                 r.contact = Some(a.id.clone());
                 r
             }
-            Err(r) => r,
+            Err(r) => *r,
         },
         ("POST", "/v1/envoi") => envoi(etat, req, maintenant),
         _ => Reponse::texte(404, "introuvable"),
@@ -278,23 +278,23 @@ fn appairer(etat: &mut Etat, req: &Requete, maintenant: i64) -> Reponse {
 }
 
 /// Appareil connu + message déchiffré avec SA clé + heure plausible.
-fn authentifier(etat: &mut Etat, req: &Requete, route: &str, maintenant: i64) -> Result<(usize, Value), Reponse> {
+fn authentifier(etat: &mut Etat, req: &Requete, route: &str, maintenant: i64) -> Result<(usize, Value), Box<Reponse>> {
     let appareil = req
         .appareil
         .filter(|a| identifiant_valide(a))
-        .ok_or_else(|| Reponse::texte(400, "appareil manquant"))?;
+        .ok_or_else(|| Box::new(Reponse::texte(400, "appareil manquant")))?;
     let i = etat
         .registre
         .appareils
         .iter()
         .position(|a| a.id == appareil)
-        .ok_or_else(|| Reponse::texte(401, "téléphone inconnu : appaire-le à nouveau"))?;
-    let cle = cle_de(&etat.registre.appareils[i].cle).ok_or_else(|| Reponse::texte(500, "clé abîmée"))?;
+        .ok_or_else(|| Box::new(Reponse::texte(401, "téléphone inconnu : appaire-le à nouveau")))?;
+    let cle = cle_de(&etat.registre.appareils[i].cle).ok_or_else(|| Box::new(Reponse::texte(500, "clé abîmée")))?;
     let clair = dechiffrer(&cle, format!("{route}|{appareil}").as_bytes(), req.corps)
-        .ok_or_else(|| Reponse::texte(403, "message refusé"))?;
-    let (valeur, quand) = envoye_le(&clair).ok_or_else(|| Reponse::texte(400, "message illisible"))?;
+        .ok_or_else(|| Box::new(Reponse::texte(403, "message refusé")))?;
+    let (valeur, quand) = envoye_le(&clair).ok_or_else(|| Box::new(Reponse::texte(400, "message illisible")))?;
     if (maintenant - quand).abs() > DERIVE_HORLOGE_MS {
-        return Err(Reponse::texte(400, "l'heure du téléphone et celle du PC sont trop différentes"));
+        return Err(Box::new(Reponse::texte(400, "l'heure du téléphone et celle du PC sont trop différentes")));
     }
     etat.registre.appareils[i].vu_le = maintenant;
     Ok((i, valeur))
@@ -307,7 +307,7 @@ fn extension_valide(ext: &str) -> bool {
 fn envoi(etat: &mut Etat, req: &Requete, maintenant: i64) -> Reponse {
     let (i, valeur) = match authentifier(etat, req, "envoi", maintenant) {
         Ok(v) => v,
-        Err(r) => return r,
+        Err(r) => return *r,
     };
     let appareil = etat.registre.appareils[i].clone();
     let cle = cle_de(&appareil.cle).unwrap_or_default();
@@ -463,6 +463,9 @@ impl Telephone {
         let mut tampon = [0u8; 128];
         loop {
             let Ok((n, source)) = socket.recv_from(&mut tampon) else {
+                // Windows signale ainsi un envoi précédent qui n'a pas abouti : on
+                // souffle un peu pour ne jamais tourner à vide.
+                std::thread::sleep(std::time::Duration::from_millis(50));
                 continue;
             };
             let message = String::from_utf8_lossy(&tampon[..n]);

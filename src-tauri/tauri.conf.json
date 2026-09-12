@@ -49,6 +49,10 @@
         "displayLanguageSelector": false,
         "installMode": "currentUser"
       }
+    },
+    "resources": {
+      "../mobile/sortie/Projekt-Mobile.apk": "mobile/projekt-mobile.apk",
+      "../mobile/sortie/version.json": "mobile/version.json"
     }
   }
 }
