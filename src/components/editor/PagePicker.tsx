@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Block } from "../../store/blocksStore";
+import { tr } from "../../lib/i18n";
 
 interface PagePickerProps {
   pages: Block[];
@@ -16,7 +17,7 @@ function pathOf(pages: Block[], page: Block): string {
   const seen = new Set<string>();
   while (current && !seen.has(current.id)) {
     seen.add(current.id);
-    segments.unshift(current.title?.trim() || "Sans titre");
+    segments.unshift(current.title?.trim() || tr("Sans titre", "Untitled"));
     current = current.parentId ? pages.find((p) => p.id === current!.parentId) : undefined;
   }
   return segments.join(" › ");
@@ -63,15 +64,15 @@ export default function PagePicker({ pages, excludeId, onPick, onCancel }: PageP
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Chercher une page…"
+          placeholder={tr("Chercher une page…", "Find a page…")}
           style={search}
         />
         <div style={{ maxHeight: 300, overflowY: "auto", marginTop: 8 }}>
           {results.length === 0 ? (
             <div style={{ padding: "10px 9px", fontSize: 12.5, color: "var(--text-dim)" }}>
               {pages.length <= 1
-                ? "Ce projet ne contient aucune autre page à mentionner."
-                : "Aucune page ne correspond."}
+                ? tr("Ce projet ne contient aucune autre page à mentionner.", "This project has no other page to mention.")
+                : tr("Aucune page ne correspond.", "No matching page.")}
             </div>
           ) : (
             results.map((r, i) => (
@@ -89,7 +90,7 @@ export default function PagePicker({ pages, excludeId, onPick, onCancel }: PageP
                   color: i === index ? "var(--accent)" : "var(--text)",
                 }}
               >
-                {r.page.title?.trim() || "Sans titre"}
+                {r.page.title?.trim() || tr("Sans titre", "Untitled")}
                 {r.path.includes("›") && (
                   <div style={{ fontSize: 11, color: "var(--text-dim)" }}>{r.path}</div>
                 )}

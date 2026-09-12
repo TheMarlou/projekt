@@ -1,6 +1,7 @@
 import { Extension, type Editor, type Range } from "@tiptap/react";
 import Suggestion from "@tiptap/suggestion";
 import { requestAudio, requestImage, requestLink, requestMention, requestSubPage } from "./editorEvents";
+import { tr } from "../../lib/i18n";
 
 function sansAccent(texte: string): string {
   return texte.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -14,64 +15,64 @@ export interface SlashItem {
 
 export const SLASH_ITEMS: SlashItem[] = [
   {
-    label: "Texte",
-    hint: "Paragraphe simple",
+    label: tr("Texte", "Text"),
+    hint: tr("Paragraphe simple", "Plain paragraph"),
     run: (e, r) => e.chain().focus().deleteRange(r).setParagraph().run(),
   },
   {
-    label: "Titre 1",
-    hint: "Grand titre de section",
+    label: tr("Titre 1", "Heading 1"),
+    hint: tr("Grand titre de section", "Large section heading"),
     run: (e, r) => e.chain().focus().deleteRange(r).setHeading({ level: 1 }).run(),
   },
   {
-    label: "Titre 2",
-    hint: "Sous-titre",
+    label: tr("Titre 2", "Heading 2"),
+    hint: tr("Sous-titre", "Subheading"),
     run: (e, r) => e.chain().focus().deleteRange(r).setHeading({ level: 2 }).run(),
   },
   {
-    label: "Titre 3",
-    hint: "Sous-sous-titre",
+    label: tr("Titre 3", "Heading 3"),
+    hint: tr("Sous-sous-titre", "Smaller subheading"),
     run: (e, r) => e.chain().focus().deleteRange(r).setHeading({ level: 3 }).run(),
   },
   {
-    label: "Liste à puces",
-    hint: "Liste non ordonnée",
+    label: tr("Liste à puces", "Bulleted list"),
+    hint: tr("Liste non ordonnée", "Unordered list"),
     run: (e, r) => e.chain().focus().deleteRange(r).toggleBulletList().run(),
   },
   {
-    label: "Liste numérotée",
-    hint: "Liste ordonnée",
+    label: tr("Liste numérotée", "Numbered list"),
+    hint: tr("Liste ordonnée", "Ordered list"),
     run: (e, r) => e.chain().focus().deleteRange(r).toggleOrderedList().run(),
   },
   {
-    label: "Cases à cocher",
-    hint: "Liste de tâches — Ctrl+Maj+9",
+    label: tr("Cases à cocher", "Checkboxes"),
+    hint: tr("Liste de tâches — Ctrl+Maj+9", "Task list — Ctrl+Shift+9"),
     run: (e, r) => e.chain().focus().deleteRange(r).toggleTaskList().run(),
   },
   {
-    label: "Citation",
-    hint: "Bloc de citation",
+    label: tr("Citation", "Quote"),
+    hint: tr("Bloc de citation", "Quote block"),
     run: (e, r) => e.chain().focus().deleteRange(r).toggleBlockquote().run(),
   },
   {
-    label: "Bloc de code",
-    hint: "Code monospace",
+    label: tr("Bloc de code", "Code block"),
+    hint: tr("Code monospace", "Monospaced code"),
     run: (e, r) => e.chain().focus().deleteRange(r).toggleCodeBlock().run(),
   },
   {
-    label: "Tableau",
-    hint: "Tableau 3×3 avec en-têtes",
+    label: tr("Tableau", "Table"),
+    hint: tr("Tableau 3×3 avec en-têtes", "3×3 table with headers"),
     run: (e, r) =>
       e.chain().focus().deleteRange(r).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
   },
   {
-    label: "Surlignage",
-    hint: "Surligner en jaune",
+    label: tr("Surlignage", "Highlight"),
+    hint: tr("Surligner en jaune", "Highlight in yellow"),
     run: (e, r) => e.chain().focus().deleteRange(r).setHighlight({ color: "#f0c04a59" }).run(),
   },
   {
-    label: "Sous-page",
-    hint: "Crée une page fille ici",
+    label: tr("Sous-page", "Sub-page"),
+    hint: tr("Crée une page fille ici", "Creates a child page here"),
     // La création appartient à la vue, qui seule connaît la page courante.
     run: (e, r) => {
       e.chain().focus().deleteRange(r).run();
@@ -79,16 +80,16 @@ export const SLASH_ITEMS: SlashItem[] = [
     },
   },
   {
-    label: "Mention de page",
-    hint: "Citer une page existante",
+    label: tr("Mention de page", "Page mention"),
+    hint: tr("Citer une page existante", "Refer to an existing page"),
     run: (e, r) => {
       e.chain().focus().deleteRange(r).run();
       requestMention();
     },
   },
   {
-    label: "Lien",
-    hint: "Insérer une URL — Ctrl+K",
+    label: tr("Lien", "Link"),
+    hint: tr("Insérer une URL — Ctrl+K", "Insert a URL — Ctrl+K"),
     // La saisie de l'URL appartient à la barre d'outils : on efface le « / »
     // puis on lui passe la main, sinon le texte de commande resterait dans la page.
     run: (e, r) => {
@@ -98,23 +99,23 @@ export const SLASH_ITEMS: SlashItem[] = [
   },
   {
     label: "Image",
-    hint: "Depuis un fichier local",
+    hint: tr("Depuis un fichier local", "From a local file"),
     run: (e, r) => {
       e.chain().focus().deleteRange(r).run();
       requestImage();
     },
   },
   {
-    label: "Fichier audio",
-    hint: "Son, musique, voix — lisible dans la page",
+    label: tr("Fichier audio", "Audio file"),
+    hint: tr("Son, musique, voix — lisible dans la page", "Sound, music, voice — playable in the page"),
     run: (e, r) => {
       e.chain().focus().deleteRange(r).run();
       requestAudio();
     },
   },
   {
-    label: "Séparateur",
-    hint: "Trait horizontal",
+    label: tr("Séparateur", "Divider"),
+    hint: tr("Trait horizontal", "Horizontal line"),
     run: (e, r) => e.chain().focus().deleteRange(r).setHorizontalRule().run(),
   },
 ];

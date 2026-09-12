@@ -6,6 +6,7 @@ import { openExternal } from "../../lib/external";
 import CropEditor from "./CropEditor";
 import { requestLink } from "./editorEvents";
 import { NodeViewWrapper, ReactNodeViewRenderer, type Editor, type NodeViewProps } from "@tiptap/react";
+import { tr } from "../../lib/i18n";
 
 // Le document stocke un CHEMIN de fichier, pas les octets de l'image : une page
 // avec dix captures pèserait sinon plusieurs mégaoctets dans SQLite. La vue résout
@@ -32,10 +33,10 @@ const HANDLES = [
 ] as const;
 
 const WRAP_MODES = [
-  { value: "none", label: "Pleine ligne", title: "Image seule sur sa ligne" },
-  { value: "left", label: "Texte à droite", title: "Image à gauche, le texte l'habille à droite" },
-  { value: "center", label: "Centrée", title: "Image centrée, seule sur sa ligne" },
-  { value: "right", label: "Texte à gauche", title: "Image à droite, le texte l'habille à gauche" },
+  { value: "none", label: tr("Pleine ligne", "Full width"), title: tr("Image seule sur sa ligne", "Image alone on its line") },
+  { value: "left", label: tr("Texte à droite", "Text on the right"), title: tr("Image à gauche, le texte l'habille à droite", "Image on the left, text wraps on the right") },
+  { value: "center", label: tr("Centrée", "Centred"), title: tr("Image centrée, seule sur sa ligne", "Centred image, alone on its line") },
+  { value: "right", label: tr("Texte à gauche", "Text on the left"), title: tr("Image à droite, le texte l'habille à gauche", "Image on the right, text wraps on the left") },
 ] as const;
 
 function ImageView({ node, selected, updateAttributes }: NodeViewProps) {
@@ -164,7 +165,7 @@ function ImageView({ node, selected, updateAttributes }: NodeViewProps) {
             src={resolved}
             alt={alt}
             draggable={false}
-            title={href ? `Ctrl+clic pour ouvrir ${href}` : undefined}
+            title={href ? tr(`Ctrl+clic pour ouvrir ${href}`, `Ctrl+click to open ${href}`) : undefined}
             onLoad={(e) =>
               setNatural({
                 width: e.currentTarget.naturalWidth,
@@ -178,11 +179,11 @@ function ImageView({ node, selected, updateAttributes }: NodeViewProps) {
         </span>
       ) : (
         <span className="pk-image-fallback">
-          {failed ? "⚠ Image introuvable" : "Chargement de l'image…"}
+          {failed ? tr("⚠ Image introuvable", "⚠ Image not found") : tr("Chargement de l'image…", "Loading image…")}
         </span>
       )}
 
-      {href && <span className="pk-image-link">🔗 lien</span>}
+      {href && <span className="pk-image-link">🔗 {tr("lien", "link")}</span>}
 
       {selected && resolved && (
         <>
@@ -210,7 +211,7 @@ function ImageView({ node, selected, updateAttributes }: NodeViewProps) {
                 menu, ils laissent la place au lien, au rognage et à la taille. */}
             <div className="pk-image-menu">
               <button
-                title="Placement de l’image dans le texte"
+                title={tr("Placement de l’image dans le texte", "Image placement in the text")}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setPlacementOuvert((v) => !v)}
                 data-active={placementOuvert ? "true" : undefined}
@@ -237,17 +238,17 @@ function ImageView({ node, selected, updateAttributes }: NodeViewProps) {
               )}
             </div>
             <button
-              title={href ? `Modifier le lien (${href})` : "Poser un lien sur l'image"}
+              title={href ? tr(`Modifier le lien (${href})`, `Edit the link (${href})`) : tr("Poser un lien sur l'image", "Put a link on the image")}
               onMouseDown={(e) => e.preventDefault()}
               onClick={requestLink}
               data-active={href ? "true" : undefined}
             >
-              Lien
+              {tr("Lien", "Link")}
             </button>
             {cropDraft ? (
               <>
                 <button
-                  title="Appliquer la zone choisie"
+                  title={tr("Appliquer la zone choisie", "Apply the selected area")}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     updateAttributes({ crop: isFullCrop(cropDraft) ? null : cropDraft });
@@ -255,41 +256,41 @@ function ImageView({ node, selected, updateAttributes }: NodeViewProps) {
                   }}
                   data-active="true"
                 >
-                  Valider le rognage
+                  {tr("Valider le rognage", "Apply crop")}
                 </button>
                 <button
-                  title="Revenir à la zone précédente"
+                  title={tr("Revenir à la zone précédente", "Go back to the previous area")}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setCropDraft(null)}
                 >
-                  Annuler
+                  {tr("Annuler", "Cancel")}
                 </button>
               </>
             ) : (
               <button
-                title="Choisir la partie de l'image à garder"
+                title={tr("Choisir la partie de l'image à garder", "Choose the part of the image to keep")}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setCropDraft(crop ?? FULL_CROP)}
                 data-active={crop ? "true" : undefined}
               >
-                Rogner
+                {tr("Rogner", "Crop")}
               </button>
             )}
             {crop && !cropDraft && (
               <button
-                title="Afficher de nouveau l'image entière"
+                title={tr("Afficher de nouveau l'image entière", "Show the whole image again")}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => updateAttributes({ crop: null })}
               >
-                Image entière
+                {tr("Image entière", "Whole image")}
               </button>
             )}
             <button
-              title="Rendre à l'image sa taille d'origine"
+              title={tr("Rendre à l'image sa taille d'origine", "Restore the image's original size")}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => updateAttributes({ width: null })}
             >
-              Taille d'origine
+              {tr("Taille d'origine", "Original size")}
             </button>
           </div>
         </>

@@ -2,6 +2,7 @@ import { Node, mergeAttributes } from "@tiptap/core";
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from "@tiptap/react";
 import { useBlocksStore } from "../../store/blocksStore";
 import { requestDeletePage, requestOpenPage } from "./editorEvents";
+import { tr } from "../../lib/i18n";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -30,7 +31,7 @@ function PageLinkView({ node, selected, deleteNode }: NodeViewProps) {
   // Le titre n'est PAS stocké dans le document : on le lit dans le store à
   // l'affichage. C'est ce qui fait qu'un renommage se propage partout tout seul.
   const page = useBlocksStore((s) => s.blocks.find((b) => b.id === pageId));
-  const title = page?.title?.trim() || "Sans titre";
+  const title = page?.title?.trim() || tr("Sans titre", "Untitled");
   const isSubPage = isChildOfCurrentPage(page?.parentId);
 
   return (
@@ -48,14 +49,14 @@ function PageLinkView({ node, selected, deleteNode }: NodeViewProps) {
           <span
             className="pk-pagelink-open"
             onClick={() => requestOpenPage(pageId)}
-            title={isSubPage ? "Ouvrir la sous-page" : "Ouvrir la page mentionnée"}
+            title={isSubPage ? tr("Ouvrir la sous-page", "Open the sub-page") : tr("Ouvrir la page mentionnée", "Open the mentioned page")}
           >
             <span className="pk-pagelink-icon">{isSubPage ? "▤" : "↗"}</span>
             {title}
           </span>
           <button
             className="pk-pagelink-remove"
-            title={isSubPage ? "Supprimer cette sous-page" : "Retirer cette mention"}
+            title={isSubPage ? tr("Supprimer cette sous-page", "Delete this sub-page") : tr("Retirer cette mention", "Remove this mention")}
             onMouseDown={(e) => e.preventDefault()}
             // Une mention ne possède pas la page : on ne retire que la référence.
             onClick={() => (isSubPage ? requestDeletePage(pageId) : deleteNode())}
@@ -64,8 +65,8 @@ function PageLinkView({ node, selected, deleteNode }: NodeViewProps) {
           </button>
         </>
       ) : (
-        <span className="pk-pagelink-missing" title="Cette page n'existe plus">
-          ▤ Page supprimée
+        <span className="pk-pagelink-missing" title={tr("Cette page n'existe plus", "This page no longer exists")}>
+          ▤ {tr("Page supprimée", "Deleted page")}
         </span>
       )}
     </NodeViewWrapper>

@@ -5,6 +5,7 @@ import { AUDIO_EXTENSIONS, insertAudioFile } from "./AudioClip";
 import { AUDIO_REQUEST_EVENT, IMAGE_REQUEST_EVENT, LINK_REQUEST_EVENT, requestInlineAi } from "./editorEvents";
 import { FONT_CHOICES, findFontChoice } from "./fonts";
 import { insertImageFile } from "./ProjektImage";
+import { tr } from "../../lib/i18n";
 
 // Le corps de texte de l'éditeur vaut 15px : c'est la taille « par défaut », et
 // les autres valeurs s'échelonnent autour pour rester lisibles à l'écran.
@@ -13,10 +14,10 @@ const FONT_SIZES = [12, 13, 14, 15, 16, 18, 20, 24, 30, 36, 48];
 
 // Mêmes intitulés que pour l'image : le tableau se place exactement de la même façon.
 const WRAP_MODES = [
-  { value: "none", label: "Pleine ligne" },
-  { value: "left", label: "Texte à droite" },
-  { value: "center", label: "Centré" },
-  { value: "right", label: "Texte à gauche" },
+  { value: "none", label: tr("Pleine ligne", "Full width") },
+  { value: "left", label: tr("Texte à droite", "Text on the right") },
+  { value: "center", label: tr("Centré", "Centred") },
+  { value: "right", label: tr("Texte à gauche", "Text on the left") },
 ] as const;
 
 /** Bloc et lignes de texte : dit d'un coup d'œil de quel côté le texte coulera. */
@@ -35,10 +36,10 @@ function WrapIcon({ kind }: { kind: (typeof WRAP_MODES)[number]["value"] }) {
 }
 
 const ALIGNMENTS = [
-  { value: "left", label: "Aligné à gauche" },
-  { value: "center", label: "Centré" },
-  { value: "right", label: "Aligné à droite" },
-  { value: "justify", label: "Justifié" },
+  { value: "left", label: tr("Aligné à gauche", "Left aligned") },
+  { value: "center", label: tr("Centré", "Centred") },
+  { value: "right", label: tr("Aligné à droite", "Right aligned") },
+  { value: "justify", label: tr("Justifié", "Justified") },
 ] as const;
 
 type AlignValue = (typeof ALIGNMENTS)[number]["value"];
@@ -59,46 +60,46 @@ function AlignIcon({ kind }: { kind: AlignValue }) {
 }
 
 const HIGHLIGHT_COLORS = [
-  { label: "Jaune", value: "#f0c04a59" },
-  { label: "Vert", value: "#5fb87a59" },
-  { label: "Bleu", value: "#5b9ce659" },
-  { label: "Violet", value: "#c77ee059" },
-  { label: "Rouge", value: "#e8746459" },
+  { label: tr("Jaune", "Yellow"), value: "#f0c04a59" },
+  { label: tr("Vert", "Green"), value: "#5fb87a59" },
+  { label: tr("Bleu", "Blue"), value: "#5b9ce659" },
+  { label: tr("Violet", "Purple"), value: "#c77ee059" },
+  { label: tr("Rouge", "Red"), value: "#e8746459" },
 ];
 
 const BLOCK_TYPES = [
   {
-    label: "Texte",
+    label: tr("Texte", "Text"),
     hint: "Ctrl+Alt+0",
     isActive: (e: Editor) => e.isActive("paragraph") && !e.isActive("blockquote"),
     run: (e: Editor) => e.chain().focus().setParagraph().run(),
   },
   {
-    label: "Titre 1",
+    label: tr("Titre 1", "Heading 1"),
     hint: "Ctrl+Alt+1",
     isActive: (e: Editor) => e.isActive("heading", { level: 1 }),
     run: (e: Editor) => e.chain().focus().setHeading({ level: 1 }).run(),
   },
   {
-    label: "Titre 2",
+    label: tr("Titre 2", "Heading 2"),
     hint: "Ctrl+Alt+2",
     isActive: (e: Editor) => e.isActive("heading", { level: 2 }),
     run: (e: Editor) => e.chain().focus().setHeading({ level: 2 }).run(),
   },
   {
-    label: "Titre 3",
+    label: tr("Titre 3", "Heading 3"),
     hint: "Ctrl+Alt+3",
     isActive: (e: Editor) => e.isActive("heading", { level: 3 }),
     run: (e: Editor) => e.chain().focus().setHeading({ level: 3 }).run(),
   },
   {
-    label: "Citation",
-    hint: "Ctrl+Maj+B",
+    label: tr("Citation", "Quote"),
+    hint: tr("Ctrl+Maj+B", "Ctrl+Shift+B"),
     isActive: (e: Editor) => e.isActive("blockquote"),
     run: (e: Editor) => e.chain().focus().toggleBlockquote().run(),
   },
   {
-    label: "Bloc de code",
+    label: tr("Bloc de code", "Code block"),
     hint: "Ctrl+Alt+C",
     isActive: (e: Editor) => e.isActive("codeBlock"),
     run: (e: Editor) => e.chain().focus().toggleCodeBlock().run(),
@@ -177,7 +178,7 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
 
   return (
     <div style={barStyle}>
-      <Family caption="Bloc">
+      <Family caption={tr("Bloc", "Block")}>
         <Menu
           id="bloc"
           openMenu={openMenu}
@@ -201,7 +202,7 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
           disabled={off}
-          title="Alignement du paragraphe"
+          title={tr("Alignement du paragraphe", "Paragraph alignment")}
           trigger={<AlignIcon kind={activeAlign} />}
           width={196}
         >
@@ -216,13 +217,13 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
         </Menu>
       </Family>
 
-      <Family caption="Police">
+      <Family caption={tr("Police", "Font")}>
         <Menu
           id="police"
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
           disabled={off}
-          title="Police de caractères"
+          title={tr("Police de caractères", "Typeface")}
           trigger={
             <span style={{ minWidth: 70, textAlign: "left", fontFamily: activeFont.stack || undefined }}>
               {activeFont.label}
@@ -250,7 +251,7 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
           disabled={off}
-          title="Taille du texte"
+          title={tr("Taille du texte", "Text size")}
           trigger={<span style={{ minWidth: 18, textAlign: "right" }}>{activeSize}</span>}
           width={150}
         >
@@ -270,10 +271,10 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
         </Menu>
       </Family>
 
-      <Family caption="Texte">
+      <Family caption={tr("Texte", "Text")}>
         <Tool
-          label="G"
-          title="Gras — Ctrl+B"
+          label={tr("G", "B")}
+          title={tr("Gras — Ctrl+B", "Bold — Ctrl+B")}
           bold
           disabled={off}
           active={!!editor?.isActive("bold")}
@@ -281,15 +282,15 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
         />
         <Tool
           label="I"
-          title="Italique — Ctrl+I"
+          title={tr("Italique — Ctrl+I", "Italic — Ctrl+I")}
           italic
           disabled={off}
           active={!!editor?.isActive("italic")}
           onClick={() => editor?.chain().focus().toggleItalic().run()}
         />
         <Tool
-          label="S"
-          title="Souligné — Ctrl+U"
+          label={tr("S", "U")}
+          title={tr("Souligné — Ctrl+U", "Underline — Ctrl+U")}
           underline
           disabled={off}
           active={!!editor?.isActive("underline")}
@@ -297,7 +298,7 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
         />
         <Tool
           label="S"
-          title="Barré — Ctrl+Maj+S"
+          title={tr("Barré — Ctrl+Maj+S", "Strikethrough — Ctrl+Shift+S")}
           strike
           disabled={off}
           active={!!editor?.isActive("strike")}
@@ -305,7 +306,7 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
         />
         <Tool
           label="{ }"
-          title="Code en ligne — Ctrl+E"
+          title={tr("Code en ligne — Ctrl+E", "Inline code — Ctrl+E")}
           disabled={off}
           active={!!editor?.isActive("code")}
           onClick={() => editor?.chain().focus().toggleCode().run()}
@@ -316,7 +317,7 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
           setOpenMenu={setOpenMenu}
           disabled={off}
           active={!!editor?.isActive("highlight")}
-          title="Surlignage — Ctrl+Maj+H"
+          title={tr("Surlignage — Ctrl+Maj+H", "Highlight — Ctrl+Shift+H")}
           trigger={<span style={{ borderBottom: "3px solid #f0c04a", lineHeight: 1.1 }}>A</span>}
           width={150}
         >
@@ -329,38 +330,38 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
               onSelect={() => editor?.chain().focus().setHighlight({ color: c.value }).run()}
             />
           ))}
-          <MenuItem label="Aucun" onSelect={() => editor?.chain().focus().unsetHighlight().run()} />
+          <MenuItem label={tr("Aucun", "None")} onSelect={() => editor?.chain().focus().unsetHighlight().run()} />
         </Menu>
       </Family>
 
-      <Family caption="Listes">
+      <Family caption={tr("Listes", "Lists")}>
         <Tool
           label="•"
-          title="Liste à puces — Ctrl+Maj+8"
+          title={tr("Liste à puces — Ctrl+Maj+8", "Bulleted list — Ctrl+Shift+8")}
           disabled={off}
           active={!!editor?.isActive("bulletList")}
           onClick={() => editor?.chain().focus().toggleBulletList().run()}
         />
         <Tool
           label="1."
-          title="Liste numérotée — Ctrl+Maj+7"
+          title={tr("Liste numérotée — Ctrl+Maj+7", "Numbered list — Ctrl+Shift+7")}
           disabled={off}
           active={!!editor?.isActive("orderedList")}
           onClick={() => editor?.chain().focus().toggleOrderedList().run()}
         />
         <Tool
           label="☑"
-          title="Cases à cocher — Ctrl+Maj+9"
+          title={tr("Cases à cocher — Ctrl+Maj+9", "Checkboxes — Ctrl+Shift+9")}
           disabled={off}
           active={!!editor?.isActive("taskList")}
           onClick={() => editor?.chain().focus().toggleTaskList().run()}
         />
       </Family>
 
-      <Family caption="Insertion">
+      <Family caption={tr("Insertion", "Insert")}>
         <Tool
           label="🔗"
-          title="Lien — Ctrl+K"
+          title={tr("Lien — Ctrl+K", "Link — Ctrl+K")}
           disabled={off}
           active={!!editor?.isActive("link") || linkOpen}
           onClick={() => {
@@ -370,19 +371,19 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
         />
         <Tool
           label="🖼"
-          title="Image (fichier local)"
+          title={tr("Image (fichier local)", "Image (local file)")}
           disabled={off}
           onClick={() => fileInput.current?.click()}
         />
         <Tool
           label="⊞"
-          title="Tableau 3×3"
+          title={tr("Tableau 3×3", "3×3 table")}
           disabled={off}
           onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
         />
         <Tool
           label="—"
-          title="Séparateur"
+          title={tr("Séparateur", "Divider")}
           disabled={off}
           onClick={() => editor?.chain().focus().setHorizontalRule().run()}
         />
@@ -392,12 +393,12 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
           n'apparaît que dans un tableau, ce qui évite d'encombrer la barre le reste
           du temps — elle est déjà pleine à la largeur par défaut. */}
       {editor?.isActive("table") && (
-        <Family caption="Tableau">
+        <Family caption={tr("Tableau", "Table")}>
           <Menu
             id="tableau-placement"
             openMenu={openMenu}
             setOpenMenu={setOpenMenu}
-            title={"Placement du tableau — " + activeTableWrap.label}
+            title={tr("Placement du tableau — ", "Table placement — ") + activeTableWrap.label}
             trigger={<WrapIcon kind={activeTableWrap.value} />}
             width={210}
           >
@@ -410,41 +411,41 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
               />
             ))}
           </Menu>
-          <Tool label="+↔" title="Ajouter une colonne" onClick={() => editor.chain().focus().addColumnAfter().run()} />
-          <Tool label="−↔" title="Supprimer la colonne" onClick={() => editor.chain().focus().deleteColumn().run()} />
-          <Tool label="+↕" title="Ajouter une ligne" onClick={() => editor.chain().focus().addRowAfter().run()} />
-          <Tool label="−↕" title="Supprimer la ligne" onClick={() => editor.chain().focus().deleteRow().run()} />
-          <Tool label="✕" title="Supprimer le tableau" onClick={() => editor.chain().focus().deleteTable().run()} />
+          <Tool label="+↔" title={tr("Ajouter une colonne", "Add a column")} onClick={() => editor.chain().focus().addColumnAfter().run()} />
+          <Tool label="−↔" title={tr("Supprimer la colonne", "Delete the column")} onClick={() => editor.chain().focus().deleteColumn().run()} />
+          <Tool label="+↕" title={tr("Ajouter une ligne", "Add a row")} onClick={() => editor.chain().focus().addRowAfter().run()} />
+          <Tool label="−↕" title={tr("Supprimer la ligne", "Delete the row")} onClick={() => editor.chain().focus().deleteRow().run()} />
+          <Tool label="✕" title={tr("Supprimer le tableau", "Delete the table")} onClick={() => editor.chain().focus().deleteTable().run()} />
         </Family>
       )}
 
-      <Family caption="IA">
+      <Family caption={tr("IA", "AI")}>
         <Menu
           id="ia"
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
           disabled={off}
-          title={hasSelection ? "Travailler la sélection avec l'IA" : "Écrire avec l'IA à partir du curseur"}
+          title={hasSelection ? tr("Travailler la sélection avec l'IA", "Work on the selection with the AI") : tr("Écrire avec l'IA à partir du curseur", "Write with the AI from the cursor")}
           trigger={<span>✦ IA</span>}
           width={340}
         >
-          <MenuItem label="Demander à l'IA…" hint="Ctrl+Espace" onSelect={() => lancerIa()} />
+          <MenuItem label={tr("Demander à l'IA…", "Ask the AI…")} hint={tr("Ctrl+Espace", "Ctrl+Space")} onSelect={() => lancerIa()} />
           {(hasSelection ? ACTIONS_SELECTION : ACTIONS_CURSEUR).map((a) => (
             <MenuItem key={a.libelle} label={a.libelle} hint={a.aide} onSelect={() => lancerIa(a.libelle)} />
           ))}
         </Menu>
       </Family>
 
-      <Family caption="Historique" last>
+      <Family caption={tr("Historique", "History")} last>
         <Tool
           label="↶"
-          title="Annuler — Ctrl+Z"
+          title={tr("Annuler — Ctrl+Z", "Undo — Ctrl+Z")}
           disabled={off || !editor?.can().undo()}
           onClick={() => editor?.chain().focus().undo().run()}
         />
         <Tool
           label="↷"
-          title="Rétablir — Ctrl+Y"
+          title={tr("Rétablir — Ctrl+Y", "Redo — Ctrl+Y")}
           disabled={off || !editor?.can().redo()}
           onClick={() => editor?.chain().focus().redo().run()}
         />
@@ -534,7 +535,7 @@ function LinkEditor({ editor, onClose }: { editor: Editor; onClose: () => void }
             if (e.key === "Enter") apply();
             if (e.key === "Escape") onClose();
           }}
-          placeholder="https://exemple.com"
+          placeholder={tr("https://exemple.com", "https://example.com")}
           style={{
             flex: 1,
             minWidth: 0,
@@ -547,7 +548,7 @@ function LinkEditor({ editor, onClose }: { editor: Editor; onClose: () => void }
           }}
         />
         <button onClick={apply} style={{ ...ghost, borderColor: "var(--accent)", color: "var(--accent)" }}>
-          Appliquer
+          {tr("Appliquer", "Apply")}
         </button>
         {existing && (
           <button
@@ -561,7 +562,7 @@ function LinkEditor({ editor, onClose }: { editor: Editor; onClose: () => void }
             }}
             style={ghost}
           >
-            Retirer
+            {tr("Retirer", "Remove")}
           </button>
         )}
       </div>

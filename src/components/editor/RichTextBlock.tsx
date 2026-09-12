@@ -16,6 +16,7 @@ import { PageLink } from "./PageLink";
 import { ProjektImage, insertImageFile } from "./ProjektImage";
 import { createSlashCommand, type SlashMenuSnapshot } from "./slashCommand";
 import { BlockLayout } from "./blockLayout";
+import { tr } from "../../lib/i18n";
 
 // Raccourcis que StarterKit ne fournit pas. Ctrl+K n'agit pas directement :
 // il demande à la barre d'outils d'ouvrir son champ d'URL, seul endroit où
@@ -102,7 +103,7 @@ export default function RichTextBlock({
         link: { openOnClick: false, autolink: true, linkOnPaste: true },
       }),
       Placeholder.configure({
-        placeholder: "Écris ici. « / » pour insérer un élément, Espace pour demander à l'IA…",
+        placeholder: tr("Écris ici. « / » pour insérer un élément, Espace pour demander à l'IA…", "Write here. “/” to insert an element, Space to ask the AI…"),
       }),
       // `allowTableNodeSelection` est indispensable à la poignée de déplacement :
       // sans lui, l’extension convertit aussitôt la sélection du tableau en
@@ -203,9 +204,9 @@ export default function RichTextBlock({
       <BubbleMenu editor={editor} shouldShow={({ editor, from, to }) => from !== to && !editor.isActive("image") && !estIaInlineOuverte()}>
         <div style={bubbleStyle}>
           <>
-              <FormatButton active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} label="G" bold />
+              <FormatButton active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} label={tr("G", "B")} bold />
               <FormatButton active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} label="I" italic />
-              <FormatButton active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()} label="S" underline />
+              <FormatButton active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()} label={tr("S", "U")} underline />
               <FormatButton active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()} label="S" strike />
               <FormatButton active={editor.isActive("highlight")} onClick={() => editor.chain().focus().toggleHighlight({ color: "#f0c04a59" }).run()} label="A" highlight />
               <FormatButton
@@ -231,7 +232,7 @@ export default function RichTextBlock({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => requestInlineAi()}
                 style={aiButtonStyle}
-                title="Réécrire, raccourcir, structurer… avec aperçu — Ctrl+Espace"
+                title={tr("Réécrire, raccourcir, structurer… avec aperçu — Ctrl+Espace", "Rewrite, shorten, structure… with a preview — Ctrl+Space")}
               >
                 ✦ IA
               </button>

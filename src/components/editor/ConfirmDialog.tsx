@@ -1,4 +1,5 @@
 import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { tr } from "../../lib/i18n";
 
 interface ConfirmDialogProps {
   title: string;
@@ -33,7 +34,7 @@ export default function ConfirmDialog({
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button onClick={onCancel} style={neutral}>
-            Annuler
+            {tr("Annuler", "Cancel")}
           </button>
           {/* L'action destructrice n'est pas celle qui a le focus par défaut. */}
           <button onClick={onConfirm} style={danger}>

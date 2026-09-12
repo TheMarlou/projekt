@@ -1,5 +1,6 @@
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { resolvePagePath } from "../lib/pagePath";
+import { tr } from "../lib/i18n";
 
 /**
  * Rendu léger de la réponse : **gras**, listes, titres, et surtout les pages
@@ -24,7 +25,7 @@ export default function TexteRiche({
         const r = resolvePagePath(interieur, { fallbackProjectId: projectId });
         if (r.status === "ok" && onOpenPage) {
           return (
-            <button key={`${cle}-${i}`} onClick={() => onOpenPage(r.pageId)} style={citation} title="Ouvrir la page">
+            <button key={`${cle}-${i}`} onClick={() => onOpenPage(r.pageId)} style={citation} title={tr("Ouvrir la page", "Open page")}>
               ↗ {interieur.split(">").pop()?.trim()}
             </button>
           );

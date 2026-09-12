@@ -3,6 +3,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from "@tip
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "react";
 import { notify } from "../../lib/notify";
+import { tr } from "../../lib/i18n";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -52,7 +53,7 @@ async function versUrlLecture(dataUrl: string): Promise<string> {
 
 function AudioClipView({ node, selected, deleteNode }: NodeViewProps) {
   const src = node.attrs.src as string;
-  const name = (node.attrs.name as string) || "Fichier audio";
+  const name = (node.attrs.name as string) || tr("Fichier audio", "Audio file");
 
   const audio = useRef<HTMLAudioElement | null>(null);
   const urlBlob = useRef<string | null>(null);
@@ -118,10 +119,13 @@ function AudioClipView({ node, selected, deleteNode }: NodeViewProps) {
   const icone = etat === "lecture" ? "⏸" : etat === "chargement" ? "…" : etat === "erreur" ? "⚠" : "▶";
   const titre =
     etat === "erreur"
-      ? "Ce fichier ne peut pas être lu (introuvable ou format non pris en charge)"
+      ? tr(
+          "Ce fichier ne peut pas être lu (introuvable ou format non pris en charge)",
+          "This file can't be played (missing or unsupported format)"
+        )
       : etat === "lecture"
         ? "Pause"
-        : "Écouter";
+        : tr("Écouter", "Play");
 
   return (
     <NodeViewWrapper
@@ -151,7 +155,7 @@ function AudioClipView({ node, selected, deleteNode }: NodeViewProps) {
       )}
       <button
         className="pk-pagelink-remove"
-        title="Retirer ce fichier audio"
+        title={tr("Retirer ce fichier audio", "Remove this audio file")}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => deleteNode()}
       >
@@ -227,7 +231,7 @@ export async function insertAudioFile(editor: Editor, projectId: string | null, 
     return false;
   }
   if (!projectId) {
-    notify(false, "Ouvre un projet avant d'ajouter un fichier audio.");
+    notify(false, tr("Ouvre un projet avant d'ajouter un fichier audio.", "Open a project before adding an audio file."));
     return false;
   }
 
@@ -241,7 +245,13 @@ export async function insertAudioFile(editor: Editor, projectId: string | null, 
     return true;
   } catch (err) {
     console.error("Enregistrement audio :", err);
-    notify(false, `« ${file.name} » n'a pas pu être enregistré : ${err instanceof Error ? err.message : String(err)}`);
+    notify(
+      false,
+      tr(
+        `« ${file.name} » n'a pas pu être enregistré : ${err instanceof Error ? err.message : String(err)}`,
+        `“${file.name}” couldn't be saved: ${err instanceof Error ? err.message : String(err)}`
+      )
+    );
     return false;
   }
 }

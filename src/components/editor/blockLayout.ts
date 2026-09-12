@@ -1,6 +1,7 @@
 import { Extension } from "@tiptap/react";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
+import { tr } from "../../lib/i18n";
 
 const PLACEMENT_KEY = new PluginKey<PlacementState>("blockPlacement");
 const ROW_KEY = new PluginKey<RowState>("tableRowResizing");
@@ -295,7 +296,7 @@ function buildPreview(align: Align, ghost: { width: number; height: number } | n
     empreinte.style.width = `${Math.min(ghost.width, 260)}px`;
     empreinte.style.height = `${Math.min(ghost.height, 160)}px`;
     empreinte.textContent =
-      align === "left" ? "texte à droite →" : align === "right" ? "← texte à gauche" : "pleine ligne";
+      align === "left" ? tr("texte à droite →", "text on the right →") : align === "right" ? tr("← texte à gauche", "← text on the left") : tr("pleine ligne", "full width");
     bloc.appendChild(empreinte);
   }
 
