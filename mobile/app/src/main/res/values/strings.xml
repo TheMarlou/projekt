@@ -58,6 +58,8 @@
     <string name="envoye_attente">En attente : partira dès que le PC sera joignable.</string>
     <string name="trop_gros">« %1$s » dépasse 25 Mo.</string>
     <string name="n_elements">%1$d éléments</string>
+    <string name="trop_lourd">fichier trop lourd pour ce téléphone</string>
+    <string name="langue">Langue</string>
 
     <!-- Thème -->
     <string name="theme_titre">Thème</string>

@@ -95,7 +95,7 @@ object Envoi {
                 if (!e.definitive) break
                 FileAttente.maj(context, element.copy(etat = Element.REFUSE, erreur = e.message))
             } catch (e: OutOfMemoryError) {
-                FileAttente.maj(context, element.copy(etat = Element.REFUSE, erreur = "fichier trop lourd pour ce téléphone"))
+                FileAttente.maj(context, element.copy(etat = Element.REFUSE, erreur = context.getString(R.string.trop_lourd)))
             } catch (e: Exception) {
                 // Réseau coupé en plein envoi : on réessaiera plus tard.
                 break

@@ -63,6 +63,16 @@ object Themes {
         Accent("vert", "Vert", "#5fbf77", "#5fbf77" to "#1b3222", "#1f7a3a" to "#d9efe0"),
     )
 
+    private val NOMS_EN = mapOf(
+        "dark" to "Dark", "nuit" to "Night blue", "foret" to "Forest", "prune" to "Plum",
+        "light" to "Light", "papier" to "Paper", "menthe" to "Mint",
+        "mono" to "Monochrome", "orange" to "Orange", "jaune" to "Yellow", "rouge" to "Red", "rose" to "Pink",
+        "violet" to "Purple", "blue" to "Blue", "cyan" to "Cyan", "vert" to "Green",
+    )
+
+    /** Nom affiché d'un fond ou d'une couleur, dans la langue de l'app. */
+    fun nom(id: String, nomFrancais: String) = if (Langue.anglais()) NOMS_EN[id] ?: nomFrancais else nomFrancais
+
     /** Par défaut : sombre + blanc, comme le logo et l'app bureau. */
     fun couleurs(fondId: String, accentId: String): Couleurs {
         val fond = FONDS.find { it.id == fondId } ?: FONDS.first()

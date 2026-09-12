@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Projekt Mobile</string>
+
+    <!-- PC -->
+    <string name="pc_aucun">No PC paired</string>
+    <string name="pc_aide">On your PC, open Projekt, click the phone button at the top right, then “Show QR code”.</string>
+    <string name="bouton_appairer">Pair a PC</string>
+    <string name="bouton_changer_pc">Change PC</string>
+    <string name="scan_invite">Scan the QR code shown by Projekt on your PC</string>
+    <string name="pc_nom">PC: %1$s</string>
+    <string name="pc_connecte">Connected</string>
+    <string name="pc_recherche">Looking for the PC…</string>
+    <string name="pc_injoignable">Unreachable: check that Projekt is open on the PC and that both devices are on the same network (Wi-Fi or hotspot).</string>
+    <string name="pc_oublie">This PC no longer recognises this phone: pair it again.</string>
+    <string name="pc_introuvable">PC not found on the network. Are the phone and the PC on the same network, and is Projekt open?</string>
+    <string name="bouton_actualiser">Refresh</string>
+    <string name="bouton_oublier_pc">Forget this PC</string>
+    <string name="oublier_pc_titre">Forget this PC?</string>
+    <string name="oublier_pc_message">This phone won’t be able to send anything to “%1$s” until you pair it again. Items waiting to be sent are kept.</string>
+    <string name="oublier">Forget</string>
+    <string name="annuler">Cancel</string>
+    <string name="fermer">Close</string>
+
+    <!-- Appairage -->
+    <string name="appairage_en_cours">Pairing…</string>
+    <string name="appairage_ok">Paired with “%1$s”</string>
+    <string name="appairage_echec">Pairing failed: %1$s</string>
+    <string name="qr_invalide">This QR code doesn’t come from Projekt.</string>
+
+    <!-- Note rapide -->
+    <string name="note_titre">Quick note</string>
+    <string name="note_indice">An idea, a link…</string>
+    <string name="projet">Project</string>
+    <string name="aucun_projet">No known project: open Projekt on your PC, then tap “Refresh”.</string>
+    <string name="envoyer">Send</string>
+
+    <!-- File d'attente -->
+    <string name="file_titre">Queue and history</string>
+    <string name="file_vide">Nothing yet. From TikTok, your gallery or My Files: “Share” → Projekt Mobile.</string>
+    <string name="envoyer_maintenant">Send now (%1$d)</string>
+    <string name="etat_attente">Waiting</string>
+    <string name="etat_envoye">Sent on %1$s</string>
+    <string name="etat_refuse">Refused: %1$s</string>
+    <string name="renvoyer">Retry</string>
+    <string name="supprimer">Delete</string>
+    <string name="genre_image">Image</string>
+    <string name="genre_audio">Sound</string>
+    <string name="genre_texte">Note</string>
+    <string name="genre_lien">Link</string>
+
+    <!-- Partage -->
+    <string name="partage_titre">Send to Projekt</string>
+    <string name="partage_non_appaire">No PC paired: this item will wait until you pair your PC in Projekt Mobile.</string>
+    <string name="partage_vide">This content isn’t supported: text, links, images or sounds only.</string>
+    <string name="envoi_en_cours">Sending…</string>
+    <string name="envoye_ok">Sent to Projekt ✓</string>
+    <string name="envoye_attente">Waiting: it will be sent as soon as the PC is reachable.</string>
+    <string name="trop_gros">“%1$s” is larger than 25 MB.</string>
+    <string name="n_elements">%1$d items</string>
+    <string name="trop_lourd">file too heavy for this phone</string>
+
+    <!-- Thème et langue -->
+    <string name="theme_titre">Appearance</string>
+    <string name="theme_fond">Background</string>
+    <string name="theme_couleur">Main colour</string>
+    <string name="langue">Language</string>
+
+    <string name="version">Projekt Mobile %1$s</string>
+
+    <!-- Mise à jour transmise par le PC -->
+    <string name="maj_disponible">New version on the PC: %1$s</string>
+    <string name="bouton_maj">Update</string>
+    <string name="maj_telechargement">Downloading the update…</string>
+    <string name="maj_echec">Update failed: %1$s</string>
+    <string name="maj_autoriser">Allow Projekt Mobile to install apps, then tap “Update” again.</string>
+</resources>

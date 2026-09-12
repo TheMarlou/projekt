@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Langue.appliquerParDefaut()
         enableEdgeToEdge()
         reglages = Reglages(this)
         ui = Ui(this, Themes.couleurs(reglages.fond, reglages.accent))
@@ -381,7 +382,7 @@ class MainActivity : AppCompatActivity() {
         vue.addView(ui.titreSection(getString(R.string.theme_fond)).avecMarge(haut = 16))
         val fonds = GridLayout(this).apply { columnCount = 2 }
         for (fond in Themes.FONDS) {
-            fonds.addView(ui.puce(fond.nom, fond.id == reglages.fond) {
+            fonds.addView(ui.puce(Themes.nom(fond.id, fond.nom), fond.id == reglages.fond) {
                 reglages.fond = fond.id
                 dialogue.dismiss()
                 recreate()
@@ -411,7 +412,7 @@ class MainActivity : AppCompatActivity() {
                     setColor(Color.parseColor(accent.pastille))
                     if (accent.id == reglages.accent) setStroke(ui.dp(3), c.texte) else setStroke(ui.dp(1), c.bord)
                 }
-                contentDescription = accent.nom
+                contentDescription = Themes.nom(accent.id, accent.nom)
                 setOnClickListener {
                     reglages.accent = accent.id
                     dialogue.dismiss()
@@ -425,6 +426,18 @@ class MainActivity : AppCompatActivity() {
             })
         }
         vue.addView(accents)
+
+        // Langue de l'app (choix du 12/09) : français par défaut.
+        vue.addView(ui.titreSection(getString(R.string.langue)).avecMarge(haut = 4))
+        val langues = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        for ((code, nom) in Langue.LANGUES) {
+            langues.addView(ui.puce(nom, Langue.actuelle() == code) {
+                dialogue.dismiss()
+                // Android recrée l'écran tout seul dans la nouvelle langue.
+                if (Langue.actuelle() != code) Langue.choisir(code)
+            })
+        }
+        vue.addView(langues)
 
         dialogue = AlertDialog.Builder(this).setView(vue).create()
         dialogue.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))

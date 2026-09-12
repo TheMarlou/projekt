@@ -47,6 +47,7 @@ class PartageActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Langue.appliquerParDefaut()
         enableEdgeToEdge()
         reglages = Reglages(this)
         ui = Ui(this, Themes.couleurs(reglages.fond, reglages.accent))
