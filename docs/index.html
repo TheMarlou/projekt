@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projekt — un carnet pour tes idées de jeu</title>
+<meta name="description" content="Notes, moodboard et carte mentale pour créateurs de jeux vidéo, avec une IA qui tourne sur ton ordinateur. Windows, gratuit, sans compte.">
+<link rel="icon" href="img/icone.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header><div class="bande entete">
+  <span class="marque">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 3 20h18L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    Projekt
+  </span>
+  <nav>
+    <a href="#fonctions">Ce que ça fait</a>
+    <a href="#installer">Installer</a>
+    <a href="#ia">L'IA locale</a>
+    <a href="#donnees">Tes données</a>
+    <a href="en/">English</a>
+  </nav>
+</div></header>
+
+<section class="accroche"><div class="bande">
+  <h1>Un carnet pour tes idées de jeu.</h1>
+  <p class="sous">Tes notes, ton moodboard et ta carte mentale dans une seule fenêtre — avec un assistant qui lit tes pages sans jamais les envoyer ailleurs. Il propose, tu valides.</p>
+  <div class="actions">
+    <a class="bouton" href="https://github.com/TheMarlou/projekt/releases/latest">Télécharger pour Windows</a>
+    <a class="bouton secondaire" href="https://github.com/TheMarlou/projekt">Voir le code</a>
+  </div>
+  <p class="precision">Windows 10 et 11 · gratuit · sans compte · 3,5 Mo · licence MIT</p>
+  <figure style="margin-top:34px">
+    <div class="attente">Capture de l'application — vue Notes</div>
+    <figcaption>Les pages d'un projet, avec leurs sous-pages, leurs tableaux et leurs images.</figcaption>
+  </figure>
+</div></section>
+
+<section id="fonctions"><div class="bande">
+  <h2>Ce que ça fait</h2>
+  <p class="precision" style="margin-bottom:22px">Pensé pour la phase où tout est encore flou : on jette des idées, on range plus tard.</p>
+  <div class="grille">
+    <div class="carte"><h3>Des notes qui s'emboîtent</h3><p>Des pages dans des pages, du texte mis en forme, des tableaux, des images, des extraits audio, et des mentions d'une page à l'autre.</p></div>
+    <div class="carte"><h3>Un moodboard sans bords</h3><p>Dépose tes images et tes vidéos sur une toile infinie, recadre, compare. Colle un lien TikTok : sa miniature s'ajoute, et la vidéo se lit d'un clic.</p></div>
+    <div class="carte"><h3>Une carte mentale vivante</h3><p>Ton projet au centre, tes pages autour. Relie deux pages d'un trait coloré, avec une étiquette — ou demande à l'IA les liens qu'elle voit.</p></div>
+    <div class="carte"><h3>Un assistant qui reste chez toi</h3><p>Il lit tes pages pour répondre, propose des idées de personnages ou de quêtes, écrit à l'endroit du curseur. Rien n'est modifié sans ta validation.</p></div>
+    <div class="carte"><h3>Retrouver, sauvegarder</h3><p>Une recherche dans toutes tes pages avec <kbd>Ctrl</kbd>+<kbd>P</kbd>, une sauvegarde automatique à chaque ouverture, et l'export d'un projet en <code>.zip</code>.</p></div>
+    <div class="carte"><h3>À ton goût</h3><p>Sept fonds, neuf couleurs, et le choix des couleurs de liens sur la carte. Sombre par défaut, clair si tu préfères.</p></div>
+  </div>
+  <div style="margin-top:30px">
+    <figure><div class="attente">Capture — le moodboard</div><figcaption>Images, vidéos et TikTok sur la même toile.</figcaption></figure>
+    <figure><div class="attente">Capture — la carte mentale</div><figcaption>Les liens tracés à la main et ceux proposés par l'IA.</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="installer"><div class="bande">
+  <h2>Installer</h2>
+  <ol class="etapes">
+    <li><div><strong>Télécharge l'installeur</strong> depuis <a href="https://github.com/TheMarlou/projekt/releases/latest">la page des versions</a>, puis lance-le.</div></li>
+    <li><div><strong>Windows va afficher « Éditeur inconnu ».</strong> Clique sur <em>Informations complémentaires</em>, puis <em>Exécuter quand même</em>.</div></li>
+    <li><div><strong>C'est tout.</strong> L'app s'installe pour toi seul, sans droits administrateur.</div></li>
+  </ol>
+  <div class="encadre" style="margin-top:22px">
+    <h3>Pourquoi cet avertissement ?</h3>
+    <p style="margin:0;color:var(--text-dim)">Windows fait confiance aux logiciels signés avec un certificat, qui coûte plusieurs centaines d'euros par an. Projekt est gratuit et n'en a pas. En échange, <strong>tout le code est public</strong> : tu peux le lire, et le compiler toi-même si tu préfères.</p>
+  </div>
+</div></section>
+
+<section id="ia"><div class="bande">
+  <h2>L'IA, sur ta machine</h2>
+  <p>Projekt marche très bien sans. Si tu la veux, elle tourne sur ton ordinateur, gratuitement : <strong>aucun abonnement, aucune clé, aucune de tes pages envoyée sur internet.</strong></p>
+  <ol class="etapes">
+    <li><div>Installe <a href="https://ollama.com">Ollama</a>, qui fait tourner les modèles en local.</div></li>
+    <li><div>Dans un terminal : <code>ollama pull qwen3:8b</code> pour le texte, et <code>ollama pull gemma3:4b</code> pour l'analyse d'images.</div></li>
+    <li><div>Relance Projekt : l'assistant apparaît en bas à droite (<kbd>Ctrl</kbd>+<kbd>J</kbd>).</div></li>
+  </ol>
+  <p class="precision" style="margin-top:16px">Une carte graphique d'au moins 6 Go est conseillée. Sans elle, l'assistant répondra plus lentement.</p>
+  <figure style="margin-top:22px"><div class="attente">Capture — l'assistant qui propose une modification</div><figcaption>Chaque modification est proposée, puis appliquée seulement si tu l'acceptes.</figcaption></figure>
+</div></section>
+
+<section id="donnees"><div class="bande">
+  <h2>Tes données restent tes données</h2>
+  <div class="encadre calme">
+    <p>Tout vit dans un dossier de ton ordinateur : une base de données et tes fichiers. <strong>Pas de compte, pas de serveur, pas de mesure d'audience.</strong> Une sauvegarde automatique est faite à chaque ouverture, et tu peux exporter un projet entier en un fichier <code>.zip</code>.</p>
+    <p style="margin-bottom:0;color:var(--text-dim)">Deux fonctions touchent à internet, et seulement si tu t'en sers : la recherche Wikipédia de l'assistant, coupée par défaut, et les vidéos TikTok du moodboard, qui sont lues chez TikTok.</p>
+  </div>
+</div></section>
+
+<section><div class="bande">
+  <h2>Questions</h2>
+  <details><summary>C'est vraiment gratuit ?</summary><p>Oui, et sans version payante cachée. L'app est publiée sous licence MIT.</p></details>
+  <details><summary>Mac ou Linux ?</summary><p>Pas pour l'instant : Projekt est né sur Windows et n'a été testé que là.</p></details>
+  <details><summary>Est-ce que je peux emmener mes projets ailleurs ?</summary><p>Oui. L'export <code>.zip</code> contient un fichier réimportable, mais aussi tes pages en Markdown, lisibles dans n'importe quel éditeur de texte.</p></details>
+  <details><summary>L'IA peut-elle modifier mes pages toute seule ?</summary><p>Non. Elle prépare une proposition, tu vois ce qu'elle changerait, et rien n'est écrit tant que tu n'as pas cliqué.</p></details>
+  <details><summary>J'ai trouvé un bug.</summary><p><a href="https://github.com/TheMarlou/projekt/issues">Signale-le ici</a>, avec ce que tu faisais au moment du problème.</p></details>
+</div></section>
+
+<footer><div class="bande">
+  Projekt — fait par TheMarlou · <a href="https://github.com/TheMarlou/projekt">Code source</a> · <a href="https://github.com/TheMarlou/projekt/issues">Signaler un problème</a> · Licence MIT
+</div></footer>
+
+</body>
+</html>

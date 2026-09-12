@@ -1,0 +1,100 @@
+/* Site de Projekt — mêmes couleurs que l'application (src/styles/tokens.css). */
+:root {
+  --bg: #1a1320;
+  --surface: #211828;
+  --surface-2: #281d30;
+  --border: #372a42;
+  --text: #ece4ef;
+  --text-dim: #a393ad;
+  --accent: #a98cf0;
+  --accent-soft: #2a2440;
+  --accent2: #64b8a8;
+  --mesure: 1080px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+a { color: var(--accent); }
+h1, h2, h3 { line-height: 1.2; text-wrap: balance; margin: 0 0 12px; }
+h1 { font-size: clamp(2.1rem, 5vw, 3.2rem); letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin-top: 8px; }
+h3 { font-size: 1.06rem; }
+p { margin: 0 0 14px; }
+
+.bande { max-width: var(--mesure); margin: 0 auto; padding: 0 22px; }
+section { padding: 58px 0; border-top: 1px solid var(--border); }
+section:first-of-type { border-top: none; }
+
+/* En-tête */
+header { padding: 18px 0; }
+.entete { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.marque { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.15rem; }
+.marque svg { color: var(--accent); }
+nav { display: flex; gap: 18px; font-size: 0.92rem; }
+nav a { color: var(--text-dim); text-decoration: none; }
+nav a:hover { color: var(--text); }
+
+/* Accroche */
+.accroche { padding: 46px 0 52px; }
+.accroche p.sous { font-size: 1.16rem; color: var(--text-dim); max-width: 62ch; }
+.actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 26px 0 10px; }
+.bouton {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 12px 22px; border-radius: 8px; font-weight: 600; text-decoration: none;
+  background: var(--accent); color: #1a1320; border: 1px solid var(--accent);
+}
+.bouton.secondaire { background: transparent; color: var(--text-dim); border-color: var(--border); }
+.bouton:hover { filter: brightness(1.08); }
+.precision { color: var(--text-dim); font-size: 0.88rem; }
+
+/* Grille de fonctions */
+.grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 16px; }
+.carte { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 18px 14px; }
+.carte h3 { color: var(--accent); }
+.carte p { color: var(--text-dim); margin: 0; font-size: 0.95rem; }
+
+/* Captures */
+figure { margin: 0 0 26px; }
+figure img {
+  width: 100%; display: block; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-2);
+}
+figcaption { color: var(--text-dim); font-size: 0.88rem; margin-top: 8px; }
+.attente {
+  display: flex; align-items: center; justify-content: center; min-height: 220px;
+  border: 1px dashed var(--border); border-radius: 10px; color: var(--text-dim); font-size: 0.9rem;
+}
+
+/* Étapes numérotées */
+ol.etapes { counter-reset: e; list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+ol.etapes li { counter-increment: e; display: flex; gap: 14px; }
+ol.etapes li::before {
+  content: counter(e); flex: 0 0 28px; height: 28px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent); font-weight: 700;
+  display: flex; align-items: center; justify-content: center; font-size: 0.88rem;
+}
+code, kbd {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.88em;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px;
+}
+.encadre { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 16px 18px; }
+.encadre.calme { border-left-color: var(--accent2); }
+
+/* Questions */
+details { border-bottom: 1px solid var(--border); padding: 14px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { color: var(--text-dim); margin: 10px 0 0; }
+
+footer { border-top: 1px solid var(--border); padding: 26px 0 44px; color: var(--text-dim); font-size: 0.9rem; }
+footer a { color: var(--text-dim); }
+
+@media (max-width: 620px) { section { padding: 42px 0; } }

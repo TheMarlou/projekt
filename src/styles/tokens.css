@@ -1,0 +1,751 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #14161c;
+  --surface: #1b1e26;
+  --surface-2: #20232c;
+  --border: #2b2f3a;
+  --text: #e9e7e0;
+  --text-dim: #9599a9;
+  --accent: #e8a33d;
+  --accent-soft: #3a2f18;
+  --accent2: #64b8a8;
+  --accent2-soft: #17302b;
+  --danger: #d9695f;
+  /* Carte mentale : liens basiques et liens de l'IA (réglables dans le menu Thème). */
+  --lien-base: var(--accent);
+  --lien-ia: #22d3ee;
+  --font-body: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea,
+button {
+  color: inherit;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* ---- Contenu de l'éditeur Tiptap ---- */
+
+.rich-text .tiptap {
+  outline: none;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+  min-height: 60px;
+}
+
+.rich-text .tiptap > * + * {
+  margin-top: 0.7em;
+}
+
+.rich-text .tiptap h1 {
+  font-size: 1.6em;
+  font-weight: 600;
+  margin-top: 1em;
+}
+.rich-text .tiptap h2 {
+  font-size: 1.32em;
+  font-weight: 600;
+  margin-top: 1em;
+}
+.rich-text .tiptap h3 {
+  font-size: 1.14em;
+  font-weight: 600;
+  margin-top: 0.9em;
+}
+
+.rich-text .tiptap ul,
+.rich-text .tiptap ol {
+  padding-left: 1.4em;
+}
+.rich-text .tiptap li::marker {
+  color: var(--text-dim);
+}
+
+.rich-text .tiptap blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+  color: var(--text-dim);
+  margin-left: 0;
+}
+
+.rich-text .tiptap code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+
+.rich-text .tiptap pre {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.rich-text .tiptap pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.rich-text .tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  overflow: hidden;
+}
+.rich-text .tiptap th,
+.rich-text .tiptap td {
+  border: 1px solid var(--border);
+  padding: 7px 9px;
+  vertical-align: top;
+}
+.rich-text .tiptap th {
+  background: var(--surface-2);
+  font-weight: 600;
+  text-align: left;
+}
+.rich-text .tiptap .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent-soft);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Texte d'invite quand le bloc est vide */
+.rich-text .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--text-dim);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ---- Surlignage ---- */
+
+.rich-text .tiptap mark {
+  border-radius: 3px;
+  padding: 0 2px;
+  color: inherit;
+}
+
+/* ---- Liens ---- */
+
+.rich-text .tiptap a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* ---- Listes de tâches ---- */
+
+.rich-text .tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+.rich-text .tiptap ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.rich-text .tiptap ul[data-type="taskList"] li > label {
+  flex: 0 0 auto;
+  margin-top: 0.3em;
+  user-select: none;
+}
+.rich-text .tiptap ul[data-type="taskList"] li > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.rich-text .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+.rich-text .tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+
+/* ---- Séparateur ---- */
+
+.rich-text .tiptap hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.4em 0;
+}
+
+
+/* ---- Alignement des paragraphes ---- */
+
+.rich-text .tiptap [style*="text-align: justify"] {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+/* ---- Images insérées dans le texte ---- */
+
+.rich-text .pk-image {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0.8em 0;
+}
+.rich-text .pk-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* Habillage : c'est le flottement CSS qui fait couler le texte à côté de
+   l'image, et il s'adapte donc tout seul à la largeur qu'on lui donne.
+   Le flottement doit porter sur l'enveloppe que ProseMirror place autour du
+   nœud : flotter le conteneur interne ne changerait rien, l'enveloppe
+   occuperait toujours la ligne entière. */
+.rich-text .tiptap .react-renderer:has(> .pk-image[data-align="left"]) {
+  float: left;
+  margin: 0.3em 18px 0.5em 0;
+}
+.rich-text .tiptap .react-renderer:has(> .pk-image[data-align="right"]) {
+  float: right;
+  margin: 0.3em 0 0.5em 18px;
+}
+.rich-text .pk-image[data-align="center"] {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Sans ça, une image flottante en fin de bloc déborderait sur le bloc suivant. */
+.rich-text .tiptap::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.rich-text .pk-image[data-selected="true"] img {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.rich-text .pk-image-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--accent);
+  border: 1px solid var(--bg);
+  z-index: 2;
+  touch-action: none;
+}
+
+.rich-text .pk-image-bar {
+  position: absolute;
+  top: -34px;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  white-space: nowrap;
+  width: max-content;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.rich-text .pk-image-bar button {
+  font-family: inherit;
+  font-size: 11.5px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-dim);
+}
+.rich-text .pk-image-bar button[data-active="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.rich-text .pk-image-fallback {
+  display: inline-block;
+  padding: 10px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+/* Image collée au bord droit : la barre doit s'ancrer à droite, sinon elle
+   déborde du cadre et provoque un défilement horizontal. */
+.rich-text .pk-image[data-align="right"] .pk-image-bar {
+  left: auto;
+  right: 0;
+}
+
+/* ---- Références de sous-page ---- */
+
+.rich-text .pk-pagelink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  vertical-align: baseline;
+  padding: 1px 2px 1px 6px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  line-height: 1.45;
+  white-space: nowrap;
+}
+.rich-text .pk-pagelink[data-selected="true"] {
+  border-color: var(--accent);
+}
+.rich-text .pk-pagelink-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  cursor: pointer;
+}
+.rich-text .pk-pagelink-open:hover {
+  color: var(--accent);
+}
+.rich-text .pk-pagelink-icon {
+  color: var(--text-dim);
+  font-size: 0.9em;
+}
+.rich-text .pk-pagelink-remove {
+  font-family: inherit;
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 4px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-dim);
+  opacity: 0;
+}
+.rich-text .pk-pagelink:hover .pk-pagelink-remove,
+.rich-text .pk-pagelink[data-selected="true"] .pk-pagelink-remove {
+  opacity: 1;
+}
+.rich-text .pk-pagelink-remove:hover {
+  background: var(--accent-soft);
+  color: var(--danger);
+}
+.rich-text .pk-pagelink-missing {
+  color: var(--text-dim);
+  font-style: italic;
+  padding-right: 4px;
+}
+
+/* ---- Puce audio : même gabarit que la sous-page, avec un bouton de lecture ---- */
+
+.rich-text .pk-audio {
+  gap: 6px;
+  padding-left: 2px;
+}
+.rich-text .pk-audio-play {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+}
+.rich-text .pk-audio-play:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--bg);
+}
+.rich-text .pk-audio-play:disabled {
+  cursor: progress;
+}
+.rich-text .pk-audio[data-etat="erreur"] .pk-audio-play {
+  background: transparent;
+  color: var(--danger);
+  cursor: help;
+}
+.rich-text .pk-audio-name {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.rich-text .pk-audio-time {
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* L'enveloppe que ProseMirror pose autour de l'image occupait toute la largeur du
+   bloc : cliquer à droite de l'image retombait dessus et la resélectionnait, ce
+   qui rendait impossible de quitter sa barre d'outils. */
+.rich-text .tiptap .react-renderer:has(> .pk-image) {
+  width: fit-content;
+  max-width: 100%;
+}
+.rich-text .tiptap .react-renderer:has(> .pk-image[data-align="center"]) {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Indique qu'un lien est posé sur l'image (Ctrl+clic pour l'ouvrir). */
+.rich-text .pk-image-link {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  z-index: 2;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--accent);
+  pointer-events: none;
+}
+
+/* La puce se saisit à la souris pour être déplacée dans le texte. */
+.rich-text .pk-pagelink-icon {
+  cursor: grab;
+}
+.rich-text .pk-pagelink:active .pk-pagelink-icon {
+  cursor: grabbing;
+}
+
+/* ---- Tableaux : placement et redimensionnement des colonnes ---- */
+
+/* Avec le redimensionnement actif, Tiptap enveloppe le tableau dans .tableWrapper.
+   C'est donc l'enveloppe qui doit flotter, pas le tableau — même raison que pour
+   l'image : sinon elle occupe toute la ligne et le texte ne remonte pas à côté. */
+.rich-text .tiptap .tableWrapper {
+  position: relative;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+.rich-text .tiptap .tableWrapper[data-align="left"] {
+  float: left;
+  /* Une largeur explicite, pas « auto » : sans largeurs de colonnes définies, un
+     tableau en mise en page fixe s’effondre à sa largeur minimale. */
+  width: 45%;
+  margin: 0.3em 18px 0.5em 0;
+}
+.rich-text .tiptap .tableWrapper[data-align="right"] {
+  float: right;
+  width: 45%;
+  margin: 0.3em 0 0.5em 18px;
+}
+.rich-text .tiptap .tableWrapper[data-align="center"] {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Flotté, le tableau doit se régler sur ses colonnes plutôt que s'étirer. */
+
+
+/* La poignée de redimensionnement se pose sur le bord droit de chaque cellule. */
+.rich-text .tiptap th,
+.rich-text .tiptap td {
+  position: relative;
+}
+.rich-text .tiptap .column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: -2px;
+  width: 4px;
+  background: var(--accent);
+  pointer-events: none;
+}
+.rich-text .tiptap.resize-cursor,
+.rich-text .resize-cursor .tiptap {
+  cursor: col-resize;
+}
+
+/* Poignée de déplacement, dessinée DANS le coin du tableau : posée avant lui
+   dans le flux, elle se retrouvait ailleurs dès qu’il flottait ou changeait de
+   largeur. Le tableau ne devient saisissable que sur ce carré, sinon le moindre
+   glissement dans une cellule emporterait le tableau entier. */
+.rich-text .tiptap .tableWrapper::before {
+  content: "⠿";
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border-bottom-right-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.12s;
+  pointer-events: none;
+}
+.rich-text .tiptap .tableWrapper:hover::before {
+  opacity: 0.7;
+}
+.rich-text .tiptap .tableWrapper.pk-grabbable {
+  cursor: grab;
+}
+.rich-text .tiptap .tableWrapper.pk-grabbable::before {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* Bord bas de ligne saisissable, pendant horizontal de la poignée de colonne. */
+.rich-text .tiptap tr.pk-row-resizing {
+  cursor: row-resize;
+}
+.rich-text .tiptap tr.pk-row-resizing > td::after,
+.rich-text .tiptap tr.pk-row-resizing > th::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 4px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+
+
+/* ---- Aperçu pendant le déplacement d'un bloc ---- */
+
+.rich-text .tiptap .pk-drop-preview {
+  pointer-events: none;
+  overflow: hidden;
+}
+.rich-text .tiptap .pk-drop-line {
+  height: 2px;
+  margin: 3px 0;
+  background: var(--accent);
+  border-radius: 1px;
+}
+.rich-text .tiptap .pk-drop-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--accent);
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  opacity: 0.9;
+}
+.rich-text .tiptap .pk-drop-preview[data-align="left"] .pk-drop-ghost {
+  float: left;
+  margin-right: 14px;
+}
+.rich-text .tiptap .pk-drop-preview[data-align="right"] .pk-drop-ghost {
+  float: right;
+  margin-left: 14px;
+}
+.rich-text .tiptap .pk-drop-preview[data-align="none"] .pk-drop-ghost {
+  margin: 0 auto;
+}
+
+/* La poignée s'affiche aussi sur les images, au même endroit que sur un tableau. */
+.rich-text .pk-image::before {
+  content: "⠿";
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border-bottom-right-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.12s;
+  pointer-events: none;
+}
+.rich-text .pk-image:hover::before {
+  opacity: 0.7;
+}
+.rich-text .pk-grabbable {
+  cursor: grab;
+}
+.rich-text .pk-image.pk-grabbable::before,
+.rich-text .tiptap .tableWrapper.pk-grabbable::before {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* ---- Rognage d'image ---- */
+
+.rich-text .pk-image-frame {
+  position: relative;
+}
+.rich-text .pk-image-frame > img {
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+/* Le cadre porte déjà l'arrondi quand il rogne : l'image, agrandie et décalée
+   derrière lui, ne doit plus tenter d'arrondir ses propres coins. */
+.rich-text .pk-image-frame[style*="overflow"] > img {
+  border-radius: 0;
+  border: none;
+}
+.rich-text .pk-image-frame[style*="overflow"] {
+  border: 1px solid var(--border);
+}
+
+.pk-crop-box {
+  position: relative;
+  display: block;
+  user-select: none;
+  touch-action: none;
+}
+.pk-crop-box > img {
+  border-radius: 6px;
+}
+.pk-crop-shade {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+.pk-crop-rect {
+  position: absolute;
+  outline: 1px solid var(--accent);
+  cursor: move;
+}
+.pk-crop-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--accent);
+  border: 1px solid var(--bg);
+  touch-action: none;
+}
+
+/* Menu de placement replié dans la barre de l'image. */
+.rich-text .pk-image-menu {
+  position: relative;
+}
+.rich-text .pk-image-menu-panel {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  min-width: 130px;
+  padding: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+.rich-text .pk-image-menu-panel button {
+  text-align: left;
+}
+
+/* ---- Assistant IA ---- */
+
+/* Pastille qui respire pendant que le modèle réfléchit : un panneau figé
+   pendant 15 s ressemble à un plantage. */
+@keyframes pk-ia-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+.pk-ia-pulse {
+  color: var(--accent);
+  animation: pk-ia-pulse 1.2s ease-in-out infinite;
+}
+kbd {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: var(--surface-2);
+}
+
+/* ---- Paragraphes imbriqués ---- */
+
+/* Un paragraphe dans une liste, une cellule ou une citation gardait la marge par
+   défaut du navigateur (1em dessus et dessous) : puces espacées de 41 px au lieu
+   de 25, cellules gonflées, et texte décalé de 11 px sous sa case à cocher. */
+.rich-text .tiptap :is(li, td, th, blockquote) p {
+  margin: 0;
+}
+.rich-text .tiptap :is(li, td, th, blockquote) p + p {
+  margin-top: 0.5em;
+}
+/* Case centrée sur la première ligne de texte : (hauteur de ligne − case) / 2. */
+.rich-text .tiptap ul[data-type="taskList"] li > label {
+  margin-top: calc((1.7em - 14px) / 2);
+  line-height: 0;
+}

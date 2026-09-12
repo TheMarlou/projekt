@@ -1,0 +1,839 @@
+import { Fragment, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { checkOllamaAvailable, chatWithTools, modeleTexte, prechauffer, ChatMessage } from "../lib/ollama";
+import {
+  Plan,
+  appliquerPlan,
+  apercuProjet,
+  chercherDansPages,
+  describeToolCall,
+  executeTool,
+  OUTILS_ECRITURE,
+  outilsDisponibles,
+  setAiContextProject,
+} from "../lib/aiTools";
+import { invitePanneau, INSPIRATIONS } from "../lib/aiPrompts";
+import { definitionsPour } from "../lib/glossaire";
+import { pageToPath } from "../lib/pagePath";
+import TexteRiche from "./TexteRiche";
+import { docToMarkdown } from "../lib/markdown";
+import { openExternal } from "../lib/external";
+import {
+  activerRechercheWeb,
+  rechercheWeb,
+  rechercheWebActivee,
+  suivreRechercheWeb,
+  type ResultatWeb,
+} from "../lib/rechercheWeb";
+import { Block, getBlockText, useBlocksStore } from "../store/blocksStore";
+
+// Contenu de la page ouverte transmis au modèle. Plafonné : qwen3:8b déborde déjà
+// de la carte graphique de 6 Go, et un contexte plus long le ralentit encore.
+const CONTENU_PAGE_MAX = 2500;
+
+/** La page ouverte en Markdown, pour que le modèle en voie la structure (titres, tableaux). */
+function contenuPourIa(page: Block): string {
+  const titres = (id: string) => useBlocksStore.getState().blocks.find((b) => b.id === id)?.title ?? null;
+  const md = page.content
+    .map((c) => docToMarkdown(c.doc, { pageFile: () => null, pageTitle: titres, assetFile: () => null }))
+    .filter(Boolean)
+    .join("\n\n");
+  return md.length > CONTENU_PAGE_MAX ? `${md.slice(0, CONTENU_PAGE_MAX)}\n[… page tronquée : lis la suite avec read_page]` : md;
+}
+
+// Plafond d'enchaînements d'outils par tour — au-delà, un modèle 8B tourne en rond.
+const MAX_TOOL_ITERATIONS = 6;
+// Au-delà, les vieux échanges coûtent du temps de calcul sans aider le modèle —
+// et l'invite porte désormais la page ouverte ET l'aperçu du projet : le
+// contexte de 4 096 jetons se remplit vite.
+const HISTORIQUE_MAX = 8;
+
+/** L'utilisateur demande-t-il d'écrire, d'ajouter ou de créer quelque chose ? */
+function demandeUneEcriture(demande: string): boolean {
+  return /(écri|ecri|ajout|créer|crée|cree|insèr|inser|rempli|rédig|redig|\bmets\b|\bmet\b)/i.test(demande);
+}
+
+/** Demande d'idées, d'invention ? */
+function demandeCreative(demande: string): boolean {
+  return /(id[ée]es?\b|invente|imagine|trouve[- ]moi|noms? pour)/i.test(demande);
+}
+
+/** « a été créée », « ont été ajoutés » : une action présentée comme FAITE. */
+function affirmeUnFait(reponse: string): boolean {
+  return /(a été|ont été|est maintenant|sont maintenant)\s+(\S+\s+)?(ajouté|créé|cree|écrit|inséré|rédigé|mis\b|rempli)/i.test(reponse);
+}
+
+/** L'utilisateur demande-t-il explicitement de chercher sur internet ? */
+function demandeUneRecherche(demande: string): boolean {
+  return /(internet|wikip[ée]dia|\bweb\b|en ligne|v[ée]rifie sur)/i.test(demande);
+}
+
+/** La réponse affirme-t-elle qu'une modification a eu lieu ? */
+function affirmeUneAction(reponse: string): boolean {
+  return /(a été|ont été|j'ai|je viens d')\s+(\S+\s+)?(ajout|créé|cré|cree|écrit|ecrit|insér|inser|rédig|mis\b|rempli)/i.test(reponse);
+}
+
+/**
+ * Ce que le panneau AFFICHE. Distinct de ce que le modèle REÇOIT (`historique`) :
+ * auparavant, les lignes « 🔧 Lecture de… » et les avertissements étaient renvoyés
+ * au modèle comme s'il les avait écrits lui-même, ce qui polluait son contexte.
+ */
+type Element =
+  | { type: "utilisateur"; texte: string }
+  | { type: "assistant"; texte: string; proposition?: boolean; rienFait?: boolean; sources?: ResultatWeb[] }
+  | { type: "outil"; texte: string; echec?: boolean }
+  | { type: "plan"; plan: Plan; etat: "attente" | "applique" | "ecarte"; bilan?: string }
+  | { type: "info"; texte: string; erreur?: boolean }
+  | { type: "horsLigne" };
+
+interface AIPanelProps {
+  activePage: Block | null;
+  projectId: string | null;
+  projectName: string | null;
+  onOpenPage: (id: string) => void;
+}
+
+export default function AIPanel({ activePage, projectId, projectName, onOpenPage }: AIPanelProps) {
+  const [open, setOpen] = useState(false);
+  const [available, setAvailable] = useState<boolean | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [modele, setModele] = useState<string | null>(null);
+  const [elements, setElements] = useState<Element[]>([]);
+  const historique = useRef<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [enCours, setEnCours] = useState(false);
+  const [debut, setDebut] = useState(0);
+  const [, setTic] = useState(0);
+  const arret = useRef<AbortController | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const champ = useRef<HTMLTextAreaElement>(null);
+  const web = useSyncExternalStore(suivreRechercheWeb, rechercheWebActivee);
+
+  const ajouter =(e: Element) => setElements((prev) => [...prev, e]);
+
+  // Ctrl+J bascule l'assistant depuis n'importe où dans l'app, comme sur Notion.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.ctrlKey && e.key.toLowerCase() === "j") {
+        e.preventDefault();
+        setOpen((o) => !o);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Revérifie la connexion à chaque ouverture du panneau — Ollama a pu démarrer
+  // (ou s'arrêter) entre deux ouvertures, un statut mis en cache serait trompeur.
+  useEffect(() => {
+    if (!open) return;
+    checkOllamaAvailable().then(async (res) => {
+      setAvailable(res.ok);
+      setConnectionError(res.error ?? null);
+      if (!res.ok) return;
+      const m = await modeleTexte();
+      setModele(m);
+      prechauffer(m);
+    });
+    window.setTimeout(() => champ.current?.focus(), 0);
+  }, [open]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+  }, [elements, enCours]);
+
+  // Compteur de secondes pendant la réflexion : un modèle local peut mettre
+  // 10 à 20 s, et un panneau figé ressemble à un plantage.
+  useEffect(() => {
+    if (!enCours) return;
+    const t = window.setInterval(() => setTic((n) => n + 1), 1000);
+    return () => window.clearInterval(t);
+  }, [enCours]);
+
+  const memoriser = (...msgs: ChatMessage[]) => {
+    historique.current = [...historique.current, ...msgs].slice(-HISTORIQUE_MAX);
+  };
+
+  // Boucle d'agent : le modèle peut enchaîner des lectures, et PROPOSER des
+  // écritures qui s'accumulent dans un plan soumis à l'utilisateur.
+  const send = async (text: string, affiche?: string) => {
+    if (!text.trim() || enCours) return;
+
+    ajouter({ type: "utilisateur", texte: affiche ?? text });
+    setInput("");
+    setEnCours(true);
+    setDebut(Date.now());
+    setAiContextProject(projectId);
+    const controleur = new AbortController();
+    arret.current = controleur;
+
+    // Demande créative : le rappel va DANS le message, où un petit modèle l'écoute.
+    // La règle de l'invite seule n'a pas suffi (« NÉMÉSIS » proposé comme idée de nom
+    // pour le boss NÉMÉSIS, 6 fois sur 6 ; 0 sur 3 avec ce rappel).
+    const userMsg: ChatMessage = {
+      role: "user",
+      content: demandeCreative(text) ? `${text}\n(Uniquement des idées nouvelles : rien qui existe déjà dans mes pages.)` : text,
+    };
+    const system: ChatMessage = {
+      role: "system",
+      content: invitePanneau({
+        projet: projectName,
+        pageOuverte: activePage ? pageToPath(activePage.id) : null,
+        contenuPage: activePage ? contenuPourIa(activePage) : null,
+        // Recherche faite par le code AVANT le modèle : les extraits des autres
+        // pages qui contiennent les mots de la question lui sont joints.
+        extraits: chercherDansPages(text, projectId)
+          .filter((r) => !activePage || r.chemin !== pageToPath(activePage.id))
+          .slice(0, 3)
+          .map((r) => `« ${r.chemin} » : ${r.extrait}`),
+        apercu: apercuProjet(projectId, activePage?.id ?? null),
+        rechercheWeb: rechercheWeb() !== null,
+        definitions: definitionsPour(text),
+      }),
+    };
+    let working: ChatMessage[] = [system, ...historique.current, userMsg];
+    const plan = new Plan();
+    // Un appel mal formé donne droit à une correction, pas davantage : sinon un 8B
+    // s'enferme à répéter la même erreur jusqu'au plafond d'itérations.
+    const retried = new Set<string>();
+    let outils = outilsDisponibles();
+    const sources = new Map<string, ResultatWeb>();
+
+    try {
+      let reponse: string | null = null;
+      let relancee = false;
+      let aCherche = false;
+
+      for (let i = 0; i < MAX_TOOL_ITERATIONS && reponse === null; i++) {
+        const result = await chatWithTools(working, outils, undefined, controleur.signal);
+
+        if (!result.toolCalls || result.toolCalls.length === 0) {
+          const texte = result.content.trim();
+          // Garde-fou, recette du 11/09 : « écris Hello World dedans » → « le
+          // contenu a été ajouté », sans aucun appel d'outil. Une demande d'écriture,
+          // un plan vide et une action affirmée : on le lui dit et on relance, une fois.
+          if (!relancee && plan.actions.length === 0 && demandeUneEcriture(text) && affirmeUneAction(texte)) {
+            relancee = true;
+            ajouter({ type: "outil", texte: "Réponse sans action réelle : je la relance.", echec: true });
+            working = [
+              ...working,
+              { role: "assistant", content: texte },
+              {
+                role: "user",
+                content:
+                  "Tu n'as appelé aucun outil : rien n'a été créé ni ajouté. Appelle maintenant l'outil qui convient (create_page, add_content) pour faire ce que je t'ai demandé.",
+              },
+            ];
+            continue;
+          }
+          // Même idée pour la recherche : « cherche sur internet ce qu'est le
+          // Kraken » → réponse de mémoire, sans chercher (vu dans le panneau).
+          if (!relancee && !aCherche && outils.some((o) => o.function.name === "web_search") && demandeUneRecherche(text)) {
+            relancee = true;
+            working = [
+              ...working,
+              { role: "assistant", content: texte },
+              { role: "user", content: "Tu n'as pas cherché. Appelle maintenant web_search, puis réponds à partir des articles trouvés." },
+            ];
+            continue;
+          }
+          reponse = texte;
+          break;
+        }
+
+        working = [...working, { role: "assistant", content: result.content, tool_calls: result.toolCalls }];
+
+        for (const call of result.toolCalls) {
+          const { name, arguments: args } = call.function;
+          if (name === "web_search") aCherche = true;
+          // Les écritures s'affichent dans la carte de proposition, pas en double ici.
+          if (!OUTILS_ECRITURE.has(name)) ajouter({ type: "outil", texte: describeToolCall(name, args) });
+
+          const outcome = await executeTool(name, args, plan, controleur.signal);
+          working = [...working, { role: "tool", content: outcome.payload, tool_call_id: call.id }];
+          outcome.sources?.forEach((s) => sources.set(s.url, s));
+          if (outcome.horsLigne) {
+            ajouter({ type: "horsLigne" });
+            // Inutile de le laisser réessayer : sans réseau, il tournerait en rond.
+            outils = outils.filter((o) => o.function.name !== "web_search");
+          }
+
+          if (!outcome.ok) {
+            const raison = JSON.parse(outcome.payload).error as string;
+            ajouter({ type: "outil", texte: `${name} — ${raison}`, echec: true });
+            if (retried.has(name)) {
+              reponse = `Je n'ai pas réussi à faire ça : ${raison}`;
+              break;
+            }
+            retried.add(name);
+          }
+        }
+      }
+
+      if (reponse === null) {
+        reponse = "J'ai enchaîné trop d'actions sans aboutir — reformule en demandant une étape à la fois.";
+      }
+      // Un contenu vide ou « {} » n'est jamais une réponse à montrer : c'était le
+      // symptôme visible du bug d'origine.
+      if (!reponse || reponse === "{}") {
+        reponse = plan.actions.length
+          ? "Voici ce que je propose :"
+          : "Je n'ai pas su quoi répondre. Reformule ta demande, ou précise la page concernée.";
+      }
+      // « Hello World a été ajouté » alors que tout attend sa validation : mesuré 3 fois
+      // sur 3 malgré la consigne. Le détail est dans la carte juste en dessous (et le
+      // bandeau dit que rien n'est appliqué) ; la phrase fausse est remplacée.
+      if (plan.actions.length && affirmeUnFait(reponse)) {
+        reponse = "Voici ce que je propose :";
+      }
+
+      // Même relancé, il peut persister : on ne laisse pas croire à une action.
+      const rienFait = plan.actions.length === 0 && demandeUneEcriture(text) && affirmeUneAction(reponse);
+      ajouter({
+        type: "assistant",
+        texte: reponse,
+        proposition: plan.actions.length > 0,
+        rienFait,
+        sources: sources.size ? [...sources.values()] : undefined,
+      });
+      if (plan.actions.length) ajouter({ type: "plan", plan, etat: "attente" });
+      memoriser(userMsg, { role: "assistant", content: reponse });
+      // Sans cette mise au point, le tour suivant repartirait de sa fausse affirmation.
+      if (rienFait) memoriser({ role: "user", content: "(Rien n'a été modifié : tu n'avais appelé aucun outil.)" });
+      setAvailable(true);
+    } catch (err) {
+      if (controleur.signal.aborted) {
+        ajouter({ type: "info", texte: "Réponse interrompue." });
+      } else {
+        ajouter({
+          type: "info",
+          erreur: true,
+          texte: `Impossible de joindre Ollama en local (localhost:11434). ${err instanceof Error ? err.message : ""}`,
+        });
+        setAvailable(false);
+      }
+    } finally {
+      setEnCours(false);
+      arret.current = null;
+    }
+  };
+
+  const decider = (index: number, appliquer: boolean) => {
+    const element = elements[index];
+    if (!element || element.type !== "plan" || element.etat !== "attente") return;
+
+    // L'application se fait ICI, jamais dans une fonction de mise à jour d'état :
+    // React l'appelle deux fois en développement, et le plan était appliqué deux
+    // fois (deux pages « Phase 2 » créées, la seconde vide).
+    let maj: Element;
+    if (!appliquer) {
+      maj = { ...element, etat: "ecarte" };
+    } else {
+      const { reussies, erreurs } = appliquerPlan(element.plan);
+      const bilan = erreurs.length
+        ? `${reussies} action(s) appliquée(s), ${erreurs.length} en échec :\n${erreurs.join("\n")}`
+        : `${reussies} action${reussies > 1 ? "s" : ""} appliquée${reussies > 1 ? "s" : ""}.`;
+      maj = { ...element, etat: "applique", bilan };
+    }
+    setElements((prev) => prev.map((e, i) => (i === index ? maj : e)));
+    // Le modèle doit savoir ce qu'il est advenu de sa proposition au tour suivant.
+    memoriser({
+      role: "user",
+      content: appliquer ? "(J'ai appliqué ta proposition.)" : "(J'ai écarté ta proposition, ne l'applique pas.)",
+    });
+  };
+
+  // La page ouverte est déjà dans l'invite système : la recopier ici la ferait
+  // envoyer deux fois, sur une carte graphique où chaque mot de contexte coûte.
+  const inspirer = (consigne: string, libelle: string) => send(consigne, libelle);
+
+  const resumer = () => {
+    if (!activePage) return;
+    if (getBlockText(activePage).trim().length < 10) {
+      ajouter({ type: "info", texte: `« ${activePage.title} » est vide (ou presque) — rien à résumer pour l'instant.` });
+      return;
+    }
+    send(`Lis la page « ${pageToPath(activePage.id)} » et résume-la en quelques points clés.`, `Résumer « ${activePage.title} »`);
+  };
+
+  const structurer = () => {
+    if (!activePage) return;
+    if (getBlockText(activePage).trim().length < 10) {
+      ajouter({
+        type: "info",
+        texte: `« ${activePage.title} » est vide (ou presque) — ajoute d'abord du texte à structurer, sinon l'IA invente un contenu sans rapport.`,
+      });
+      return;
+    }
+    const chemin = pageToPath(activePage.id);
+    send(
+      `Lis la page « ${chemin} », puis propose avec add_content un tableau Markdown qui en structure les informations (première ligne = en-têtes).`,
+      `Structurer « ${activePage.title} » en tableau`
+    );
+  };
+
+  const secondes = Math.max(0, Math.round((Date.now() - debut) / 1000));
+
+  return (
+    <>
+      {!open && (
+        <button onClick={() => setOpen(true)} title="Assistant IA — Ctrl J" style={boutonRond}>
+          ✦
+        </button>
+      )}
+
+      {open && (
+        <div style={panneau}>
+          <div style={entete}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <span style={{ fontWeight: 600, fontSize: 13.5 }}>Assistant</span>
+              <span style={{ fontSize: 10.5, color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+                {modele ? `${modele} · local` : "Ollama · local"}
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              {/* Seule sortie de Projekt vers internet : visible et coupable d'un clic. */}
+              <button
+                onClick={() => activerRechercheWeb(!web)}
+                aria-pressed={web}
+                title={
+                  web
+                    ? "Recherche Wikipédia activée : l'assistant peut y chercher des faits réels (seuls quelques mots-clés sortent de ton ordinateur, jamais tes pages). Clique pour la couper."
+                    : "Recherche Wikipédia coupée : l'assistant reste 100 % local. Clique pour l'activer."
+                }
+                style={{
+                  ...puce,
+                  padding: "3px 8px",
+                  fontSize: 11,
+                  color: web ? "var(--accent2)" : "var(--text-dim)",
+                  borderColor: web ? "var(--accent2)" : "var(--border)",
+                  background: web ? "var(--accent2-soft)" : "transparent",
+                }}
+              >
+                {web ? "🌐 Wikipédia" : "🔒 100 % local"}
+              </button>
+              {elements.length > 0 && (
+                <button
+                  onClick={() => {
+                    setElements([]);
+                    historique.current = [];
+                  }}
+                  disabled={enCours}
+                  title="Nouvelle conversation"
+                  style={boutonDiscret}
+                >
+                  ⟲
+                </button>
+              )}
+              <button onClick={() => setOpen(false)} title="Fermer — Ctrl J" style={boutonDiscret}>
+                ×
+              </button>
+            </div>
+          </div>
+
+          {available === false && (
+            <div style={alerte}>
+              <span>
+                Ollama n'est pas détecté sur <code>localhost:11434</code>. Lance-le pour activer l'assistant — 100 %
+                local et gratuit.
+              </span>
+              {connectionError && (
+                <code style={{ fontSize: 11, color: "var(--danger)", wordBreak: "break-word" }}>{connectionError}</code>
+              )}
+              <button
+                onClick={() =>
+                  checkOllamaAvailable().then(async (res) => {
+                    setAvailable(res.ok);
+                    setConnectionError(res.error ?? null);
+                    if (res.ok) setModele(await modeleTexte());
+                  })
+                }
+                style={{ ...puce, alignSelf: "flex-start" }}
+              >
+                ↻ Réessayer
+              </button>
+            </div>
+          )}
+
+          <div ref={scrollRef} className="scroll" style={fil}>
+            {elements.length === 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, color: "var(--text-dim)", fontSize: 12.5 }}>
+                <p style={{ margin: 0 }}>
+                  Pose une question sur ton projet, demande des idées ou fais-toi aider à écrire. L'assistant lit tes
+                  pages et <strong>propose</strong> ses modifications : rien ne change sans ta validation.
+                </p>
+                <p style={{ margin: 0 }}>
+                  Dans une note, <kbd>Ctrl</kbd>+<kbd>Espace</kbd> (ou <kbd>Espace</kbd> sur une ligne vide) l'appelle
+                  directement à l'endroit du curseur.
+                </p>
+                <p style={{ margin: 0 }}>
+                  {web
+                    ? "Avec 🌐 Wikipédia (en haut), il peut aussi y vérifier des faits réels — mythes, histoire, jeux existants — et cite ses sources."
+                    : "L'assistant reste 100 % sur ton ordinateur. Le bouton « 🔒 100 % local » (en haut) lui permet, si tu le veux, de vérifier des faits réels sur Wikipédia."}
+                </p>
+              </div>
+            )}
+
+            {elements.map((e, i) => (
+              <Fragment key={i}>{rendreElement(e, i)}</Fragment>
+            ))}
+
+            {enCours && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-dim)", fontSize: 12.5 }}>
+                <span className="pk-ia-pulse">●</span> Réflexion… {secondes > 1 ? `${secondes} s` : ""}
+                <button onClick={() => arret.current?.abort()} style={{ ...puce, marginLeft: "auto" }}>
+                  ■ Arrêter
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 12px 8px" }}>
+            {activePage && (
+              <>
+                <button onClick={resumer} disabled={enCours} style={puce} title="Résume la page ouverte">
+                  ✦ Résumer
+                </button>
+                <button onClick={structurer} disabled={enCours} style={puce} title="Propose un tableau à partir de la page">
+                  ▦ En tableau
+                </button>
+              </>
+            )}
+            {INSPIRATIONS.map((insp) => (
+              <button
+                key={insp.libelle}
+                onClick={() => inspirer(insp.consigne, insp.libelle)}
+                disabled={enCours}
+                style={puce}
+                title={insp.aide}
+              >
+                {insp.libelle}
+              </button>
+            ))}
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              send(input);
+            }}
+            style={{ display: "flex", gap: 8, padding: 12, paddingTop: 0, flexShrink: 0 }}
+          >
+            <textarea
+              ref={champ}
+              value={input}
+              rows={2}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                // Entrée envoie, Maj+Entrée va à la ligne — la convention des messageries.
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send(input);
+                }
+              }}
+              placeholder="Écris à l'assistant… (Maj+Entrée pour aller à la ligne)"
+              style={champStyle}
+            />
+            <button type="submit" disabled={enCours || !input.trim()} style={boutonEnvoi}>
+              ↵
+            </button>
+          </form>
+        </div>
+      )}
+    </>
+  );
+
+  function rendreElement(e: Element, index: number): ReactNode {
+    switch (e.type) {
+      case "utilisateur":
+        return <div style={{ ...bulle, ...bulleUtilisateur }}>{e.texte}</div>;
+      case "assistant":
+        return (
+          <div style={{ ...bulle, ...bulleAssistant }}>
+            {/* Le modèle écrit parfois « a été créée » alors que rien n'est encore
+                fait : le bandeau dit la vérité, quoi qu'il ait écrit. */}
+            {e.proposition && <div style={bandeauProposition}>Rien n'est encore appliqué — valide la proposition ci-dessous.</div>}
+            {e.rienFait && (
+              <div style={{ ...bandeauProposition, color: "var(--danger)" }}>
+                ⚠ Rien n'a été modifié : l'assistant n'a pas utilisé ses outils. Reformule, par exemple « écris … dans la
+                page … ».
+              </div>
+            )}
+            <TexteRiche texte={e.texte} projectId={projectId} onOpenPage={onOpenPage} />
+            {e.sources && (
+              <div style={sourcesStyle}>
+                <span style={{ color: "var(--text-dim)" }}>Sources · Wikipédia</span>
+                {e.sources.map((s) => (
+                  <button key={s.url} onClick={() => openExternal(s.url)} style={lienSource} title={s.url}>
+                    ↗ {s.titre}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      case "horsLigne":
+        return (
+          <div style={horsLigneStyle}>
+            <strong>Mince ! Vous êtes hors ligne !</strong>
+            <span>La recherche Wikipédia n'a pas pu se faire : l'assistant répond avec tes pages et ce qu'il sait déjà.</span>
+          </div>
+        );
+      case "outil":
+        return (
+          <div style={{ fontSize: 11.5, color: e.echec ? "var(--danger)" : "var(--text-dim)", paddingLeft: 4 }}>
+            {e.echec ? "⚠ " : "· "}
+            {e.texte}
+          </div>
+        );
+      case "info":
+        return <div style={{ fontSize: 12, color: e.erreur ? "var(--danger)" : "var(--text-dim)" }}>{e.texte}</div>;
+      case "plan":
+        return <CartePlan element={e} onDecider={(ok) => decider(index, ok)} />;
+    }
+  }
+}
+
+/** La proposition de l'IA, avec ce qu'elle fera exactement, à appliquer ou écarter. */
+function CartePlan({
+  element,
+  onDecider,
+}: {
+  element: Extract<Element, { type: "plan" }>;
+  onDecider: (appliquer: boolean) => void;
+}) {
+  const [ouvert, setOuvert] = useState<number | null>(element.plan.actions.length === 1 ? 0 : null);
+  const { plan, etat, bilan } = element;
+
+  return (
+    <div style={carte}>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.4, textTransform: "uppercase", color: "var(--accent)" }}>
+        {etat === "attente" ? "Proposition — à valider" : etat === "applique" ? "✓ Appliquée" : "Écartée"}
+      </div>
+      <ol style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 }}>
+        {plan.actions.map((a, i) => (
+          <li key={i} style={{ fontSize: 12.5 }}>
+            {a.resume}
+            {a.apercu && (
+              <>
+                {" "}
+                <button onClick={() => setOuvert(ouvert === i ? null : i)} style={lienDiscret}>
+                  {ouvert === i ? "masquer" : "voir le contenu"}
+                </button>
+                {ouvert === i && <pre style={apercuStyle}>{a.apercu}</pre>}
+              </>
+            )}
+          </li>
+        ))}
+      </ol>
+      {etat === "attente" && (
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => onDecider(true)} style={boutonAppliquer}>
+            Appliquer
+          </button>
+          <button onClick={() => onDecider(false)} style={puce}>
+            Annuler
+          </button>
+        </div>
+      )}
+      {bilan && <div style={{ fontSize: 12, color: "var(--text-dim)", whiteSpace: "pre-wrap" }}>{bilan}</div>}
+    </div>
+  );
+}
+
+/* ---- Styles ---- */
+
+const boutonRond: CSSProperties = {
+  position: "fixed",
+  right: 20,
+  bottom: 20,
+  width: 46,
+  height: 46,
+  borderRadius: "50%",
+  border: "1px solid var(--border)",
+  background: "var(--accent)",
+  color: "var(--bg)",
+  fontSize: 18,
+  fontWeight: 700,
+  boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+  zIndex: 40,
+};
+
+const panneau: CSSProperties = {
+  position: "fixed",
+  top: 0,
+  right: 0,
+  bottom: 0,
+  width: 360,
+  background: "var(--surface)",
+  borderLeft: "1px solid var(--border)",
+  display: "flex",
+  flexDirection: "column",
+  zIndex: 39,
+  boxShadow: "-12px 0 32px rgba(0,0,0,0.35)",
+};
+
+const entete: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: "10px 14px",
+  borderBottom: "1px solid var(--border)",
+  flexShrink: 0,
+};
+
+const boutonDiscret: CSSProperties = {
+  background: "transparent",
+  border: "none",
+  color: "var(--text-dim)",
+  fontSize: 16,
+  width: 26,
+  height: 26,
+  borderRadius: 5,
+};
+
+const alerte: CSSProperties = {
+  padding: 12,
+  fontSize: 12.5,
+  color: "var(--text-dim)",
+  borderBottom: "1px solid var(--border)",
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+};
+
+const fil: CSSProperties = { flex: 1, padding: 12, display: "flex", flexDirection: "column", gap: 10 };
+
+const bulle: CSSProperties = {
+  maxWidth: "90%",
+  border: "1px solid var(--border)",
+  borderRadius: 8,
+  padding: "8px 10px",
+  fontSize: 13,
+  lineHeight: 1.5,
+  wordBreak: "break-word",
+};
+
+const bulleUtilisateur: CSSProperties = {
+  alignSelf: "flex-end",
+  background: "var(--accent-soft)",
+  color: "var(--accent)",
+  whiteSpace: "pre-wrap",
+};
+
+const bulleAssistant: CSSProperties = { alignSelf: "flex-start", background: "var(--surface-2)", color: "var(--text)" };
+
+const puce: CSSProperties = {
+  padding: "4px 9px",
+  fontSize: 11.5,
+  borderRadius: 6,
+  border: "1px solid var(--border)",
+  background: "transparent",
+  color: "var(--text-dim)",
+};
+
+const carte: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+  padding: "10px 12px",
+  borderRadius: 8,
+  border: "1px solid var(--accent)",
+  background: "var(--accent-soft)",
+};
+
+const boutonAppliquer: CSSProperties = {
+  padding: "5px 12px",
+  fontSize: 12,
+  borderRadius: 6,
+  border: "1px solid var(--accent)",
+  background: "var(--accent)",
+  color: "var(--bg)",
+  fontWeight: 600,
+};
+
+const lienDiscret: CSSProperties = {
+  border: "none",
+  background: "transparent",
+  color: "var(--accent)",
+  fontSize: 11.5,
+  padding: 0,
+  textDecoration: "underline",
+  cursor: "pointer",
+};
+
+const apercuStyle: CSSProperties = {
+  margin: "6px 0 0",
+  padding: 8,
+  maxHeight: 180,
+  overflow: "auto",
+  fontSize: 11,
+  fontFamily: "var(--font-mono)",
+  whiteSpace: "pre-wrap",
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
+  borderRadius: 6,
+  color: "var(--text)",
+};
+
+const champStyle: CSSProperties = {
+  flex: 1,
+  resize: "none",
+  background: "var(--surface-2)",
+  border: "1px solid var(--border)",
+  borderRadius: 6,
+  padding: "7px 10px",
+  color: "var(--text)",
+  fontSize: 13,
+  fontFamily: "inherit",
+  lineHeight: 1.4,
+};
+
+const boutonEnvoi: CSSProperties = {
+  padding: "7px 12px",
+  borderRadius: 6,
+  border: "1px solid var(--accent)",
+  background: "var(--accent-soft)",
+  color: "var(--accent)",
+  fontSize: 13,
+  alignSelf: "stretch",
+};
+
+const bandeauProposition: CSSProperties = {
+  fontSize: 11,
+  color: "var(--accent)",
+  marginBottom: 6,
+  paddingBottom: 6,
+  borderBottom: "1px solid var(--border)",
+};
+
+const sourcesStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: "4px 6px",
+  marginTop: 8,
+  paddingTop: 6,
+  borderTop: "1px solid var(--border)",
+  fontSize: 11,
+};
+
+const lienSource: CSSProperties = {
+  border: "1px solid var(--border)",
+  background: "var(--surface)",
+  color: "var(--accent2)",
+  borderRadius: 4,
+  padding: "0 5px",
+  fontSize: 11,
+  cursor: "pointer",
+};
+
+const horsLigneStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+  padding: "8px 10px",
+  borderRadius: 8,
+  border: "1px dashed var(--border)",
+  fontSize: 12,
+  color: "var(--text-dim)",
+};

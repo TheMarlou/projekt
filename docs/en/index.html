@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projekt — a notebook for your game ideas</title>
+<meta name="description" content="Notes, moodboard and mind map for game creators, with an AI that runs on your own computer. Windows, free, no account.">
+<link rel="icon" href="../img/icone.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header><div class="bande entete">
+  <span class="marque">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 3 20h18L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    Projekt
+  </span>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#install">Install</a>
+    <a href="#ai">Local AI</a>
+    <a href="#data">Your data</a>
+    <a href="../">Français</a>
+  </nav>
+</div></header>
+
+<section class="accroche"><div class="bande">
+  <h1>A notebook for your game ideas.</h1>
+  <p class="sous">Your notes, your moodboard and your mind map in a single window — with an assistant that reads your pages without ever sending them anywhere. It suggests, you decide.</p>
+  <div class="actions">
+    <a class="bouton" href="https://github.com/TheMarlou/projekt/releases/latest">Download for Windows</a>
+    <a class="bouton secondaire" href="https://github.com/TheMarlou/projekt">View the code</a>
+  </div>
+  <p class="precision">Windows 10 and 11 · free · no account · 3.5 MB · MIT licence · interface in French</p>
+  <figure style="margin-top:34px">
+    <div class="attente">Screenshot — Notes view</div>
+    <figcaption>The pages of a project, with their sub-pages, tables and images.</figcaption>
+  </figure>
+</div></section>
+
+<section id="features"><div class="bande">
+  <h2>What it does</h2>
+  <p class="precision" style="margin-bottom:22px">Built for the stage where nothing is settled yet: throw ideas in first, tidy up later.</p>
+  <div class="grille">
+    <div class="carte"><h3>Notes that nest</h3><p>Pages inside pages, formatted text, tables, images, audio clips, and mentions from one page to another.</p></div>
+    <div class="carte"><h3>An endless moodboard</h3><p>Drop images and videos on an infinite canvas, crop them, compare them. Paste a TikTok link: its thumbnail lands there, and the video plays in one click.</p></div>
+    <div class="carte"><h3>A living mind map</h3><p>Your project at the centre, your pages around it. Link two pages with a coloured line and a label — or ask the AI which links it sees.</p></div>
+    <div class="carte"><h3>An assistant that stays home</h3><p>It reads your pages to answer, suggests characters or quests, writes at the cursor. Nothing changes without your approval.</p></div>
+    <div class="carte"><h3>Find it, keep it</h3><p>Search across every page with <kbd>Ctrl</kbd>+<kbd>P</kbd>, an automatic backup on every launch, and export a whole project as a <code>.zip</code>.</p></div>
+    <div class="carte"><h3>Your colours</h3><p>Seven backgrounds, nine accent colours, and your own colours for the links on the map. Dark by default, light if you prefer.</p></div>
+  </div>
+  <div style="margin-top:30px">
+    <figure><div class="attente">Screenshot — the moodboard</div><figcaption>Images, videos and TikToks on one canvas.</figcaption></figure>
+    <figure><div class="attente">Screenshot — the mind map</div><figcaption>Links you draw, and links the AI suggests.</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="install"><div class="bande">
+  <h2>Install</h2>
+  <ol class="etapes">
+    <li><div><strong>Download the installer</strong> from <a href="https://github.com/TheMarlou/projekt/releases/latest">the releases page</a>, then run it.</div></li>
+    <li><div><strong>Windows will say “Unknown publisher”.</strong> Click <em>More info</em>, then <em>Run anyway</em>.</div></li>
+    <li><div><strong>That is all.</strong> It installs for your user only, no administrator rights needed.</div></li>
+  </ol>
+  <div class="encadre" style="margin-top:22px">
+    <h3>Why that warning?</h3>
+    <p style="margin:0;color:var(--text-dim)">Windows trusts software signed with a certificate, which costs several hundred euros a year. Projekt is free and has none. In exchange, <strong>all the code is public</strong>: read it, and build it yourself if you would rather.</p>
+  </div>
+</div></section>
+
+<section id="ai"><div class="bande">
+  <h2>AI, on your own machine</h2>
+  <p>Projekt works fine without it. If you want it, it runs on your computer, for free: <strong>no subscription, no API key, none of your pages sent over the internet.</strong></p>
+  <ol class="etapes">
+    <li><div>Install <a href="https://ollama.com">Ollama</a>, which runs the models locally.</div></li>
+    <li><div>In a terminal: <code>ollama pull qwen3:8b</code> for text, and <code>ollama pull gemma3:4b</code> to analyse images.</div></li>
+    <li><div>Restart Projekt: the assistant appears at the bottom right (<kbd>Ctrl</kbd>+<kbd>J</kbd>).</div></li>
+  </ol>
+  <p class="precision" style="margin-top:16px">A graphics card with 6 GB or more is recommended. Without one, answers will simply take longer.</p>
+  <figure style="margin-top:22px"><div class="attente">Screenshot — the assistant proposing a change</div><figcaption>Every change is proposed first, and applied only if you accept it.</figcaption></figure>
+</div></section>
+
+<section id="data"><div class="bande">
+  <h2>Your data stays yours</h2>
+  <div class="encadre calme">
+    <p>Everything lives in a folder on your computer: one database and your files. <strong>No account, no server, no analytics.</strong> A backup is made automatically on every launch, and any project can be exported as a single <code>.zip</code>.</p>
+    <p style="margin-bottom:0;color:var(--text-dim)">Two features reach the internet, and only if you use them: the assistant’s Wikipedia lookup, which is off by default, and moodboard TikTok videos, which play from TikTok.</p>
+  </div>
+</div></section>
+
+<section><div class="bande">
+  <h2>Questions</h2>
+  <details><summary>Is it really free?</summary><p>Yes, with no paid tier hiding behind it. The app is released under the MIT licence.</p></details>
+  <details><summary>Mac or Linux?</summary><p>Not for now: Projekt was built on Windows and has only been tested there.</p></details>
+  <details><summary>Is the app in English?</summary><p>Not yet — the interface is in French. Translating it is on the list.</p></details>
+  <details><summary>Can I take my projects elsewhere?</summary><p>Yes. The <code>.zip</code> export holds a file you can re-import, and also your pages as Markdown, readable in any text editor.</p></details>
+  <details><summary>Can the AI change my pages on its own?</summary><p>No. It prepares a proposal, you see exactly what it would change, and nothing is written until you click.</p></details>
+  <details><summary>I found a bug.</summary><p><a href="https://github.com/TheMarlou/projekt/issues">Report it here</a>, with what you were doing when it happened.</p></details>
+</div></section>
+
+<footer><div class="bande">
+  Projekt — made by TheMarlou · <a href="https://github.com/TheMarlou/projekt">Source code</a> · <a href="https://github.com/TheMarlou/projekt/issues">Report a problem</a> · MIT licence
+</div></footer>
+
+</body>
+</html>
