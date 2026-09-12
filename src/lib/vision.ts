@@ -1,4 +1,5 @@
 import type { Crop } from "./crop";
+import { tr } from "./i18n";
 
 /**
  * Préparation d'une image pour le modèle de vision.
@@ -23,7 +24,7 @@ export async function preparerImage(src: string, crop: Crop | null, cote = 1024)
   canvas.width = Math.max(1, Math.round(sw * echelle));
   canvas.height = Math.max(1, Math.round(sh * echelle));
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Impossible de préparer l'image.");
+  if (!ctx) throw new Error(tr("Impossible de préparer l'image.", "Couldn't prepare the image."));
   // Fond blanc : un PNG transparent deviendrait noir en JPEG, et le modèle
   // décrirait un fond qui n'existe pas.
   ctx.fillStyle = "#ffffff";
@@ -36,7 +37,7 @@ function charger(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Image illisible."));
+    img.onerror = () => reject(new Error(tr("Image illisible.", "Unreadable image.")));
     img.src = src;
   });
 }

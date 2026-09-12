@@ -1,3 +1,5 @@
+import { tr } from "../../lib/i18n";
+
 export interface FontChoice {
   label: string;
   /** Pile CSS stockée telle quelle dans le document. */
@@ -9,13 +11,13 @@ export interface FontChoice {
 // livrées avec Windows. Pas de nouvelle police web — l'app doit rester utilisable
 // hors ligne, et chaque import Google Fonts supplémentaire se paie au démarrage.
 export const FONT_CHOICES: FontChoice[] = [
-  { label: "Par défaut", stack: "", hint: "IBM Plex Sans" },
-  { label: "IBM Plex Mono", stack: "'IBM Plex Mono', ui-monospace, monospace", hint: "Chasse fixe" },
+  { label: tr("Par défaut", "Default"), stack: "", hint: "IBM Plex Sans" },
+  { label: "IBM Plex Mono", stack: "'IBM Plex Mono', ui-monospace, monospace", hint: tr("Chasse fixe", "Monospaced") },
   { label: "Segoe UI", stack: "'Segoe UI', system-ui, sans-serif", hint: "Sans-serif Windows" },
-  { label: "Verdana", stack: "Verdana, Geneva, sans-serif", hint: "Sans-serif lisible" },
-  { label: "Trebuchet MS", stack: "'Trebuchet MS', Tahoma, sans-serif", hint: "Sans-serif humaniste" },
-  { label: "Georgia", stack: "Georgia, 'Times New Roman', serif", hint: "Serif à l'écran" },
-  { label: "Times New Roman", stack: "'Times New Roman', Times, serif", hint: "Serif classique" },
+  { label: "Verdana", stack: "Verdana, Geneva, sans-serif", hint: tr("Sans-serif lisible", "Readable sans-serif") },
+  { label: "Trebuchet MS", stack: "'Trebuchet MS', Tahoma, sans-serif", hint: tr("Sans-serif humaniste", "Humanist sans-serif") },
+  { label: "Georgia", stack: "Georgia, 'Times New Roman', serif", hint: tr("Serif à l'écran", "Screen serif") },
+  { label: "Times New Roman", stack: "'Times New Roman', Times, serif", hint: tr("Serif classique", "Classic serif") },
   { label: "Consolas", stack: "Consolas, 'Courier New', monospace", hint: "Chasse fixe Windows" },
 ];
 

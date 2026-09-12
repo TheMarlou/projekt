@@ -7,6 +7,7 @@ import { docToMarkdown } from "./markdown";
 import { markdownToDoc } from "./markdownToDoc";
 import { findProjectByName, pageToPath, readTreePaths, resolvePagePath, splitPath } from "./pagePath";
 import { HorsLigneErreur, rechercheWeb, type ResultatWeb } from "./rechercheWeb";
+import { tr } from "./i18n";
 
 /**
  * Outils de l'assistant.
@@ -87,7 +88,7 @@ function cible(chemin: string, plan: Plan): Cible {
 
 /** Applique toutes les actions dans l'ordre et rend compte de chacune. */
 export function appliquerPlan(plan: Plan): { reussies: number; erreurs: string[] } {
-  if (plan.applique) return { reussies: 0, erreurs: ["Cette proposition a déjà été appliquée."] };
+  if (plan.applique) return { reussies: 0, erreurs: [tr("Cette proposition a déjà été appliquée.", "This proposal has already been applied.")] };
   plan.applique = true;
   const erreurs: string[] = [];
   let reussies = 0;
@@ -276,21 +277,24 @@ export function outilsDisponibles() {
 export function describeToolCall(name: string, args: Record<string, unknown>): string {
   switch (name) {
     case "read_tree":
-      return "Lecture de l'arborescence…";
+      return tr("Lecture de l'arborescence…", "Reading the page tree…");
     case "read_page":
-      return `Lecture de « ${args.path} »…`;
+      return tr(`Lecture de « ${args.path} »…`, `Reading “${args.path}”…`);
     case "search_pages":
-      return `Recherche de « ${args.query} » dans le projet…`;
+      return tr(`Recherche de « ${args.query} » dans le projet…`, `Searching the project for “${args.query}”…`);
     case "create_page":
-      return `Proposition : page « ${args.title} »`;
+      return tr(`Proposition : page « ${args.title} »`, `Proposal: page “${args.title}”`);
     case "add_content":
-      return `Proposition : contenu pour « ${args.page_path} »`;
+      return tr(`Proposition : contenu pour « ${args.page_path} »`, `Proposal: content for “${args.page_path}”`);
     case "add_table_rows":
-      return `Proposition : ${Array.isArray(args.rows) ? args.rows.length : 0} ligne(s) de tableau`;
+      return tr(
+        `Proposition : ${Array.isArray(args.rows) ? args.rows.length : 0} ligne(s) de tableau`,
+        `Proposal: ${Array.isArray(args.rows) ? args.rows.length : 0} table row(s)`
+      );
     case "web_search":
-      return `Recherche Wikipédia : « ${args.query} »…`;
+      return tr(`Recherche Wikipédia : « ${args.query} »…`, `Wikipedia search: “${args.query}”…`);
     default:
-      return `Exécution de « ${name} »…`;
+      return tr(`Exécution de « ${name} »…`, `Running “${name}”…`);
   }
 }
 
@@ -568,7 +572,7 @@ export async function executeTool(
           const chemin = `${parent.chemin} > ${titre}`;
           plan.pagesEnAttente.set(normaliserChemin(chemin), chemin);
           plan.actions.push({
-            resume: `Créer la sous-page « ${titre} » dans « ${parent.chemin} »`,
+            resume: tr(`Créer la sous-page « ${titre} » dans « ${parent.chemin} »`, `Create the sub-page “${titre}” in “${parent.chemin}”`),
             appliquer: () => {
               const r = resolve(parent.chemin);
               if (r.status !== "ok") return r.message;
@@ -599,7 +603,7 @@ export async function executeTool(
         const chemin = `${projet.name} > ${titre}`;
         plan.pagesEnAttente.set(normaliserChemin(chemin), chemin);
         plan.actions.push({
-          resume: `Créer la page « ${titre} » dans le projet « ${projet.name} »`,
+          resume: tr(`Créer la page « ${titre} » dans le projet « ${projet.name} »`, `Create the page “${titre}” in the project “${projet.name}”`),
           appliquer: () => {
             const store = useBlocksStore.getState();
             const id = store.addBlock(projet.id, null);
@@ -618,12 +622,12 @@ export async function executeTool(
         if (noeuds.length === 0) return fail("Le contenu est vide.");
 
         plan.actions.push({
-          resume: `Ajouter du contenu à « ${page.chemin} »`,
+          resume: tr(`Ajouter du contenu à « ${page.chemin} »`, `Add content to “${page.chemin}”`),
           apercu: markdown,
           appliquer: () => {
             const r = resolve(page.chemin);
             if (r.status !== "ok") return r.message;
-            return useBlocksStore.getState().appendNodesToPage(r.pageId, noeuds) ? null : "la page a disparu entre-temps";
+            return useBlocksStore.getState().appendNodesToPage(r.pageId, noeuds) ? null : tr("la page a disparu entre-temps", "the page has disappeared in the meantime");
           },
         });
         return propose({ path: page.chemin });
@@ -648,14 +652,17 @@ export async function executeTool(
         }
 
         plan.actions.push({
-          resume: `Ajouter ${rows.length} ligne(s) au tableau ${index} de « ${page.chemin} »`,
+          resume: tr(
+            `Ajouter ${rows.length} ligne(s) au tableau ${index} de « ${page.chemin} »`,
+            `Add ${rows.length} row(s) to table ${index} of “${page.chemin}”`
+          ),
           apercu: rows.map((r) => `| ${r.join(" | ")} |`).join("\n"),
           appliquer: () => {
             const r = resolve(page.chemin);
             if (r.status !== "ok") return r.message;
             return useBlocksStore.getState().appendRowsToPageTable(r.pageId, index - 1, rows)
               ? null
-              : "le tableau n'existe plus";
+              : tr("le tableau n'existe plus", "the table no longer exists");
           },
         });
         return propose({ path: page.chemin, lignes: rows.length });

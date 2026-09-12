@@ -1,5 +1,6 @@
 import type { JSONContent } from "@tiptap/react";
 import type { Block } from "../store/blocksStore";
+import { tr } from "./i18n";
 
 /**
  * « ✦ Suggérer des liens » (étape 4 de la carte mentale, spécifiée le 11/09) :
@@ -127,7 +128,10 @@ export function demandeSuggestions(pages: Block[], nomProjet: string, dejaRelies
     {
       role: "system" as const,
       content:
-        "Tu aides l'auteur d'un jeu vidéo à voir les relations entre les pages de son projet de game design. Tu réponds uniquement en JSON.",
+        tr(
+          "Tu aides l'auteur d'un jeu vidéo à voir les relations entre les pages de son projet de game design. Tu réponds uniquement en JSON.",
+          "Tu aides l'auteur d'un jeu vidéo à voir les relations entre les pages de son projet de game design. Tu réponds uniquement en JSON, et tu écris les « raison » en anglais (English)."
+        ),
     },
     {
       role: "user" as const,

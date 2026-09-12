@@ -25,6 +25,7 @@ import {
   type ResultatWeb,
 } from "../lib/rechercheWeb";
 import { Block, getBlockText, useBlocksStore } from "../store/blocksStore";
+import { tr, enAnglais } from "../lib/i18n";
 
 // Contenu de la page ouverte transmis au modèle. Plafonné : qwen3:8b déborde déjà
 // de la carte graphique de 6 Go, et un contexte plus long le ralentit encore.
@@ -213,7 +214,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
           // un plan vide et une action affirmée : on le lui dit et on relance, une fois.
           if (!relancee && plan.actions.length === 0 && demandeUneEcriture(text) && affirmeUneAction(texte)) {
             relancee = true;
-            ajouter({ type: "outil", texte: "Réponse sans action réelle : je la relance.", echec: true });
+            ajouter({ type: "outil", texte: tr("Réponse sans action réelle : je la relance.", "Answer without any real action: retrying."), echec: true });
             working = [
               ...working,
               { role: "assistant", content: texte },
@@ -261,7 +262,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
             const raison = JSON.parse(outcome.payload).error as string;
             ajouter({ type: "outil", texte: `${name} — ${raison}`, echec: true });
             if (retried.has(name)) {
-              reponse = `Je n'ai pas réussi à faire ça : ${raison}`;
+              reponse = tr(`Je n'ai pas réussi à faire ça : ${raison}`, `I couldn't do that: ${raison}`);
               break;
             }
             retried.add(name);
@@ -270,20 +271,26 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
       }
 
       if (reponse === null) {
-        reponse = "J'ai enchaîné trop d'actions sans aboutir — reformule en demandant une étape à la fois.";
+        reponse = tr(
+          "J'ai enchaîné trop d'actions sans aboutir — reformule en demandant une étape à la fois.",
+          "I chained too many actions without getting there — rephrase and ask for one step at a time."
+        );
       }
       // Un contenu vide ou « {} » n'est jamais une réponse à montrer : c'était le
       // symptôme visible du bug d'origine.
       if (!reponse || reponse === "{}") {
         reponse = plan.actions.length
-          ? "Voici ce que je propose :"
-          : "Je n'ai pas su quoi répondre. Reformule ta demande, ou précise la page concernée.";
+          ? tr("Voici ce que je propose :", "Here is what I suggest:")
+          : tr(
+              "Je n'ai pas su quoi répondre. Reformule ta demande, ou précise la page concernée.",
+              "I didn't know what to answer. Rephrase your request, or say which page it's about."
+            );
       }
       // « Hello World a été ajouté » alors que tout attend sa validation : mesuré 3 fois
       // sur 3 malgré la consigne. Le détail est dans la carte juste en dessous (et le
       // bandeau dit que rien n'est appliqué) ; la phrase fausse est remplacée.
       if (plan.actions.length && affirmeUnFait(reponse)) {
-        reponse = "Voici ce que je propose :";
+        reponse = tr("Voici ce que je propose :", "Here is what I suggest:");
       }
 
       // Même relancé, il peut persister : on ne laisse pas croire à une action.
@@ -302,12 +309,12 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
       setAvailable(true);
     } catch (err) {
       if (controleur.signal.aborted) {
-        ajouter({ type: "info", texte: "Réponse interrompue." });
+        ajouter({ type: "info", texte: tr("Réponse interrompue.", "Answer stopped.") });
       } else {
         ajouter({
           type: "info",
           erreur: true,
-          texte: `Impossible de joindre Ollama en local (localhost:11434). ${err instanceof Error ? err.message : ""}`,
+          texte: `${tr("Impossible de joindre Ollama en local (localhost:11434).", "Can't reach the local Ollama (localhost:11434).")} ${err instanceof Error ? err.message : ""}`,
         });
         setAvailable(false);
       }
@@ -330,8 +337,11 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
     } else {
       const { reussies, erreurs } = appliquerPlan(element.plan);
       const bilan = erreurs.length
-        ? `${reussies} action(s) appliquée(s), ${erreurs.length} en échec :\n${erreurs.join("\n")}`
-        : `${reussies} action${reussies > 1 ? "s" : ""} appliquée${reussies > 1 ? "s" : ""}.`;
+        ? `${reussies} ${tr("action(s) appliquée(s)", "action(s) applied")}, ${erreurs.length} ${tr("en échec", "failed")} :\n${erreurs.join("\n")}`
+        : tr(
+            `${reussies} action${reussies > 1 ? "s" : ""} appliquée${reussies > 1 ? "s" : ""}.`,
+            `${reussies} action${reussies > 1 ? "s" : ""} applied.`
+          );
       maj = { ...element, etat: "applique", bilan };
     }
     setElements((prev) => prev.map((e, i) => (i === index ? maj : e)));
@@ -349,10 +359,13 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
   const resumer = () => {
     if (!activePage) return;
     if (getBlockText(activePage).trim().length < 10) {
-      ajouter({ type: "info", texte: `« ${activePage.title} » est vide (ou presque) — rien à résumer pour l'instant.` });
+      ajouter({ type: "info", texte: tr(
+          `« ${activePage.title} » est vide (ou presque) — rien à résumer pour l'instant.`,
+          `“${activePage.title}” is empty (or nearly) — nothing to summarise yet.`
+        ) });
       return;
     }
-    send(`Lis la page « ${pageToPath(activePage.id)} » et résume-la en quelques points clés.`, `Résumer « ${activePage.title} »`);
+    send(`Lis la page « ${pageToPath(activePage.id)} » et résume-la en quelques points clés.`, tr(`Résumer « ${activePage.title} »`, `Summarise “${activePage.title}”`));
   };
 
   const structurer = () => {
@@ -360,14 +373,17 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
     if (getBlockText(activePage).trim().length < 10) {
       ajouter({
         type: "info",
-        texte: `« ${activePage.title} » est vide (ou presque) — ajoute d'abord du texte à structurer, sinon l'IA invente un contenu sans rapport.`,
+        texte: tr(
+          `« ${activePage.title} » est vide (ou presque) — ajoute d'abord du texte à structurer, sinon l'IA invente un contenu sans rapport.`,
+          `“${activePage.title}” is empty (or nearly) — add some text to structure first, otherwise the AI makes up unrelated content.`
+        ),
       });
       return;
     }
     const chemin = pageToPath(activePage.id);
     send(
       `Lis la page « ${chemin} », puis propose avec add_content un tableau Markdown qui en structure les informations (première ligne = en-têtes).`,
-      `Structurer « ${activePage.title} » en tableau`
+      tr(`Structurer « ${activePage.title} » en tableau`, `Turn “${activePage.title}” into a table`)
     );
   };
 
@@ -376,7 +392,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
   return (
     <>
       {!open && (
-        <button onClick={() => setOpen(true)} title="Assistant IA — Ctrl J" style={boutonRond}>
+        <button onClick={() => setOpen(true)} title={tr("Assistant IA — Ctrl J", "AI assistant — Ctrl J")} style={boutonRond}>
           ✦
         </button>
       )}
@@ -397,8 +413,14 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                 aria-pressed={web}
                 title={
                   web
-                    ? "Recherche Wikipédia activée : l'assistant peut y chercher des faits réels (seuls quelques mots-clés sortent de ton ordinateur, jamais tes pages). Clique pour la couper."
-                    : "Recherche Wikipédia coupée : l'assistant reste 100 % local. Clique pour l'activer."
+                    ? tr(
+                        "Recherche Wikipédia activée : l'assistant peut y chercher des faits réels (seuls quelques mots-clés sortent de ton ordinateur, jamais tes pages). Clique pour la couper.",
+                        "Wikipedia search on: the assistant can look up real facts there (only a few keywords leave your computer, never your pages). Click to turn it off."
+                      )
+                    : tr(
+                        "Recherche Wikipédia coupée : l'assistant reste 100 % local. Clique pour l'activer.",
+                        "Wikipedia search off: the assistant stays 100% local. Click to turn it on."
+                      )
                 }
                 style={{
                   ...puce,
@@ -409,7 +431,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                   background: web ? "var(--accent2-soft)" : "transparent",
                 }}
               >
-                {web ? "🌐 Wikipédia" : "🔒 100 % local"}
+                {web ? tr("🌐 Wikipédia", "🌐 Wikipedia") : tr("🔒 100 % local", "🔒 100% local")}
               </button>
               {elements.length > 0 && (
                 <button
@@ -418,13 +440,13 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                     historique.current = [];
                   }}
                   disabled={enCours}
-                  title="Nouvelle conversation"
+                  title={tr("Nouvelle conversation", "New conversation")}
                   style={boutonDiscret}
                 >
                   ⟲
                 </button>
               )}
-              <button onClick={() => setOpen(false)} title="Fermer — Ctrl J" style={boutonDiscret}>
+              <button onClick={() => setOpen(false)} title={tr("Fermer — Ctrl J", "Close — Ctrl J")} style={boutonDiscret}>
                 ×
               </button>
             </div>
@@ -433,8 +455,17 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
           {available === false && (
             <div style={alerte}>
               <span>
-                Ollama n'est pas détecté sur <code>localhost:11434</code>. Lance-le pour activer l'assistant — 100 %
-                local et gratuit.
+                {enAnglais ? (
+                  <>
+                    Ollama isn't detected on <code>localhost:11434</code>. Start it to enable the assistant — 100% local and
+                    free.
+                  </>
+                ) : (
+                  <>
+                    Ollama n'est pas détecté sur <code>localhost:11434</code>. Lance-le pour activer l'assistant — 100 %
+                    local et gratuit.
+                  </>
+                )}
               </span>
               {connectionError && (
                 <code style={{ fontSize: 11, color: "var(--danger)", wordBreak: "break-word" }}>{connectionError}</code>
@@ -449,7 +480,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                 }
                 style={{ ...puce, alignSelf: "flex-start" }}
               >
-                ↻ Réessayer
+                ↻ {tr("Réessayer", "Retry")}
               </button>
             </div>
           )}
@@ -458,17 +489,41 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
             {elements.length === 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 10, color: "var(--text-dim)", fontSize: 12.5 }}>
                 <p style={{ margin: 0 }}>
-                  Pose une question sur ton projet, demande des idées ou fais-toi aider à écrire. L'assistant lit tes
-                  pages et <strong>propose</strong> ses modifications : rien ne change sans ta validation.
+                  {enAnglais ? (
+                    <>
+                      Ask a question about your project, ask for ideas or get help writing. The assistant reads your pages and{" "}
+                      <strong>suggests</strong> changes: nothing changes without your approval.
+                    </>
+                  ) : (
+                    <>
+                      Pose une question sur ton projet, demande des idées ou fais-toi aider à écrire. L'assistant lit tes
+                      pages et <strong>propose</strong> ses modifications : rien ne change sans ta validation.
+                    </>
+                  )}
                 </p>
                 <p style={{ margin: 0 }}>
-                  Dans une note, <kbd>Ctrl</kbd>+<kbd>Espace</kbd> (ou <kbd>Espace</kbd> sur une ligne vide) l'appelle
-                  directement à l'endroit du curseur.
+                  {enAnglais ? (
+                    <>
+                      In a note, <kbd>Ctrl</kbd>+<kbd>Space</kbd> (or <kbd>Space</kbd> on an empty line) calls it right at the
+                      cursor.
+                    </>
+                  ) : (
+                    <>
+                      Dans une note, <kbd>Ctrl</kbd>+<kbd>Espace</kbd> (ou <kbd>Espace</kbd> sur une ligne vide) l'appelle
+                      directement à l'endroit du curseur.
+                    </>
+                  )}
                 </p>
                 <p style={{ margin: 0 }}>
                   {web
-                    ? "Avec 🌐 Wikipédia (en haut), il peut aussi y vérifier des faits réels — mythes, histoire, jeux existants — et cite ses sources."
-                    : "L'assistant reste 100 % sur ton ordinateur. Le bouton « 🔒 100 % local » (en haut) lui permet, si tu le veux, de vérifier des faits réels sur Wikipédia."}
+                    ? tr(
+                        "Avec 🌐 Wikipédia (en haut), il peut aussi y vérifier des faits réels — mythes, histoire, jeux existants — et cite ses sources.",
+                        "With 🌐 Wikipedia (at the top), it can also check real facts — myths, history, existing games — and cites its sources."
+                      )
+                    : tr(
+                        "L'assistant reste 100 % sur ton ordinateur. Le bouton « 🔒 100 % local » (en haut) lui permet, si tu le veux, de vérifier des faits réels sur Wikipédia.",
+                        "The assistant stays 100% on your computer. The “🔒 100% local” button (at the top) lets it check real facts on Wikipedia, if you want."
+                      )}
                 </p>
               </div>
             )}
@@ -479,9 +534,9 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
 
             {enCours && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-dim)", fontSize: 12.5 }}>
-                <span className="pk-ia-pulse">●</span> Réflexion… {secondes > 1 ? `${secondes} s` : ""}
+                <span className="pk-ia-pulse">●</span> {tr("Réflexion…", "Thinking…")} {secondes > 1 ? `${secondes} s` : ""}
                 <button onClick={() => arret.current?.abort()} style={{ ...puce, marginLeft: "auto" }}>
-                  ■ Arrêter
+                  ■ {tr("Arrêter", "Stop")}
                 </button>
               </div>
             )}
@@ -490,11 +545,11 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 12px 8px" }}>
             {activePage && (
               <>
-                <button onClick={resumer} disabled={enCours} style={puce} title="Résume la page ouverte">
-                  ✦ Résumer
+                <button onClick={resumer} disabled={enCours} style={puce} title={tr("Résume la page ouverte", "Summarises the open page")}>
+                  ✦ {tr("Résumer", "Summarise")}
                 </button>
-                <button onClick={structurer} disabled={enCours} style={puce} title="Propose un tableau à partir de la page">
-                  ▦ En tableau
+                <button onClick={structurer} disabled={enCours} style={puce} title={tr("Propose un tableau à partir de la page", "Suggests a table from the page")}>
+                  ▦ {tr("En tableau", "As a table")}
                 </button>
               </>
             )}
@@ -530,7 +585,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                   send(input);
                 }
               }}
-              placeholder="Écris à l'assistant… (Maj+Entrée pour aller à la ligne)"
+              placeholder={tr("Écris à l'assistant… (Maj+Entrée pour aller à la ligne)", "Write to the assistant… (Shift+Enter for a new line)")}
               style={champStyle}
             />
             <button type="submit" disabled={enCours || !input.trim()} style={boutonEnvoi}>
@@ -551,17 +606,22 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
           <div style={{ ...bulle, ...bulleAssistant }}>
             {/* Le modèle écrit parfois « a été créée » alors que rien n'est encore
                 fait : le bandeau dit la vérité, quoi qu'il ait écrit. */}
-            {e.proposition && <div style={bandeauProposition}>Rien n'est encore appliqué — valide la proposition ci-dessous.</div>}
+            {e.proposition && <div style={bandeauProposition}>
+                {tr("Rien n'est encore appliqué — valide la proposition ci-dessous.", "Nothing is applied yet — approve the proposal below.")}
+              </div>}
             {e.rienFait && (
               <div style={{ ...bandeauProposition, color: "var(--danger)" }}>
-                ⚠ Rien n'a été modifié : l'assistant n'a pas utilisé ses outils. Reformule, par exemple « écris … dans la
-                page … ».
+                ⚠{" "}
+                {tr(
+                  "Rien n'a été modifié : l'assistant n'a pas utilisé ses outils. Reformule, par exemple « écris … dans la page … ».",
+                  "Nothing was changed: the assistant didn't use its tools. Rephrase, e.g. “write … in the page …”."
+                )}
               </div>
             )}
             <TexteRiche texte={e.texte} projectId={projectId} onOpenPage={onOpenPage} />
             {e.sources && (
               <div style={sourcesStyle}>
-                <span style={{ color: "var(--text-dim)" }}>Sources · Wikipédia</span>
+                <span style={{ color: "var(--text-dim)" }}>{tr("Sources · Wikipédia", "Sources · Wikipedia")}</span>
                 {e.sources.map((s) => (
                   <button key={s.url} onClick={() => openExternal(s.url)} style={lienSource} title={s.url}>
                     ↗ {s.titre}
@@ -574,8 +634,13 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
       case "horsLigne":
         return (
           <div style={horsLigneStyle}>
-            <strong>Mince ! Vous êtes hors ligne !</strong>
-            <span>La recherche Wikipédia n'a pas pu se faire : l'assistant répond avec tes pages et ce qu'il sait déjà.</span>
+            <strong>{tr("Mince ! Vous êtes hors ligne !", "Oops! You're offline!")}</strong>
+            <span>
+              {tr(
+                "La recherche Wikipédia n'a pas pu se faire : l'assistant répond avec tes pages et ce qu'il sait déjà.",
+                "The Wikipedia search couldn't run: the assistant answers from your pages and what it already knows."
+              )}
+            </span>
           </div>
         );
       case "outil":
@@ -607,7 +672,11 @@ function CartePlan({
   return (
     <div style={carte}>
       <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.4, textTransform: "uppercase", color: "var(--accent)" }}>
-        {etat === "attente" ? "Proposition — à valider" : etat === "applique" ? "✓ Appliquée" : "Écartée"}
+        {etat === "attente"
+          ? tr("Proposition — à valider", "Proposal — to approve")
+          : etat === "applique"
+            ? tr("✓ Appliquée", "✓ Applied")
+            : tr("Écartée", "Dismissed")}
       </div>
       <ol style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 }}>
         {plan.actions.map((a, i) => (
@@ -617,7 +686,7 @@ function CartePlan({
               <>
                 {" "}
                 <button onClick={() => setOuvert(ouvert === i ? null : i)} style={lienDiscret}>
-                  {ouvert === i ? "masquer" : "voir le contenu"}
+                  {ouvert === i ? tr("masquer", "hide") : tr("voir le contenu", "show content")}
                 </button>
                 {ouvert === i && <pre style={apercuStyle}>{a.apercu}</pre>}
               </>
@@ -628,10 +697,10 @@ function CartePlan({
       {etat === "attente" && (
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => onDecider(true)} style={boutonAppliquer}>
-            Appliquer
+            {tr("Appliquer", "Apply")}
           </button>
           <button onClick={() => onDecider(false)} style={puce}>
-            Annuler
+            {tr("Annuler", "Cancel")}
           </button>
         </div>
       )}

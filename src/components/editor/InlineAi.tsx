@@ -6,6 +6,7 @@ import { ACTIONS_CURSEUR, ACTIONS_SELECTION, blocDefinitions, inviteEditeur, typ
 import { definitionsPour } from "../../lib/glossaire";
 import { AI_INLINE_EVENT, signalerIaOuverte } from "./editorEvents";
 import TexteRiche from "../TexteRiche";
+import { tr } from "../../lib/i18n";
 
 /**
  * L'assistant DANS la note, à l'endroit du curseur — comme l'IA de Notion.
@@ -172,7 +173,7 @@ export default function InlineAi({ editor, titrePage }: Props) {
         texte += morceau;
         setResultat(texte);
       }
-      if (!texte.trim()) throw new Error("La réponse est vide.");
+      if (!texte.trim()) throw new Error(tr("La réponse est vide.", "The answer is empty."));
       setEtat("resultat");
     } catch (err) {
       if (controleur.signal.aborted) return;
@@ -228,12 +229,16 @@ export default function InlineAi({ editor, titrePage }: Props) {
                 else lancerDemande();
               }
             }}
-            placeholder={avecSelection ? "Que faire de ce passage ? (ou choisis ci-dessous)" : "Demande à l'IA d'écrire ici… (ou choisis ci-dessous)"}
+            placeholder={
+              avecSelection
+                ? tr("Que faire de ce passage ? (ou choisis ci-dessous)", "What should be done with this passage? (or pick below)")
+                : tr("Demande à l'IA d'écrire ici… (ou choisis ci-dessous)", "Ask the AI to write here… (or pick below)")
+            }
             style={champStyle}
           />
           {etat === "erreur" && <div style={{ fontSize: 12, color: "var(--danger)", padding: "0 4px" }}>⚠ {erreur}</div>}
           <div style={{ display: "flex", flexDirection: "column", maxHeight: 260, overflowY: "auto" }} className="scroll">
-            <div style={legende}>{avecSelection ? "Sur la sélection" : "À partir du curseur"}</div>
+            <div style={legende}>{avecSelection ? tr("Sur la sélection", "On the selection") : tr("À partir du curseur", "From the cursor")}</div>
             {suggestions.map((a) => (
               <button key={a.libelle} onClick={() => choisir(a)} style={itemStyle} title={a.aide}>
                 <span>{a.libelle}</span>
@@ -241,7 +246,7 @@ export default function InlineAi({ editor, titrePage }: Props) {
               </button>
             ))}
             {filtre && suggestions.length === 0 && (
-              <div style={{ fontSize: 12, color: "var(--text-dim)", padding: "6px 8px" }}>Entrée pour envoyer ta demande.</div>
+              <div style={{ fontSize: 12, color: "var(--text-dim)", padding: "6px 8px" }}>{tr("Entrée pour envoyer ta demande.", "Enter to send your request.")}</div>
             )}
           </div>
         </>
@@ -252,10 +257,10 @@ export default function InlineAi({ editor, titrePage }: Props) {
           <div style={legende}>
             {etat === "generation" ? (
               <>
-                <span className="pk-ia-pulse">●</span> L'IA écrit…
+                <span className="pk-ia-pulse">●</span> {tr("L'IA écrit…", "The AI is writing…")}
               </>
             ) : (
-              "Aperçu — rien n'est encore inséré"
+              tr("Aperçu — rien n'est encore inséré", "Preview — nothing inserted yet")
             )}
           </div>
           <div style={apercuStyle} className="scroll">
@@ -266,29 +271,29 @@ export default function InlineAi({ editor, titrePage }: Props) {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {etat === "generation" ? (
               <button onClick={() => arret.current?.abort()} style={bouton}>
-                ■ Arrêter
+                ■ {tr("Arrêter", "Stop")}
               </button>
             ) : (
               <>
                 {derniere?.remplace && avecSelection && (
                   <button onClick={() => appliquer(true)} style={boutonPrincipal}>
-                    Remplacer la sélection
+                    {tr("Remplacer la sélection", "Replace the selection")}
                   </button>
                 )}
                 <button
                   onClick={() => appliquer(false)}
                   style={derniere?.remplace && avecSelection ? bouton : boutonPrincipal}
                 >
-                  {avecSelection ? "Insérer après" : "Insérer"}
+                  {avecSelection ? tr("Insérer après", "Insert after") : tr("Insérer", "Insert")}
                 </button>
                 <button onClick={() => derniere && lancer(derniere.consigne, derniere.remplace)} style={bouton}>
-                  ↻ Réessayer
+                  ↻ {tr("Réessayer", "Retry")}
                 </button>
                 <button onClick={() => setEtat("choix")} style={bouton}>
-                  ← Autre demande
+                  ← {tr("Autre demande", "Another request")}
                 </button>
                 <button onClick={fermer} style={{ ...bouton, marginLeft: "auto" }}>
-                  Annuler
+                  {tr("Annuler", "Cancel")}
                 </button>
               </>
             )}

@@ -259,7 +259,7 @@ export default function FormatToolbar({ editor, projectId }: FormatToolbarProps)
             <MenuItem
               key={size}
               label={String(size)}
-              hint={size === DEFAULT_FONT_SIZE ? "défaut" : undefined}
+              hint={size === DEFAULT_FONT_SIZE ? tr("défaut", "default") : undefined}
               active={activeSize === size}
               onSelect={() =>
                 size === DEFAULT_FONT_SIZE

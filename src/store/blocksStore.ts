@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { JSONContent } from "@tiptap/react";
 import { debouncedPersist, fireWrite, getDb } from "../db";
+import { tr } from "../lib/i18n";
 import { appendRowsToTable } from "../lib/docTables";
 import { SANS_POSITION, positionSuivante, reparerPositions } from "../lib/reorder";
 import { docToText, emptyDoc, textToDoc } from "../lib/richText";
@@ -284,7 +285,7 @@ export const useBlocksStore = create<BlocksState>()((set, get) => ({
       id,
       projectId,
       parentId,
-      title: "Sans titre",
+      title: tr("Sans titre", "Untitled"),
       content: [newTextBlock()],
       createdAt: now,
       updatedAt: now,

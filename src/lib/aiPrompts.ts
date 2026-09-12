@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 /**
  * Invites de l'assistant, regroupées : elles se modifient ensemble et se testent
  * ensemble.
@@ -88,7 +89,7 @@ export function invitePanneau(contexte: {
       ? "Pour une information sur le monde réel (mythologie, histoire, œuvre ou jeu existant) dont tu n'es pas sûr, ou si l'utilisateur demande de chercher sur internet, appelle web_search. Les articles consultés s'affichent sous ta réponse : ne recopie pas leurs adresses."
       : "",
     PEDAGOGIE,
-    "Réponds en français."
+    tr("Réponds en français.", "Réponds en anglais (English), même si ces consignes sont en français.")
   );
   if (contexte.extraits.length) {
     lignes.push(`Extraits d'autres pages du projet liés à la demande :\n${contexte.extraits.join("\n")}`);
@@ -115,33 +116,33 @@ export interface Inspiration {
  */
 export const INSPIRATIONS: Inspiration[] = [
   {
-    libelle: "💡 Idées",
-    aide: "Des pistes pour enrichir ce que tu conçois",
+    libelle: tr("💡 Idées", "💡 Ideas"),
+    aide: tr("Des pistes pour enrichir ce que tu conçois", "Leads to enrich what you're designing"),
     consigne:
       "Donne-moi 5 idées originales pour enrichir mon jeu. Pour chacune : une phrase, et ce qu'elle apporte au joueur. Appuie-toi sur ce que le projet contient déjà (univers, personnages, mécaniques) et cite les pages dont tu t'inspires.",
   },
   {
-    libelle: "🎭 Personnage",
-    aide: "Un personnage avec un rôle, une motivation, un secret",
+    libelle: tr("🎭 Personnage", "🎭 Character"),
+    aide: tr("Un personnage avec un rôle, une motivation, un secret", "A character with a role, a motivation, a secret"),
     consigne:
       // « nouveau » : sans ce mot, il recyclait Kaela, la pilote qui existe déjà (banc du 11/09).
       "Invente un nouveau personnage mémorable pour mon jeu (pas un de ceux qui existent déjà) : nom, rôle, motivation, un secret, et ce que sa présence change pour le joueur. Appuie-toi sur ce que le projet contient déjà (univers, personnages, mécaniques) et cite les pages dont tu t'inspires.",
   },
   {
-    libelle: "🌀 Rebondissement",
-    aide: "Trois retournements de situation, du classique au surprenant",
+    libelle: tr("🌀 Rebondissement", "🌀 Plot twist"),
+    aide: tr("Trois retournements de situation, du classique au surprenant", "Three plot twists, from classic to surprising"),
     consigne:
       "Propose 3 rebondissements narratifs pour mon jeu, du plus classique au plus surprenant. Pour chacun, explique ce qu'il change pour le joueur. Appuie-toi sur ce que le projet contient déjà (univers, personnages, mécaniques) et cite les pages dont tu t'inspires.",
   },
   {
-    libelle: "🗺 Quête",
-    aide: "Objectif, obstacle, choix, récompense",
+    libelle: tr("🗺 Quête", "🗺 Quest"),
+    aide: tr("Objectif, obstacle, choix, récompense", "Goal, obstacle, choice, reward"),
     consigne:
       "Imagine une quête pour mon jeu : objectif, obstacle principal, un choix difficile pour le joueur, récompense. Donne le déroulé en quelques étapes. Appuie-toi sur ce que le projet contient déjà (univers, personnages, mécaniques) et cite les pages dont tu t'inspires.",
   },
   {
-    libelle: "🏰 Lieu",
-    aide: "Un lieu marquant et son rôle dans le jeu",
+    libelle: tr("🏰 Lieu", "🏰 Place"),
+    aide: tr("Un lieu marquant et son rôle dans le jeu", "A memorable place and its role in the game"),
     consigne:
       "Imagine un nouveau lieu marquant pour mon jeu, puis décris-le : son ambiance, ce qu'on y trouve, un détail inattendu, et le rôle qu'il joue. Appuie-toi sur ce que le projet contient déjà (univers, personnages, mécaniques) et cite les pages dont tu t'inspires.",
   },
@@ -158,7 +159,10 @@ export function inviteEditeur(): string {
     "Écris en Markdown simple : titres ##, listes -, **gras**, tableaux | a | b |.",
     "Respecte la langue et le ton de la note. Reste cohérent avec ce qu'elle contient déjà.",
     "Quand tu réécris un passage sélectionné, garde sa forme : un paragraphe reste un paragraphe, une liste reste une liste.",
-    "Réponds en français sauf si la note est dans une autre langue.",
+    tr(
+      "Réponds en français sauf si la note est dans une autre langue.",
+      "Réponds en anglais (English) sauf si la note est dans une autre langue."
+    ),
   ].join("\n");
 }
 
@@ -173,25 +177,30 @@ export interface ActionEditeur {
 
 /** Quand du texte est sélectionné : on travaille SUR ce passage. */
 export const ACTIONS_SELECTION: ActionEditeur[] = [
-  { libelle: "Reformuler", aide: "Mêmes idées, autres mots", consigne: "Reformule ce passage avec d'autres mots, même sens.", remplace: true },
-  { libelle: "Raccourcir", aide: "Garder l'essentiel", consigne: "Raccourcis ce passage en gardant l'essentiel.", remplace: true },
-  { libelle: "Développer", aide: "Étoffer, détailler", consigne: "Développe ce passage avec plus de détails concrets, même ton.", remplace: true },
-  { libelle: "Simplifier", aide: "Plus clair, plus direct", consigne: "Réécris ce passage plus simplement et plus clairement.", remplace: true },
-  { libelle: "Corriger", aide: "Orthographe et grammaire", consigne: "Corrige l'orthographe et la grammaire de ce passage sans changer le style.", remplace: true },
-  { libelle: "En tableau", aide: "Structurer en tableau", consigne: "Transforme ce passage en tableau Markdown clair (première ligne = en-têtes).", remplace: true },
-  { libelle: "En liste", aide: "Structurer en points", consigne: "Transforme ce passage en liste à puces concise.", remplace: true },
-  { libelle: "Traduire en anglais", aide: "Pour une doc partagée", consigne: "Traduis ce passage en anglais.", remplace: true },
+  { libelle: tr("Reformuler", "Rephrase"), aide: tr("Mêmes idées, autres mots", "Same ideas, different words"), consigne: "Reformule ce passage avec d'autres mots, même sens.", remplace: true },
+  { libelle: tr("Raccourcir", "Shorten"), aide: tr("Garder l'essentiel", "Keep the essentials"), consigne: "Raccourcis ce passage en gardant l'essentiel.", remplace: true },
+  { libelle: tr("Développer", "Expand"), aide: tr("Étoffer, détailler", "Flesh out, add detail"), consigne: "Développe ce passage avec plus de détails concrets, même ton.", remplace: true },
+  { libelle: tr("Simplifier", "Simplify"), aide: tr("Plus clair, plus direct", "Clearer, more direct"), consigne: "Réécris ce passage plus simplement et plus clairement.", remplace: true },
+  { libelle: tr("Corriger", "Fix"), aide: tr("Orthographe et grammaire", "Spelling and grammar"), consigne: "Corrige l'orthographe et la grammaire de ce passage sans changer le style.", remplace: true },
+  { libelle: tr("En tableau", "As a table"), aide: tr("Structurer en tableau", "Structure as a table"), consigne: "Transforme ce passage en tableau Markdown clair (première ligne = en-têtes).", remplace: true },
+  { libelle: tr("En liste", "As a list"), aide: tr("Structurer en points", "Structure as bullet points"), consigne: "Transforme ce passage en liste à puces concise.", remplace: true },
+  {
+    libelle: tr("Traduire en anglais", "Translate to French"),
+    aide: tr("Pour une doc partagée", "For a shared document"),
+    consigne: tr("Traduis ce passage en anglais.", "Traduis ce passage en français."),
+    remplace: true,
+  },
 ];
 
 /** Sans sélection : on écrit À PARTIR de l'endroit où l'on est. */
 export const ACTIONS_CURSEUR: ActionEditeur[] = [
-  { libelle: "Continuer l'écriture", aide: "Prolonge ce que tu as commencé", consigne: "Continue le texte là où il s'arrête, sur deux ou trois phrases, dans la même veine." },
-  { libelle: "Trouver des idées", aide: "Une liste de pistes sur le sujet de la note", consigne: "Propose une liste de 5 idées originales sur le sujet de cette note, chacune en une phrase." },
-  { libelle: "Inspiration : personnage", aide: "Nom, rôle, motivation, secret", consigne: "Imagine un personnage qui s'intègre à cette note : nom, rôle, motivation, un secret, et ce qu'il change pour le joueur." },
-  { libelle: "Inspiration : rebondissement", aide: "Un retournement de situation", consigne: "Propose un rebondissement narratif en lien avec cette note, et ce qu'il change pour le joueur." },
-  { libelle: "Inspiration : dialogue", aide: "Quelques répliques", consigne: "Écris un court dialogue (4 à 6 répliques) entre des personnages liés à cette note." },
-  { libelle: "Proposer un tableau", aide: "Un tableau pour organiser le sujet", consigne: "Propose un tableau Markdown utile pour organiser le sujet de cette note (première ligne = en-têtes)." },
-  { libelle: "Résumer la page", aide: "Les points clés", consigne: "Résume cette note en quelques points clés." },
+  { libelle: tr("Continuer l'écriture", "Keep writing"), aide: tr("Prolonge ce que tu as commencé", "Carries on what you started"), consigne: "Continue le texte là où il s'arrête, sur deux ou trois phrases, dans la même veine." },
+  { libelle: tr("Trouver des idées", "Find ideas"), aide: tr("Une liste de pistes sur le sujet de la note", "A list of leads on the note's topic"), consigne: "Propose une liste de 5 idées originales sur le sujet de cette note, chacune en une phrase." },
+  { libelle: tr("Inspiration : personnage", "Inspiration: character"), aide: tr("Nom, rôle, motivation, secret", "Name, role, motivation, secret"), consigne: "Imagine un personnage qui s'intègre à cette note : nom, rôle, motivation, un secret, et ce qu'il change pour le joueur." },
+  { libelle: tr("Inspiration : rebondissement", "Inspiration: plot twist"), aide: tr("Un retournement de situation", "A turn of events"), consigne: "Propose un rebondissement narratif en lien avec cette note, et ce qu'il change pour le joueur." },
+  { libelle: tr("Inspiration : dialogue", "Inspiration: dialogue"), aide: tr("Quelques répliques", "A few lines"), consigne: "Écris un court dialogue (4 à 6 répliques) entre des personnages liés à cette note." },
+  { libelle: tr("Proposer un tableau", "Suggest a table"), aide: tr("Un tableau pour organiser le sujet", "A table to organise the topic"), consigne: "Propose un tableau Markdown utile pour organiser le sujet de cette note (première ligne = en-têtes)." },
+  { libelle: tr("Résumer la page", "Summarise the page"), aide: tr("Les points clés", "The key points"), consigne: "Résume cette note en quelques points clés." },
 ];
 
 /* --------------------------------------------------------------------------
@@ -218,12 +227,18 @@ export function consigneAnalyse(precision: string): string {
       "Réponds-y D'ABORD, directement et précisément, sous le titre « ## Ta question ». Décris ce que tu vois vraiment dans l'image pour y répondre.",
       "Ensuite seulement, sous « ## Style », nomme en deux ou trois lignes le style graphique et explique le terme.",
       "Ne nomme QUE les styles que tu vois clairement dans l'image ; ne mélange pas un style 2D et un style 3D.",
-      "Réponds en français, en Markdown, de façon concise.",
+      tr(
+        "Réponds en français, en Markdown, de façon concise.",
+        "Réponds en anglais (English), en Markdown, de façon concise. Traduis aussi les titres des rubriques."
+      ),
     ].join("\n");
   }
   return [
     ROLE_DA,
-    "Analyse cette image de référence. Réponds en français, en Markdown, avec exactement ces rubriques :",
+    tr(
+      "Analyse cette image de référence. Réponds en français, en Markdown, avec exactement ces rubriques :",
+      "Analyse cette image de référence. Réponds en anglais (English), en Markdown, avec exactement ces rubriques (titres traduits en anglais) :"
+    ),
     "## Style",
     "Nomme le ou les styles graphiques (par exemple pixel art, low poly, cel-shading, peinture numérique, isométrique, flat design) et explique chaque terme en une phrase simple.",
     // Mesuré sur une image en pixel art : gemma3:4b y ajoutait « low poly », un
@@ -248,7 +263,10 @@ export function consigneComparaison(nombre: number, direction: string): string {
     direction
       ? `La direction artistique que l'utilisateur vise : « ${direction} ».`
       : "L'utilisateur cherche une direction artistique cohérente pour son jeu.",
-    "Réponds en français, en Markdown, avec exactement ces rubriques :",
+    tr(
+      "Réponds en français, en Markdown, avec exactement ces rubriques :",
+      "Réponds en anglais (English), en Markdown, avec exactement ces rubriques (titres traduits en anglais) :"
+    ),
     "## Chaque image en une ligne",
     "Pour chacune : le style nommé, et son trait le plus marquant.",
     "## Points communs",

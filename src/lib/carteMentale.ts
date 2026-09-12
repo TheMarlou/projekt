@@ -1,4 +1,5 @@
 import { extractLinks, extractPageRefs, getBlockText, type Block } from "../store/blocksStore";
+import { tr } from "./i18n";
 
 /**
  * Carte mentale : calculs purs (arbre, disposition radiale, liens), sans React.
@@ -50,7 +51,7 @@ const QUINCONCE = 48;
 const TITRE_MAX = 24;
 
 export function titreCourt(titre: string): string {
-  const t = titre.trim() || "Sans titre";
+  const t = titre.trim() || tr("Sans titre", "Untitled");
   return t.length > TITRE_MAX ? `${t.slice(0, TITRE_MAX - 1)}…` : t;
 }
 

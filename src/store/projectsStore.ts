@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { fireWrite, getDb } from "../db";
 import { SANS_POSITION, deplacer, positionSuivante, renumeroter, reparerPositions } from "../lib/reorder";
+import { tr } from "../lib/i18n";
 
 export interface Project {
   id: string;
@@ -64,7 +65,7 @@ export const useProjectsStore = create<ProjectsState>()((set, get) => ({
     const id = crypto.randomUUID();
     const project: Project = {
       id,
-      name: name?.trim() || "Nouveau projet",
+      name: name?.trim() || tr("Nouveau projet", "New project"),
       createdAt: Date.now(),
       position: positionSuivante(get().projects.map((p) => p.position)),
     };

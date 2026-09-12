@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 /**
  * Recherche internet de l'assistant : Wikipédia en français.
  *
@@ -28,7 +29,7 @@ export interface SourceRecherche {
 /** Pas de connexion : l'assistant le dit, et répond avec ce qu'il a. */
 export class HorsLigneErreur extends Error {
   constructor() {
-    super("Mince ! Vous êtes hors ligne !");
+    super(tr("Mince ! Vous êtes hors ligne !", "Oops! You're offline!"));
     this.name = "HorsLigneErreur";
   }
 }

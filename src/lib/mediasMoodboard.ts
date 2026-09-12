@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { tr } from "./i18n";
 
 /**
  * Vidéos et liens TikTok dans le moodboard (demande du 11/09 : « je cherche
@@ -36,7 +37,7 @@ export async function apercuVideo(fichier: File): Promise<{ jpeg: Uint8Array; la
     video.src = url;
     await new Promise<void>((ok, ko) => {
       video.onloadedmetadata = () => ok();
-      video.onerror = () => ko(new Error("Ce format de vidéo n'est pas lisible ici (essaie un .mp4)."));
+      video.onerror = () => ko(new Error(tr("Ce format de vidéo n'est pas lisible ici (essaie un .mp4).", "This video format can't be played here (try an .mp4).")));
     });
     video.currentTime = Math.min(0.5, (video.duration || 1) / 3);
     await new Promise<void>((ok) => (video.onseeked = () => ok()));
@@ -109,25 +110,30 @@ export class ErreurTikTok extends Error {}
  */
 export async function infosTikTok(lien: string): Promise<InfosTikTok> {
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
-    throw new ErreurTikTok("Mince ! Vous êtes hors ligne : impossible de récupérer la vidéo TikTok.");
+    throw new ErreurTikTok(tr("Mince ! Vous êtes hors ligne : impossible de récupérer la vidéo TikTok.", "Oops! You're offline: the TikTok video can't be fetched."));
   }
   let adresse = lien.replace(/^http:/, "https:");
   if (!/\/video\/\d+/.test(adresse)) {
     // Lien court (« Partager » dans l'app mobile) : seule sa cible contient le numéro de la vidéo.
     adresse = await invoke<string>("resoudre_lien_tiktok", { url: adresse.split("?")[0].replace(/\/?$/, "/") }).catch((e) => {
-      throw new ErreurTikTok(`Ce lien TikTok n'a pas pu être ouvert : ${String(e)}`);
+      throw new ErreurTikTok(tr(`Ce lien TikTok n'a pas pu être ouvert : ${String(e)}`, `This TikTok link couldn't be opened: ${String(e)}`));
     });
   }
   const videoId = adresse.match(/\/video\/(\d+)/)?.[1];
-  if (!videoId) throw new ErreurTikTok("Ce lien ne mène pas à une vidéo TikTok (un profil ou une musique ne peuvent pas s'ajouter).");
+  if (!videoId) throw new ErreurTikTok(
+      tr(
+        "Ce lien ne mène pas à une vidéo TikTok (un profil ou une musique ne peuvent pas s'ajouter).",
+        "This link doesn't lead to a TikTok video (a profile or a sound can't be added)."
+      )
+    );
 
   let reponse: Response;
   try {
     reponse = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(`https://www.tiktok.com/video/${videoId}`)}`);
   } catch {
-    throw new ErreurTikTok("Mince ! Vous êtes hors ligne : impossible de récupérer la vidéo TikTok.");
+    throw new ErreurTikTok(tr("Mince ! Vous êtes hors ligne : impossible de récupérer la vidéo TikTok.", "Oops! You're offline: the TikTok video can't be fetched."));
   }
-  if (!reponse.ok) throw new ErreurTikTok("TikTok ne trouve pas cette vidéo : elle est peut-être privée ou supprimée.");
+  if (!reponse.ok) throw new ErreurTikTok(tr("TikTok ne trouve pas cette vidéo : elle est peut-être privée ou supprimée.", "TikTok can't find this video: it may be private or deleted."));
   const j = (await reponse.json()) as {
     title?: string;
     author_name?: string;
@@ -136,7 +142,7 @@ export async function infosTikTok(lien: string): Promise<InfosTikTok> {
     thumbnail_width?: number;
     thumbnail_height?: number;
   };
-  if (!j.thumbnail_url) throw new ErreurTikTok("TikTok n'a pas fourni d'aperçu pour cette vidéo.");
+  if (!j.thumbnail_url) throw new ErreurTikTok(tr("TikTok n'a pas fourni d'aperçu pour cette vidéo.", "TikTok didn't provide a preview for this video."));
   return {
     videoId,
     url: j.author_unique_id ? `https://www.tiktok.com/@${j.author_unique_id}/video/${videoId}` : `https://www.tiktok.com/video/${videoId}`,
@@ -151,9 +157,9 @@ export async function infosTikTok(lien: string): Promise<InfosTikTok> {
 /** Télécharge la miniature, pour l'enregistrer dans le projet (les adresses de TikTok expirent). */
 export async function telechargerMiniature(url: string): Promise<{ octets: Uint8Array; ext: string }> {
   const reponse = await fetch(url).catch(() => {
-    throw new ErreurTikTok("La miniature de la vidéo n'a pas pu être téléchargée.");
+    throw new ErreurTikTok(tr("La miniature de la vidéo n'a pas pu être téléchargée.", "The video thumbnail couldn't be downloaded."));
   });
-  if (!reponse.ok) throw new ErreurTikTok("La miniature de la vidéo n'a pas pu être téléchargée.");
+  if (!reponse.ok) throw new ErreurTikTok(tr("La miniature de la vidéo n'a pas pu être téléchargée.", "The video thumbnail couldn't be downloaded."));
   const type = reponse.headers.get("content-type") ?? "";
   const ext = type.includes("png") ? "png" : type.includes("webp") ? "webp" : "jpg";
   return { octets: new Uint8Array(await reponse.arrayBuffer()), ext };

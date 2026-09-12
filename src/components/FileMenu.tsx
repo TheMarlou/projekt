@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import ContextMenu from "./editor/ContextMenu";
 import { fileMenuGroups } from "../lib/fileActions";
+import { tr } from "../lib/i18n";
 
 interface FileMenuButtonProps {
   projectId: string | null;
@@ -24,8 +25,8 @@ export default function FileMenuButton(props: FileMenuButtonProps) {
           const r = e.currentTarget.getBoundingClientRect();
           setAncre(ancre ? null : { x: r.left, y: r.bottom + 4 });
         }}
-        title="Fichier — sauvegarder, importer, exporter"
-        aria-label="Menu Fichier"
+        title={tr("Fichier — sauvegarder, importer, exporter", "File — save, import, export")}
+        aria-label={tr("Menu Fichier", "File menu")}
         aria-expanded={!!ancre}
         style={{ ...boutonStyle, background: ancre ? "var(--surface-2)" : "transparent" }}
       >

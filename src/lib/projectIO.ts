@@ -19,6 +19,7 @@ import {
   slug,
   type ArchivePage,
 } from "./projectArchive";
+import { tr } from "./i18n";
 
 /**
  * « Sauvegarder sous » et son pendant import.
@@ -51,17 +52,17 @@ function echec(quoi: string, err: unknown): IOResult {
 
 export async function exportProject(projectId: string): Promise<IOResult> {
   const archive = buildArchive(projectId);
-  if (!archive) return { ok: false, message: "Ce projet est introuvable." };
+  if (!archive) return { ok: false, message: tr("Ce projet est introuvable.", "This project can't be found.") };
 
   let destination: string | null;
   try {
     destination = await save({
-      title: "Sauvegarder le projet sous…",
+      title: tr("Sauvegarder le projet sous…", "Save project as…"),
       defaultPath: archive.fileName,
-      filters: [{ name: "Sauvegarde Projekt", extensions: ["zip"] }],
+      filters: [{ name: tr("Sauvegarde Projekt", "Projekt backup"), extensions: ["zip"] }],
     });
   } catch (err) {
-    return echec("Impossible d'ouvrir la fenêtre d'enregistrement", err);
+    return echec(tr("Impossible d'ouvrir la fenêtre d'enregistrement", "Couldn't open the save window"), err);
   }
   if (!destination) return annulation;
 
@@ -73,7 +74,7 @@ export async function exportProject(projectId: string): Promise<IOResult> {
       assets: archive.assets,
     });
   } catch (err) {
-    return echec("La sauvegarde n'a pas pu être écrite", err);
+    return echec(tr("La sauvegarde n'a pas pu être écrite", "The backup couldn't be written"), err);
   }
 
   // Les « fichiers joints » regroupent images et sons : tous passent par le
@@ -87,17 +88,25 @@ export async function exportProject(projectId: string): Promise<IOResult> {
   if (manquantes > 0) {
     return {
       ok: false,
-      message: `Projet sauvegardé dans ${baseName(destination)}, mais ${manquantes} fichier${
-        manquantes > 1 ? "s joints sont introuvables" : " joint est introuvable"
-      } sur le disque et n'y figure${manquantes > 1 ? "nt" : ""} pas.`,
+      message: tr(
+        `Projet sauvegardé dans ${baseName(destination)}, mais ${manquantes} fichier${
+          manquantes > 1 ? "s joints sont introuvables" : " joint est introuvable"
+        } sur le disque et n'y figure${manquantes > 1 ? "nt" : ""} pas.`,
+        `Project saved to ${baseName(destination)}, but ${manquantes} attached file${manquantes > 1 ? "s are" : " is"} missing from disk and not included.`
+      ),
     };
   }
 
   return {
     ok: true,
-    message: `Projet sauvegardé : ${pages} page${pages > 1 ? "s" : ""}${
-      joints ? `, ${joints} fichier${joints > 1 ? "s" : ""} joint${joints > 1 ? "s" : ""}` : ""
-    } dans ${baseName(destination)}.`,
+    message: tr(
+      `Projet sauvegardé : ${pages} page${pages > 1 ? "s" : ""}${
+        joints ? `, ${joints} fichier${joints > 1 ? "s" : ""} joint${joints > 1 ? "s" : ""}` : ""
+      } dans ${baseName(destination)}.`,
+      `Project saved: ${pages} page${pages > 1 ? "s" : ""}${
+        joints ? `, ${joints} attached file${joints > 1 ? "s" : ""}` : ""
+      } in ${baseName(destination)}.`
+    ),
   };
 }
 
@@ -119,7 +128,7 @@ function branche(pages: Block[], racineId: string): Block[] {
 export async function exportPageMarkdown(pageId: string): Promise<IOResult> {
   const toutes = useBlocksStore.getState().blocks;
   const pages = branche(toutes, pageId);
-  if (pages.length === 0) return { ok: false, message: "Cette page est introuvable." };
+  if (pages.length === 0) return { ok: false, message: tr("Cette page est introuvable.", "This page can't be found.") };
 
   // Les fichiers (images, sons) partent À CÔTÉ du texte, dans `assets/` — comme
   // l'export Markdown de Notion. La première version les intégrait en base64 dans
@@ -135,7 +144,7 @@ export async function exportPageMarkdown(pageId: string): Promise<IOResult> {
     }
   }
 
-  const titres = new Map(toutes.map((p) => [p.id, p.title || "Sans titre"]));
+  const titres = new Map(toutes.map((p) => [p.id, p.title || tr("Sans titre", "Untitled")]));
   const dansLeFichier = new Set(pages.map((p) => p.id));
   const contexte: MarkdownContext = {
     // Tout tient dans un seul fichier : une page de la branche devient une ancre
@@ -148,7 +157,7 @@ export async function exportPageMarkdown(pageId: string): Promise<IOResult> {
   const corps = pages
     .map((page) => {
       const niveau = profondeur(toutes, page.id, pageId);
-      const titre = `${"#".repeat(Math.min(niveau + 1, 6))} ${page.title || "Sans titre"}`;
+      const titre = `${"#".repeat(Math.min(niveau + 1, 6))} ${page.title || tr("Sans titre", "Untitled")}`;
       const texte = page.content
         .map((bloc) => docToMarkdown(bloc.doc, contexte))
         .filter((m) => m !== "")
@@ -161,12 +170,12 @@ export async function exportPageMarkdown(pageId: string): Promise<IOResult> {
   let destination: string | null;
   try {
     destination = await save({
-      title: "Exporter la page en Markdown",
+      title: tr("Exporter la page en Markdown", "Export page as Markdown"),
       defaultPath: `${nom}.zip`,
-      filters: [{ name: "Markdown et fichiers joints", extensions: ["zip"] }],
+      filters: [{ name: tr("Markdown et fichiers joints", "Markdown and attached files"), extensions: ["zip"] }],
     });
   } catch (err) {
-    return echec("Impossible d'ouvrir la fenêtre d'enregistrement", err);
+    return echec(tr("Impossible d'ouvrir la fenêtre d'enregistrement", "Couldn't open the save window"), err);
   }
   if (!destination) return annulation;
 
@@ -178,7 +187,7 @@ export async function exportPageMarkdown(pageId: string): Promise<IOResult> {
       assets: [...assets].map(([diskPath, path]) => ({ diskPath, path })),
     });
   } catch (err) {
-    return echec("Le fichier n'a pas pu être écrit", err);
+    return echec(tr("Le fichier n'a pas pu être écrit", "The file couldn't be written"), err);
   }
 
   const sous = pages.length - 1;
@@ -193,14 +202,20 @@ export async function exportPageMarkdown(pageId: string): Promise<IOResult> {
   if (manquants > 0) {
     return {
       ok: false,
-      message: `Page exportée dans ${baseName(destination)}, mais ${manquants} fichier${
-        manquants > 1 ? "s joints sont introuvables" : " joint est introuvable"
-      } sur le disque.`,
+      message: tr(
+        `Page exportée dans ${baseName(destination)}, mais ${manquants} fichier${
+          manquants > 1 ? "s joints sont introuvables" : " joint est introuvable"
+        } sur le disque.`,
+        `Page exported to ${baseName(destination)}, but ${manquants} attached file${manquants > 1 ? "s are" : " is"} missing from disk.`
+      ),
     };
   }
   return {
     ok: true,
-    message: `Page exportée${detail ? ` (${detail})` : ""} dans ${baseName(destination)}.`,
+    message: tr(
+      `Page exportée${detail ? ` (${detail})` : ""} dans ${baseName(destination)}.`,
+      `Page exported${detail ? ` (${detail})` : ""} to ${baseName(destination)}.`
+    ),
   };
 }
 
@@ -262,12 +277,12 @@ export async function importProject(): Promise<IOResult> {
   let source: string | string[] | null;
   try {
     source = await open({
-      title: "Ouvrir une sauvegarde Projekt",
+      title: tr("Ouvrir une sauvegarde Projekt", "Open a Projekt backup"),
       multiple: false,
-      filters: [{ name: "Sauvegarde Projekt", extensions: ["zip"] }],
+      filters: [{ name: tr("Sauvegarde Projekt", "Projekt backup"), extensions: ["zip"] }],
     });
   } catch (err) {
-    return echec("Impossible d'ouvrir la fenêtre de sélection", err);
+    return echec(tr("Impossible d'ouvrir la fenêtre de sélection", "Couldn't open the file picker"), err);
   }
   if (!source || Array.isArray(source)) return annulation;
 
@@ -277,7 +292,7 @@ export async function importProject(): Promise<IOResult> {
   try {
     brut = await invoke<string>("read_archive_entry", { path: source, entry: ARCHIVE_JSON });
   } catch (err) {
-    return echec("Ce fichier ne peut pas être lu", err);
+    return echec(tr("Ce fichier ne peut pas être lu", "This file can't be read"), err);
   }
 
   let payload;
@@ -320,7 +335,7 @@ export async function importProject(): Promise<IOResult> {
       id: nouveaux.get(page.id)!,
       projectId,
       parentId: page.parentId ? nouveaux.get(page.parentId) ?? null : null,
-      title: page.title ?? "Sans titre",
+      title: page.title ?? tr("Sans titre", "Untitled"),
       content: contenu.length ? contenu : [{ id: crypto.randomUUID(), type: "text", doc: { type: "doc", content: [] } }],
       createdAt: typeof page.createdAt === "number" ? page.createdAt : maintenant,
       updatedAt: typeof page.updatedAt === "number" ? page.updatedAt : maintenant,
@@ -368,8 +383,13 @@ export async function importProject(): Promise<IOResult> {
   const pages = payload.pages.length;
   return {
     ok: true,
-    message: `« ${nom} » importé : ${pages} page${pages > 1 ? "s" : ""}${
-      imagesMoodboard ? `, ${imagesMoodboard} élément${imagesMoodboard > 1 ? "s" : ""} au moodboard` : ""
-    }${liensCarte ? `, ${liensCarte} lien${liensCarte > 1 ? "s" : ""} de carte` : ""}.`,
+    message: tr(
+      `« ${nom} » importé : ${pages} page${pages > 1 ? "s" : ""}${
+        imagesMoodboard ? `, ${imagesMoodboard} élément${imagesMoodboard > 1 ? "s" : ""} au moodboard` : ""
+      }${liensCarte ? `, ${liensCarte} lien${liensCarte > 1 ? "s" : ""} de carte` : ""}.`,
+      `“${nom}” imported: ${pages} page${pages > 1 ? "s" : ""}${
+        imagesMoodboard ? `, ${imagesMoodboard} moodboard item${imagesMoodboard > 1 ? "s" : ""}` : ""
+      }${liensCarte ? `, ${liensCarte} map link${liensCarte > 1 ? "s" : ""}` : ""}.`
+    ),
   };
 }
