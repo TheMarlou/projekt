@@ -23,6 +23,12 @@ tauri-plugin-dialog = "2"
 # Sauvegarde d'un projet : un seul fichier .zip contenant le JSON fidèle, les
 # pages en Markdown et les images.
 zip = { version = "2", default-features = false, features = ["deflate"] }
+# Réception depuis Projekt Mobile : petit serveur local, chiffrement AES-GCM,
+# adresses du PC sur les réseaux locaux.
+tiny_http = "0.12"
+aes-gcm = "0.10"
+getrandom = "0.2"
+if-addrs = "0.13"
 
 [dev-dependencies]
 rusqlite = { version = "0.31", features = ["bundled"] }

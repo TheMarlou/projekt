@@ -5,6 +5,8 @@ use std::io::{Read, Write};
 use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
 
+mod telephone;
+
 const SCHEMA_V1: &str = "
 CREATE TABLE IF NOT EXISTS projects (
   id TEXT PRIMARY KEY,
@@ -491,6 +493,10 @@ pub fn run() {
         )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            app.manage(telephone::Telephone::charger(app.handle())?);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             save_asset,
             save_asset_brut,
@@ -501,7 +507,14 @@ pub fn run() {
             write_archive,
             read_archive_entry,
             extract_archive_assets,
-            preparer_sauvegarde_automatique
+            preparer_sauvegarde_automatique,
+            telephone::telephone_etat,
+            telephone::telephone_appairer,
+            telephone::telephone_annuler_appairage,
+            telephone::telephone_oublier,
+            telephone::telephone_projets,
+            telephone::telephone_recus,
+            telephone::telephone_accuser
         ])
         .run(tauri::generate_context!())
         .expect("erreur au lancement de Projekt");
