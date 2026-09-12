@@ -37,17 +37,25 @@ export default function SignalerBug({ ouvert, onFermer }: Props) {
     setVoirJournal(false);
     setCapture(null);
     void rapportTechnique().then(setJournal);
-    // La fenêtre telle qu'elle est, SANS ce panneau de signalement.
-    const racine = document.getElementById("root");
-    if (racine) {
-      toPng(racine, {
-        pixelRatio: 1,
-        filter: (noeud) => !(noeud instanceof HTMLElement && noeud.dataset.signalement === "oui"),
-      })
-        .then(setCapture)
-        .catch((err) => console.warn("Capture d'écran impossible :", err));
-    }
   }, [ouvert]);
+
+  // Capture prise SEULEMENT si la case est cochée : rien n'est photographié pour
+  // rien, et un gros moodboard ne ralentit pas l'ouverture de la fenêtre.
+  useEffect(() => {
+    if (!ouvert || !joindreCapture || capture) return;
+    const racine = document.getElementById("root");
+    if (!racine) return;
+    toPng(racine, {
+      pixelRatio: 1,
+      // La fenêtre telle qu'elle est, SANS ce panneau de signalement.
+      filter: (noeud) => !(noeud instanceof HTMLElement && noeud.dataset.signalement === "oui"),
+    })
+      .then(setCapture)
+      .catch((err) => {
+        console.warn("Capture d'écran impossible :", err);
+        setJoindreCapture(false);
+      });
+  }, [ouvert, joindreCapture, capture]);
 
   useEffect(() => {
     if (!ouvert) return;
@@ -137,9 +145,10 @@ export default function SignalerBug({ ouvert, onFermer }: Props) {
           coche={joindreCapture}
           onChange={setJoindreCapture}
           titre="Joindre une capture de la fenêtre"
-          desactive={!capture}
         >
-          {capture ? "Elle sera copiée : tu la colleras toi-même dans le message." : "Capture en cours…"}
+          {joindreCapture && !capture
+            ? "Capture en cours…"
+            : "Elle sera copiée : tu la colleras toi-même dans le message."}
         </Case>
         {capture && joindreCapture && <img src={capture} alt="Capture qui sera jointe" style={apercuCapture} />}
 
