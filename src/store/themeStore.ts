@@ -23,7 +23,8 @@ export const useThemeStore = create<ThemeState>()(
       };
       return {
         mode: "dark",
-        accent: "orange",
+        // Blanc : c'est la couleur du logo (son choix du 12/09).
+        accent: "mono",
         lienBase: "accent",
         // Cyan vif par défaut : il ne se confond avec aucune couleur principale
         // proposée par défaut, ni avec le blanc du texte.
