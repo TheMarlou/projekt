@@ -136,11 +136,10 @@ export async function infosTikTok(lien: string): Promise<InfosTikTok> {
 
   let reponse: Response;
   try {
-    // Une photo se décrit avec son adresse complète (auteur compris) quand on la connaît.
-    const cible = photo
-      ? `https://www.tiktok.com/${auteurDansLien ?? "@tiktok"}/photo/${videoId}`
-      : `https://www.tiktok.com/video/${videoId}`;
-    reponse = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(cible)}`);
+    // Toujours l'adresse « /video/ », même pour une publication photo : testé le
+    // 13/09 sur une vraie publication, le service répond 400 à « /@auteur/photo/… »
+    // mais renvoie titre, auteur et couverture pour « /video/<même numéro> ».
+    reponse = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(`https://www.tiktok.com/video/${videoId}`)}`);
   } catch {
     throw new ErreurTikTok(tr("Mince ! Vous êtes hors ligne : impossible de récupérer la vidéo TikTok.", "Oops! You're offline: the TikTok video can't be fetched."));
   }
