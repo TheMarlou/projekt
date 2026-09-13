@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   contenuPourQuestion,
   demandeDeMemoriser,
+  demandeDeModification,
+  demandeSurCapacites,
   demandeUneNoteDeDiscussion,
   questionSurLeProjet,
   transcrire,
@@ -19,6 +21,20 @@ describe("vérification des réponses", () => {
   it("repère une page citée qui n'existe pas", () => {
     expect(verifierReponse("Voir « Mon jeu > Boss ».", ctx())).toBeNull();
     expect(verifierReponse("Voir « Mon jeu > Armes ».", ctx())).toContain("Mon jeu > Armes");
+  });
+
+  it("ne prend pas une page à créer pour une page inventée", () => {
+    expect(verifierReponse("La page « Mon jeu > Quêtes » n'existe pas encore : je propose de la créer.", ctx())).toBeNull();
+    expect(verifierReponse("Les quêtes sont dans « Mon jeu > Quêtes ».", ctx())).toContain("Mon jeu > Quêtes");
+  });
+
+  it("ne laisse pas proposer une modification interdite", () => {
+    const texte = "Je propose de créer une page « Mon jeu > Quêtes ».";
+    expect(verifierReponse(texte, ctx({ peutModifier: false }))).toContain("⚙");
+    expect(verifierReponse(texte, ctx())).toBeNull();
+    expect(verifierReponse("Je ne peux pas créer de page : c'est désactivé.", ctx({ peutModifier: false }))).toBeNull();
+    expect(demandeDeModification("Est-ce que tu peux créer une page pour mes quêtes ?")).toBe(true);
+    expect(demandeDeModification("Qui est le boss ?")).toBe(false);
   });
 
   it("refuse « ce n'est pas dans les pages » sans avoir cherché", () => {
@@ -53,6 +69,13 @@ describe("intentions", () => {
     expect(questionSurLeProjet("Quelle est la faiblesse du boss ?")).toBe(true);
     expect(questionSurLeProjet("Donne-moi 3 idées de noms pour le boss ?")).toBe(false);
     expect(questionSurLeProjet("Bonjour")).toBe(false);
+  });
+
+  it("reconnaît une question sur ses capacités, pas une demande de création", () => {
+    expect(demandeSurCapacites("Qu'est-ce que tu peux faire pour moi dans Projekt ?")).toBe(true);
+    expect(demandeSurCapacites("Quelles sont tes permissions ?")).toBe(true);
+    expect(demandeSurCapacites("Est-ce que tu peux créer une page pour mes quêtes ?")).toBe(false);
+    expect(questionSurLeProjet("Qu'est-ce que tu peux faire ?")).toBe(false);
   });
 
   it("reconnaît une note de discussion et une demande de mémoire", () => {

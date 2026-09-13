@@ -14,12 +14,40 @@
  */
 export function questionSurLeProjet(demande: string): boolean {
   const d = demande.trim();
-  if (d.length < 6) return false;
+  if (d.length < 6 || demandeSurCapacites(d)) return false;
   if (/(id[ée]es?\b|invente|imagine|propose|sugg[èe]re|trouve[- ]moi|cr[ée]e|[ée]cri[st]|ajoute|r[ée]dige|fais une note|retiens)/i.test(d)) return false;
   return /\?\s*$/.test(d) || /^(qui|que|qu'|quoi|quel|quelle|quels|quelles|comment|combien|pourquoi|o[uù]|est-ce|y a-t-il|r[ée]sume|explique|liste|dis-moi)\b/i.test(d);
 }
 
+/**
+ * « Qu'est-ce que tu peux faire ? », « tes permissions ? ». Banc du 13/09 : sans
+ * aide, le modèle y répondait en listant les PAGES du projet (2 fois sur 2).
+ * « Est-ce que tu peux créer une page ? » n'en est pas une : c'est une demande.
+ */
+export function demandeSurCapacites(demande: string): boolean {
+  return /(qu'est-ce que tu (peux|sais)|que (peux|sais)-tu|(tu (peux|sais)|peux-tu|sais-tu|es-tu capable de) (faire|m'aider)\b|quoi (tu (peux|sers)|sers-tu)|tes (capacit[ée]s|fonctions|droits|permissions|limites)|what can you do|your (capabilities|permissions))/i.test(demande);
+}
+
+/** Ajouté à la demande quand elle porte sur les capacités. */
+export const INDICE_CAPACITES =
+  "(Reprends un par un les points de la liste « Ce que tu peux faire / Ce que tu ne peux pas faire » de tes consignes, fidèlement et sans rien ajouter, à la première personne (« Je peux… », « Je ne peux pas… »). N'utilise aucun outil et ne liste pas les pages.)";
+
+/** Demande d'écrire dans les pages : créer, ajouter, modifier, noter, retenir. */
+export function demandeDeModification(demande: string): boolean {
+  return /\b(cr[ée]e[rsz]?|ajoute[rsz]?|[ée]cri[srtv]|modifie[rsz]?|r[ée]dige[rsz]?|compl[èe]te[rsz]?|renomme[rsz]?|d[ée]place[rsz]?|note[rsz]?|retiens|m[ée]morise)\b/i.test(demande);
+}
+
+/** Ajouté à une demande de modification quand le réglage l'interdit. */
+export const INDICE_SANS_MODIFICATION =
+  "(Dans les réglages, tu n'as PAS le droit de créer ni de modifier des pages : ne propose rien. Dis-le simplement, et indique que ça se réactive avec le bouton ⚙ du panneau.)";
+
+/** « Je propose de créer… » alors qu'aucun outil d'écriture n'est permis. */
+const PRETEND_MODIFIER = /\bje (te )?(propose|vais|peux|m'occupe)[^.!?\n]{0,25}(cr[ée]er|ajouter|[ée]crire|modifier|r[ée]diger|compl[ée]ter)/i;
+
 const CHEMIN_CITE = /«\s*([^«»]*>[^«»]*)\s*»/g;
+
+/** Phrase où un chemin est cité comme page À CRÉER, pas comme page existante. */
+const PAGE_A_CREER = /(n'existe pas|pas encore|cr[ée]er|cr[ée]ation|nouvelle page|propos|ajouter une page)/i;
 
 /** Chemins de page (« Projet > Page ») cités dans une réponse. */
 export function cheminsCites(texte: string): string[] {
@@ -42,6 +70,8 @@ export interface ContexteVerification {
   pageTronquee?: boolean;
   /** Chemin de la page ouverte, pour la relance. */
   pageOuverte?: string | null;
+  /** Réglage « proposer des modifications » (absent = permis). */
+  peutModifier?: boolean;
 }
 
 /**
@@ -83,7 +113,13 @@ export function contenuPourQuestion(markdown: string, question: string, max = 25
  * si rien ne cloche. Une seule relance par tour : c'est l'appelant qui la compte.
  */
 export function verifierReponse(texte: string, ctx: ContexteVerification): string | null {
-  const inventes = cheminsCites(texte).filter((c) => !ctx.cheminExiste(c));
+  if (ctx.peutModifier === false && PRETEND_MODIFIER.test(texte) && !/ne (peux|pourrai|vais) pas|pas (le droit|autoris)/i.test(texte)) {
+    return "Tu n'as pas le droit de créer ni de modifier des pages (réglage désactivé) : tu ne peux rien proposer. Réponds à nouveau en le disant simplement, et indique que ça se réactive avec le bouton ⚙ du panneau.";
+  }
+  const phrases = texte.split(/(?<=[.!?\n])\s+/);
+  const inventes = cheminsCites(texte).filter(
+    (c) => !ctx.cheminExiste(c) && !phrases.some((p) => p.includes(c) && PAGE_A_CREER.test(p))
+  );
   if (inventes.length) {
     return `Ces pages n'existent pas : ${inventes.map((c) => `« ${c} »`).join(", ")}. Ne cite que des pages réelles (utilise read_tree ou search_pages si besoin), puis réponds à nouveau.`;
   }

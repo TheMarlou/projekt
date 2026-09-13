@@ -27,7 +27,7 @@ import {
 import { Block, getBlockText, useBlocksStore } from "../store/blocksStore";
 import { tr, enAnglais, localeDates } from "../lib/i18n";
 import { capacitesPourInvite, changerReglagesIa, LIBELLES_REGLAGES, reglagesIa, suivreReglagesIa, type ModeReflexion } from "../lib/iaReglages";
-import { contenuPourQuestion, demandeDeMemoriser, demandeUneNoteDeDiscussion, questionSurLeProjet, transcrire, verifierReponse, type EchangeTranscrit } from "../lib/iaVerite";
+import { contenuPourQuestion, demandeDeMemoriser, demandeDeModification, demandeSurCapacites, demandeUneNoteDeDiscussion, INDICE_CAPACITES, INDICE_SANS_MODIFICATION, questionSurLeProjet, transcrire, verifierReponse, type EchangeTranscrit } from "../lib/iaVerite";
 import { texteMemoire } from "../lib/memoireProjet";
 import { resolvePagePath } from "../lib/pagePath";
 import { useConversationsStore, type ConversationEnregistree } from "../store/conversationsStore";
@@ -261,6 +261,8 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
     if (discussion) contenuDemande += `\n\nLa discussion jusqu'ici :\n"""\n${discussion}\n"""`;
     if (demandeUneNoteDeDiscussion(text)) contenuDemande += "\n(Utilise l'outil note_discussion, sans rien inventer.)";
     else if (demandeDeMemoriser(text)) contenuDemande += "\n(Utilise l'outil memoriser : un appel par information, rien d'inventé.)";
+    else if (demandeSurCapacites(text)) contenuDemande += `\n${INDICE_CAPACITES}`;
+    else if (!permis.proposerModifications && demandeDeModification(text)) contenuDemande += `\n${INDICE_SANS_MODIFICATION}`;
     const userMsg: ChatMessage = { role: "user", content: contenuDemande };
     const page = activePage && permis.lirePages ? contenuPourIa(activePage, text) : null;
     // Réflexion « équilibre » (choix du 13/09) : pour les questions sur le contenu du projet.
@@ -343,6 +345,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                   cheminExiste: (c) =>
                     resolvePagePath(c, { fallbackProjectId: projectId }).status === "ok" ||
                     [...plan.pagesEnAttente.values()].some((p) => p.toLowerCase().endsWith(c.toLowerCase())),
+                  peutModifier: permis.proposerModifications,
                   aLu,
                   extraitsFournis: false,
                   pageTronquee: page?.tronque ?? false,
