@@ -8,6 +8,8 @@ import { markdownToDoc } from "./markdownToDoc";
 import { findProjectByName, pageToPath, readTreePaths, resolvePagePath, splitPath } from "./pagePath";
 import { HorsLigneErreur, rechercheWeb, type ResultatWeb } from "./rechercheWeb";
 import { tr } from "./i18n";
+import { reglagesIa } from "./iaReglages";
+import { ajouterALaMemoire, RUBRIQUES, titreMemoire, titreRubrique, type Rubrique } from "./memoireProjet";
 
 /**
  * Outils de l'assistant.
@@ -27,6 +29,9 @@ import { tr } from "./i18n";
  * chemin (« Projet > Parent > Page »). Toute la fiabilité tient ici — validation
  * stricte des arguments, résolution du chemin en identifiant réel.
  */
+
+/** Page où se rangent les notes de discussion (choix du 13/09). Même nom dans les deux langues. */
+export const TITRE_DISCUSSIONS = "💬 Discussions";
 
 const pathSchema = z.string().min(1, "chemin requis");
 
@@ -159,12 +164,22 @@ const schemas = {
     rows: nonEmptyRowsSchema,
   }),
   web_search: z.object({ query: z.string().min(1, "requête requise") }),
+  memoriser: z.object({
+    rubrique: z.enum(RUBRIQUES as [Rubrique, ...Rubrique[]]),
+    texte: z.string().min(1, "texte requis").max(400, "une phrase courte suffit"),
+  }),
+  note_discussion: z.object({
+    titre: z.string().min(1, "titre requis").max(80, "titre trop long"),
+    markdown: z.string().min(1, "contenu requis"),
+  }),
 } as const;
 
 export type ToolName = keyof typeof schemas;
 
 /** Outils qui modifient le projet : ils passent tous par un plan à valider. */
-export const OUTILS_ECRITURE = new Set<string>(["create_page", "add_content", "add_table_rows"]);
+// Écritures : elles ne font que PROPOSER (plan à valider), et seulement si les réglages le permettent.
+export const OUTILS_ECRITURE = new Set<string>(["create_page", "add_content", "add_table_rows", "memoriser", "note_discussion"]);
+export const OUTILS_LECTURE = new Set<string>(["read_tree", "read_page", "search_pages"]);
 
 const DEFINITIONS = [
   {
@@ -270,8 +285,55 @@ const DEFINITION_RECHERCHE_WEB = {
  * est activée : elle touche à la contrainte « 100 % local », c'est à
  * l'utilisateur d'en décider (voir `rechercheWeb.ts`).
  */
+const DEFINITIONS_MEMOIRE_ET_NOTE = [
+  {
+    type: "function",
+    function: {
+      name: "memoriser",
+      description:
+        "Propose d'ajouter une information à la page « 🧠 Mémoire » du projet, que tu relis à chaque conversation. À utiliser quand l'utilisateur te demande de retenir quelque chose. rubrique : resume (ce qu'est le projet), decision (un choix arrêté), preference (un goût ou une façon de travailler de l'utilisateur), idee_ecartee (une idée refusée, à ne plus proposer). Un appel par information.",
+      parameters: {
+        type: "object",
+        properties: {
+          rubrique: { type: "string", enum: RUBRIQUES, description: "resume, decision, preference ou idee_ecartee" },
+          texte: { type: "string", description: "Une phrase courte et factuelle, telle que l'utilisateur l'a dite" },
+        },
+        required: ["rubrique", "texte"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "note_discussion",
+      description:
+        "Propose de créer une note qui résume la discussion, rangée dans la page « 💬 Discussions » du projet. N'y mets que ce qui a vraiment été dit : idées retenues, décisions, questions encore ouvertes.",
+      parameters: {
+        type: "object",
+        properties: {
+          titre: { type: "string", description: "Titre court (moins de 8 mots)" },
+          markdown: { type: "string", description: "Le résumé en Markdown : ## titres, listes -" },
+        },
+        required: ["titre", "markdown"],
+      },
+    },
+  },
+];
+
+/**
+ * Outils proposés au modèle, filtrés par les réglages de l'assistant : un outil
+ * interdit n'est même pas montré. (Et s'il l'appelait quand même, `executeTool`
+ * refuserait : la permission est vérifiée des deux côtés.)
+ */
 export function outilsDisponibles() {
-  return rechercheWeb() ? [...DEFINITIONS, DEFINITION_RECHERCHE_WEB] : DEFINITIONS;
+  const r = reglagesIa();
+  const tous = [...DEFINITIONS, ...DEFINITIONS_MEMOIRE_ET_NOTE, ...(rechercheWeb() ? [DEFINITION_RECHERCHE_WEB] : [])];
+  return tous.filter((d) => {
+    const nom = d.function.name;
+    if (OUTILS_LECTURE.has(nom)) return r.lirePages;
+    if (OUTILS_ECRITURE.has(nom)) return r.proposerModifications;
+    return true;
+  });
 }
 
 export function describeToolCall(name: string, args: Record<string, unknown>): string {
@@ -492,6 +554,15 @@ export async function executeTool(
   }
   const args = parsed.data as Record<string, unknown>;
 
+  // Permissions (demande du 13/09) : vérifiées ICI, quoi que le modèle ait appelé.
+  const permissions = reglagesIa();
+  if (OUTILS_ECRITURE.has(name) && !permissions.proposerModifications) {
+    return fail("Les modifications sont désactivées dans les réglages de l'assistant : explique-le à l'utilisateur, sans rien proposer.");
+  }
+  if (OUTILS_LECTURE.has(name) && !permissions.lirePages) {
+    return fail("La lecture des pages est désactivée dans les réglages de l'assistant : dis à l'utilisateur que tu ne peux pas lire ses pages.");
+  }
+
   try {
     switch (name) {
       case "read_tree": {
@@ -666,6 +737,51 @@ export async function executeTool(
           },
         });
         return propose({ path: page.chemin, lignes: rows.length });
+      }
+
+      case "memoriser": {
+        const projet = contextProjectId;
+        if (!projet) return fail("Aucun projet ouvert : la mémoire appartient à un projet.");
+        const rubrique = args.rubrique as Rubrique;
+        const texte = String(args.texte).trim();
+        plan.actions.push({
+          resume: tr(
+            `Retenir dans « ${titreMemoire()} » (${titreRubrique(rubrique)}) : ${texte}`,
+            `Remember in “${titreMemoire()}” (${titreRubrique(rubrique)}): ${texte}`
+          ),
+          apercu: `- ${texte}`,
+          appliquer: () => ajouterALaMemoire(projet, rubrique, texte),
+        });
+        return propose({ rubrique, texte });
+      }
+
+      case "note_discussion": {
+        const projet = contextProjectId;
+        if (!projet) return fail("Aucun projet ouvert : la note se range dans un projet.");
+        const markdown = String(args.markdown).trim();
+        const noeuds: JSONContent[] = markdownToDoc(markdown).content ?? [];
+        if (noeuds.length === 0) return fail("Le contenu de la note est vide.");
+        const d = new Date();
+        const n = (x: number) => String(x).padStart(2, "0");
+        const titreNote = `${d.getFullYear()}-${n(d.getMonth() + 1)}-${n(d.getDate())} — ${String(args.titre).trim()}`;
+        plan.actions.push({
+          resume: tr(`Créer la note « ${titreNote} » dans « ${TITRE_DISCUSSIONS} »`, `Create the note “${titreNote}” in “${TITRE_DISCUSSIONS}”`),
+          apercu: markdown,
+          appliquer: () => {
+            const store = useBlocksStore.getState();
+            let parent = store.blocks.find((b) => b.projectId === projet && !b.parentId && b.title.trim() === TITRE_DISCUSSIONS)?.id;
+            if (!parent) {
+              parent = store.addBlock(projet, null);
+              store.updateTitle(parent, TITRE_DISCUSSIONS);
+            }
+            const id = useBlocksStore.getState().addBlock(projet, parent);
+            useBlocksStore.getState().updateTitle(id, titreNote);
+            // La puce de la note dans « 💬 Discussions », comme pour toute sous-page.
+            useBlocksStore.getState().appendNodesToPage(parent, [{ type: "paragraph", content: [{ type: "pageLink", attrs: { pageId: id } }] }]);
+            return useBlocksStore.getState().appendNodesToPage(id, noeuds) ? null : tr("la note n'a pas pu être remplie", "the note couldn't be filled");
+          },
+        });
+        return propose({ titre: titreNote });
       }
 
       default:

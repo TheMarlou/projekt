@@ -64,8 +64,8 @@ export async function modeleVision(): Promise<string | null> {
  * ce qui multiplie le temps de réponse ; on coupe. On ne l'envoie qu'à lui :
  * d'autres modèles pourraient refuser un paramètre qu'ils ne connaissent pas.
  */
-function propresAuModele(model: string): Record<string, unknown> {
-  return model.startsWith("qwen3") ? { think: false } : {};
+function propresAuModele(model: string, reflechir = false): Record<string, unknown> {
+  return model.startsWith("qwen3") ? { think: reflechir } : {};
 }
 
 /**
@@ -216,7 +216,13 @@ export async function chatWithTools(
   messages: ChatMessage[],
   tools: { function: { name: string } }[],
   model?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  /**
+   * Réflexion de qwen3 avant de répondre (demande du 13/09, « équilibre ») : pour
+   * les questions sur le contenu du projet seulement. La réflexion arrive à part
+   * (champ `thinking`) et n'est jamais montrée ni renvoyée au modèle.
+   */
+  reflechir = false
 ): Promise<ToolChatResult> {
   const m = model ?? (await modeleTexte());
   const res = await poster(
@@ -225,8 +231,9 @@ export async function chatWithTools(
       messages,
       tools,
       stream: false,
-      options: { temperature: 0.4, ...optionsContexte(messages, tools) },
-      ...propresAuModele(m),
+      // Température recommandée par Qwen en mode réflexion : trop basse, il boucle.
+      options: { temperature: reflechir ? 0.6 : 0.4, ...optionsContexte(messages, tools) },
+      ...propresAuModele(m, reflechir),
     },
     signal
   );

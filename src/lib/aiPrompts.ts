@@ -36,10 +36,20 @@ export function invitePanneau(contexte: {
   rechercheWeb?: boolean;
   /** Définitions du glossaire pour les termes de la demande (voir `glossaire.ts`). */
   definitions?: string[];
+  /** Ce que l'assistant a le droit de faire, d'après ses réglages (voir `iaReglages.ts`). */
+  capacites?: string;
+  /** Contenu de la page « 🧠 Mémoire » du projet. */
+  memoire?: string | null;
 }): string {
   const lignes = [
     "Tu es l'assistant de Projekt, un outil de brainstorming pour développeurs de jeux vidéo.",
+    contexte.capacites ?? "",
     contexte.projet ? `Projet courant : « ${contexte.projet} ».` : "",
+    // Demande du 13/09 : une mémoire du projet, relue à chaque question. Elle passe
+    // AVANT l'aperçu : ce que l'utilisateur a décidé prime sur tout le reste.
+    contexte.memoire
+      ? `Mémoire du projet (décisions, préférences et idées écartées que l'utilisateur t'a demandé de retenir ; respecte-les, et ne repropose jamais une idée écartée) :\n"""\n${contexte.memoire}\n"""`
+      : "",
     // Recette du 11/09 : les inspirations ignoraient le projet — le modèle ne
     // voyait que la page ouverte. L'aperçu lui donne l'univers d'un coup d'œil.
     contexte.apercu ? `Aperçu du projet (titres et débuts des pages) :\n${contexte.apercu}` : "",

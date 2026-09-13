@@ -14,6 +14,7 @@ import { useBlocksStore } from "./store/blocksStore";
 import { useCanvasStore } from "./store/canvasStore";
 import { useProjectsStore } from "./store/projectsStore";
 import { useCarteStore } from "./store/carteStore";
+import { useConversationsStore } from "./store/conversationsStore";
 import { demarrerReception } from "./lib/telephone";
 import SignalerBug from "./components/SignalerBug";
 import { EVENEMENT_SIGNALER } from "./lib/fileActions";
@@ -70,6 +71,8 @@ export default function App() {
     // La carte à part : ses tables (v6) manquent tant que l'app n'a pas migré,
     // et son échec ne doit pas faire croire que les pages n'ont pas chargé.
     hydrateCarte().catch((err) => console.error("Carte mentale non chargée :", err));
+    // Conversations de l'assistant (v8) : leur absence ne doit pas bloquer le démarrage.
+    useConversationsStore.getState().hydrate().catch((err) => console.error("Conversations non chargées :", err));
     Promise.all([hydrateProjects(), hydrateBlocks(), hydrateCanvas()])
       .catch((err) => console.error("Échec de l'hydratation depuis SQLite :", err))
       .finally(() => setReady(true));
@@ -117,6 +120,7 @@ export default function App() {
     deleteProject(id);
     deleteBlocksByProject(id);
     deleteItemsByProject(id);
+    useConversationsStore.getState().supprimerDuProjet(id);
     if (selectedProjectId === id) {
       setSelectedProjectId(null);
       setSelectedId(null);
