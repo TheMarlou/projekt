@@ -64,6 +64,10 @@ export const etatTelephone = () => invoke<EtatTelephone>("telephone_etat");
 export const preparerAppairage = () => invoke<{ lien: string; expireLe: number }>("telephone_appairer");
 export const annulerAppairage = () => invoke<void>("telephone_annuler_appairage");
 export const oublierTelephone = (id: string) => invoke<void>("telephone_oublier", { id });
+/** Les règles du pare-feu Windows pour Projekt Mobile existent-elles ? */
+export const pareFeuOk = () => invoke<boolean>("telephone_pare_feu_ok");
+/** Crée les règles, après la confirmation administrateur de Windows. Faux si refusé. */
+export const autoriserPareFeu = () => invoke<boolean>("telephone_autoriser_pare_feu");
 
 // Un téléphone vient de se manifester : le bouton 📱 met à jour son point vert.
 const auditeursContact = new Set<() => void>();

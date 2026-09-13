@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Reac
 import { notify } from "../lib/notify";
 import {
   annulerAppairage,
+  autoriserPareFeu,
+  pareFeuOk,
   DELAI_CONNECTE_MS,
   etatTelephone,
   oublierTelephone,
@@ -139,6 +141,8 @@ export default function TelephoneMenu() {
               "Share text, a link, a TikTok, an image or an MP3 from your Android phone: it lands in the project of your choice, with no internet and no account."
             )}
           </p>
+
+          {etat && <PareFeu />}
 
           {etat === null && (
             <p style={{ ...texteDim, color: "var(--danger)" }}>
@@ -286,6 +290,61 @@ export default function TelephoneMenu() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Recette du 13/09 : avec Norton comme pare-feu enregistré, Windows bloque le
+ * téléphone sans rien demander. On vérifie donc les règles, et on propose de les
+ * créer (confirmation administrateur de Windows) seulement s'il en manque.
+ */
+function PareFeu() {
+  const [ok, setOk] = useState<boolean | null>(null);
+  const [enCours, setEnCours] = useState(false);
+
+  useEffect(() => {
+    pareFeuOk()
+      .then(setOk)
+      .catch(() => setOk(null));
+  }, []);
+
+  if (ok === null) return null;
+  if (ok) {
+    return (
+      <p style={{ ...texteDim, fontSize: 11.5 }}>
+        ✓ {tr("Pare-feu : Projekt Mobile est autorisé.", "Firewall: Projekt Mobile is allowed.")}
+      </p>
+    );
+  }
+
+  const autoriser = async () => {
+    setEnCours(true);
+    const reussi = await autoriserPareFeu().catch(() => false);
+    setEnCours(false);
+    setOk(reussi);
+    notify(
+      reussi,
+      reussi
+        ? tr("Projekt est autorisé dans le pare-feu : le téléphone peut maintenant le joindre.", "Projekt is allowed through the firewall: the phone can now reach it.")
+        : tr(
+            "Autorisation non accordée. Si tu utilises Norton ou un autre antivirus, autorise projekt.exe dans son pare-feu.",
+            "Permission not granted. If you use Norton or another antivirus, allow projekt.exe in its firewall."
+          )
+    );
+  };
+
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <Astuce>
+        {tr(
+          "Le pare-feu de Windows bloque les connexions du téléphone. Autorise Projekt une fois : Windows te demandera une confirmation administrateur.",
+          "The Windows firewall blocks connections from the phone. Allow Projekt once: Windows will ask for administrator confirmation."
+        )}
+      </Astuce>
+      <button style={{ ...boutonPrincipal, marginTop: 8 }} disabled={enCours} onClick={() => void autoriser()}>
+        {enCours ? tr("Confirmation en attente…", "Waiting for confirmation…") : tr("Autoriser Projekt dans le pare-feu", "Allow Projekt through the firewall")}
+      </button>
     </div>
   );
 }

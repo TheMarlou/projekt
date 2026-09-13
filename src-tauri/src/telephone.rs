@@ -684,6 +684,60 @@ pub fn telephone_accuser(telephone: EtatTelephone<'_>, id: String) -> Result<(),
     }
 }
 
+// ——— Pare-feu Windows ——————————————————————————————————————————————————————————
+//
+// Recette du 13/09 : avec Norton comme pare-feu enregistré, Windows ne demande
+// RIEN et bloque le téléphone en silence. Le panneau 📱 vérifie donc la présence
+// des règles et propose de les créer, avec la confirmation administrateur de Windows.
+
+fn powershell(commande: &str) -> std::io::Result<std::process::Output> {
+    use std::os::windows::process::CommandExt;
+    std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command", commande])
+        // Pas de fenêtre de console qui clignote.
+        .creation_flags(0x0800_0000)
+        .output()
+}
+
+/// Les deux règles d'entrée (TCP et UDP) existent et sont actives. Lecture sans droits administrateur.
+fn regles_pare_feu_presentes() -> bool {
+    powershell(
+        "@(Get-NetFirewallRule -DisplayName 'Projekt Mobile (TCP)','Projekt Mobile (UDP)' -ErrorAction SilentlyContinue | Where-Object { $_.Enabled -eq 'True' }).Count",
+    )
+    .ok()
+    .and_then(|sortie| String::from_utf8_lossy(&sortie.stdout).trim().parse::<u32>().ok())
+    .is_some_and(|n| n >= 2)
+}
+
+#[tauri::command]
+pub async fn telephone_pare_feu_ok() -> bool {
+    tauri::async_runtime::spawn_blocking(regles_pare_feu_presentes).await.unwrap_or(false)
+}
+
+/// Crée les règles (ports 47821 à 47830, TCP et UDP) après confirmation administrateur.
+/// Renvoie `false` si l'utilisateur refuse, ou si un autre logiciel de sécurité l'empêche.
+#[tauri::command]
+pub async fn telephone_autoriser_pare_feu() -> bool {
+    let script = format!(
+        "Remove-NetFirewallRule -DisplayName 'Projekt Mobile (TCP)','Projekt Mobile (UDP)' -ErrorAction SilentlyContinue; \
+         New-NetFirewallRule -DisplayName 'Projekt Mobile (TCP)' -Direction Inbound -Protocol TCP -LocalPort {debut}-{fin} -Action Allow -Profile Any | Out-Null; \
+         New-NetFirewallRule -DisplayName 'Projekt Mobile (UDP)' -Direction Inbound -Protocol UDP -LocalPort {debut}-{fin} -Action Allow -Profile Any | Out-Null",
+        debut = PORT,
+        fin = PORT + PORTS_ESSAYES - 1
+    );
+    // Script encodé (UTF-16LE en base64) : aucun souci de guillemets imbriqués.
+    let encode = B64.encode(script.encode_utf16().flat_map(|u| u.to_le_bytes()).collect::<Vec<u8>>());
+    let lanceur = format!(
+        "try {{ Start-Process powershell -Verb RunAs -WindowStyle Hidden -Wait -ArgumentList '-NoProfile','-EncodedCommand','{encode}' }} catch {{ exit 1 }}"
+    );
+    tauri::async_runtime::spawn_blocking(move || {
+        let _ = powershell(&lanceur);
+        regles_pare_feu_presentes()
+    })
+    .await
+    .unwrap_or(false)
+}
+
 // ——— Tests ————————————————————————————————————————————————————————————————————
 
 #[cfg(test)]

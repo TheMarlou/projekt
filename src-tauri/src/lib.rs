@@ -514,7 +514,9 @@ pub fn run() {
             telephone::telephone_oublier,
             telephone::telephone_projets,
             telephone::telephone_recus,
-            telephone::telephone_accuser
+            telephone::telephone_accuser,
+            telephone::telephone_pare_feu_ok,
+            telephone::telephone_autoriser_pare_feu
         ])
         .run(tauri::generate_context!())
         .expect("erreur au lancement de Projekt");
