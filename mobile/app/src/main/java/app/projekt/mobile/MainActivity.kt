@@ -45,6 +45,8 @@ class MainActivity : AppCompatActivity() {
 
     private var etatPc = EtatPc.INCONNU
     private var projetChoisi: String? = null
+    /** Dernier échec d'appairage, affiché dans la carte tant qu'on n'a pas réussi (recette du 13/09). */
+    private var erreurAppairage: String? = null
 
     private val scanner = registerForActivityResult(ScanContract()) { resultat ->
         resultat.contents?.let { appairer(it) }
@@ -142,6 +144,7 @@ class MainActivity : AppCompatActivity() {
         if (pc == null) {
             cartePc.addView(ui.texte(getString(R.string.pc_aucun), 16f, gras = true))
             cartePc.addView(ui.texte(getString(R.string.pc_aide), 14f, c.texteDim).avecMarge(haut = 6))
+            erreurAppairage?.let { cartePc.addView(ui.texte(it, 13.5f, c.danger).avecMarge(haut = 10)) }
             cartePc.addView(ui.bouton(getString(R.string.bouton_appairer)) { scanner.launch(optionsScan()) }.avecMarge(haut = 14))
             return
         }
@@ -152,6 +155,7 @@ class MainActivity : AppCompatActivity() {
         }
         cartePc.addView(ui.rangee(ui.point(couleur), ui.texte(getString(R.string.pc_nom, pc.nomPc), 16f, gras = true), espace = 10))
         cartePc.addView(ui.texte(statut, 13.5f, c.texteDim).avecMarge(haut = 6))
+        erreurAppairage?.let { cartePc.addView(ui.texte(it, 13.5f, c.danger).avecMarge(haut = 10)) }
         val maj = reglages.majDisponible
         if (maj != null && etatPc == EtatPc.CONNECTE) {
             cartePc.addView(ui.texte(getString(R.string.maj_disponible, maj), 13.5f, c.accent).avecMarge(haut = 12))
@@ -200,6 +204,8 @@ class MainActivity : AppCompatActivity() {
     private fun appairer(lien: String) {
         val infos = lireLienAppairage(lien) ?: return toast(getString(R.string.qr_invalide))
         etatPc = EtatPc.RECHERCHE
+        erreurAppairage = null
+        afficherPc()
         toast(getString(R.string.appairage_en_cours))
         thread {
             val resultat = Envoi.appairer(this, infos)
@@ -207,10 +213,15 @@ class MainActivity : AppCompatActivity() {
                 if (isFinishing || isDestroyed) return@runOnUiThread
                 resultat
                     .onSuccess {
+                        erreurAppairage = null
                         toast(getString(R.string.appairage_ok, reglages.pc?.nomPc ?: infos.nomPc))
                         etatPc = EtatPc.CONNECTE
                     }
                     .onFailure {
+                        erreurAppairage = getString(R.string.appairage_echec, it.message ?: it.toString()) +
+                            "
+
+" + getString(R.string.appairage_aide)
                         toast(getString(R.string.appairage_echec, it.message ?: it.toString()))
                         etatPc = if (reglages.pc != null) EtatPc.INJOIGNABLE else EtatPc.INCONNU
                     }

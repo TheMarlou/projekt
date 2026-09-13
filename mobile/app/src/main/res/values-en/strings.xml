@@ -27,6 +27,7 @@
     <string name="appairage_ok">Paired with “%1$s”</string>
     <string name="appairage_echec">Pairing failed: %1$s</string>
     <string name="qr_invalide">This QR code doesn’t come from Projekt.</string>
+    <string name="appairage_aide">Check that the phone and the PC are on the same network (Wi-Fi or hotspot), that Projekt is open on the PC, and that its firewall allows Projekt.</string>
 
     <!-- Note rapide -->
     <string name="note_titre">Quick note</string>

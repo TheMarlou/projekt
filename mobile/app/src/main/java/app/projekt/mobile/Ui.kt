@@ -117,7 +117,13 @@ class Ui(private val ctx: Context, val c: Couleurs) {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         vues.forEachIndexed { i, vue ->
-            addView(vue, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { if (i > 0) marginStart = dp(espace) })
+            // Une vue qui a déjà sa taille (le point d'état) la garde : en WRAP_CONTENT,
+            // une simple View prend TOUTE la place disponible (recette du 13/09 : un
+            // ovale vert qui remplissait la carte).
+            val parametres = (vue.layoutParams as? LinearLayout.LayoutParams)?.let { LinearLayout.LayoutParams(it) }
+                ?: LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+            if (i > 0) parametres.marginStart = dp(espace)
+            addView(vue, parametres)
         }
     }
 
@@ -126,7 +132,6 @@ class Ui(private val ctx: Context, val c: Couleurs) {
             shape = GradientDrawable.OVAL
             setColor(couleur)
         }
-        minimumWidth = dp(taille)
-        minimumHeight = dp(taille)
+        layoutParams = LinearLayout.LayoutParams(dp(taille), dp(taille))
     }
 }

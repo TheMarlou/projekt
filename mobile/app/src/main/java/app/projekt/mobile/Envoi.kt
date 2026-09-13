@@ -46,7 +46,11 @@ object Envoi {
         val reglages = Reglages(context)
         reglages.derniereAdresse = null
         val (hote, port) = trouver(reglages, infos.pcId, infos.adresses, infos.port)
-            ?: throw ErreurPc(context.getString(R.string.pc_introuvable))
+            ?: throw ErreurPc(
+                // Les adresses essayées : de quoi comprendre sur quel réseau le PC était attendu.
+                context.getString(R.string.pc_introuvable) +
+                    " (" + infos.adresses.joinToString(", ") { "$it:${infos.port}" } + ")",
+            )
         val reponse = ClientPc(infos.cle, reglages.appareil)
             .appeler(hote, port, "appairer", JSONObject().put("nom", nomAppareil(context)))
         reglages.pc = PcAppaire(infos.pcId, reponse.optString("pc", infos.nomPc), infos.cle, infos.adresses, port)

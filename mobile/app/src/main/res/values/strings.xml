@@ -27,6 +27,7 @@
     <string name="appairage_ok">Appairé avec « %1$s »</string>
     <string name="appairage_echec">Appairage impossible : %1$s</string>
     <string name="qr_invalide">Ce QR code ne vient pas de Projekt.</string>
+    <string name="appairage_aide">À vérifier : le téléphone et le PC sont sur le même réseau (Wi-Fi ou partage de connexion), Projekt est ouvert sur le PC, et son pare-feu autorise Projekt.</string>
 
     <!-- Note rapide -->
     <string name="note_titre">Note rapide</string>
