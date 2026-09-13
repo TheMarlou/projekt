@@ -4,6 +4,7 @@ import type { JSONContent } from "@tiptap/react";
 import { useBlocksStore, type Block, type ContentBlock } from "../store/blocksStore";
 import { useCanvasStore } from "../store/canvasStore";
 import { useCarteStore } from "../store/carteStore";
+import { useConversationsStore } from "../store/conversationsStore";
 import { useProjectsStore } from "../store/projectsStore";
 import { docToMarkdown, type MarkdownContext } from "./markdown";
 import { parPosition } from "./reorder";
@@ -378,6 +379,11 @@ export async function importProject(): Promise<IOResult> {
     if (!de || !vers) continue;
     carte.ajouterLien({ projectId, de, vers, type: l.type, couleur: l.couleur, etiquette: l.etiquette, raison: l.raison });
     if (l.type !== "ia_rejete") liensCarte++;
+  }
+
+  // 7. Les conversations avec l'assistant (nouveaux identifiants : un import ne remplace rien).
+  for (const c of payload.conversations) {
+    useConversationsStore.getState().enregistrer({ id: crypto.randomUUID(), projectId, ...c });
   }
 
   const pages = payload.pages.length;

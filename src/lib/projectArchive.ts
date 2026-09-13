@@ -2,6 +2,7 @@ import type { JSONContent } from "@tiptap/react";
 import { useBlocksStore, type Block, type ContentBlock } from "../store/blocksStore";
 import { fichiersElement, useCanvasStore, type MetaElement } from "../store/canvasStore";
 import { useCarteStore } from "../store/carteStore";
+import { useConversationsStore } from "../store/conversationsStore";
 import { useProjectsStore } from "../store/projectsStore";
 import { docToMarkdown, type MarkdownContext } from "./markdown";
 import { parPosition } from "./reorder";
@@ -63,6 +64,16 @@ export interface ArchivePayload {
   pages: ArchivePage[];
   canvas: ArchiveCanvasItem[];
   carte: ArchiveCarte;
+  /** Conversations avec l'assistant (base v8). Facultatif, comme la carte : une ancienne sauvegarde n'en a pas. */
+  conversations: ArchiveConversation[];
+}
+
+export interface ArchiveConversation {
+  titre: string;
+  creeLe: number;
+  majLe: number;
+  elements: unknown[];
+  historique: unknown[];
 }
 
 /** Ce que l'archiveur remet à la couche Rust, qui n'a plus qu'à écrire le zip. */
@@ -200,6 +211,10 @@ export function buildArchive(projectId: string): ArchiveBundle | null {
         : null,
     })),
     carte: carteDuProjet(projectId, new Set(pages.map((p) => p.id))),
+    conversations: useConversationsStore
+      .getState()
+      .conversations.filter((c) => c.projectId === projectId)
+      .map(({ titre, creeLe, majLe, elements, historique }) => ({ titre, creeLe, majLe, elements, historique })),
   };
 
   // --- Lecture partageable --------------------------------------------------
@@ -358,7 +373,23 @@ export function parseArchive(brut: string): ArchivePayload {
     pages: p.pages,
     canvas: Array.isArray(p.canvas) ? p.canvas : [],
     carte: lireCarte(p.carte),
+    conversations: lireConversations((p as { conversations?: unknown }).conversations),
   };
+}
+
+/** Relit les conversations d'une sauvegarde ; une entrée mal formée est ignorée. */
+function lireConversations(brut: unknown): ArchiveConversation[] {
+  if (!Array.isArray(brut)) return [];
+  const date = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : Date.now());
+  return brut
+    .filter((c) => c && typeof c === "object" && Array.isArray(c.elements))
+    .map((c) => ({
+      titre: typeof c.titre === "string" ? c.titre : tr("Conversation", "Conversation"),
+      creeLe: date(c.creeLe),
+      majLe: date(c.majLe),
+      elements: c.elements,
+      historique: Array.isArray(c.historique) ? c.historique : [],
+    }));
 }
 
 function refuser(message: string): never {
