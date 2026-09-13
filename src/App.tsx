@@ -15,6 +15,7 @@ import { useCanvasStore } from "./store/canvasStore";
 import { useProjectsStore } from "./store/projectsStore";
 import { useCarteStore } from "./store/carteStore";
 import { useConversationsStore } from "./store/conversationsStore";
+import { useMemoireStore } from "./store/memoireStore";
 import { demarrerReception } from "./lib/telephone";
 import SignalerBug from "./components/SignalerBug";
 import { EVENEMENT_SIGNALER } from "./lib/fileActions";
@@ -73,6 +74,7 @@ export default function App() {
     hydrateCarte().catch((err) => console.error("Carte mentale non chargée :", err));
     // Conversations de l'assistant (v8) : leur absence ne doit pas bloquer le démarrage.
     useConversationsStore.getState().hydrate().catch((err) => console.error("Conversations non chargées :", err));
+    useMemoireStore.getState().hydrate().catch((err) => console.error("Mémoire de l'assistant non chargée :", err));
     Promise.all([hydrateProjects(), hydrateBlocks(), hydrateCanvas()])
       .catch((err) => console.error("Échec de l'hydratation depuis SQLite :", err))
       .finally(() => setReady(true));
@@ -121,6 +123,7 @@ export default function App() {
     deleteBlocksByProject(id);
     deleteItemsByProject(id);
     useConversationsStore.getState().supprimerDuProjet(id);
+    useMemoireStore.getState().supprimerDuProjet(id);
     if (selectedProjectId === id) {
       setSelectedProjectId(null);
       setSelectedId(null);

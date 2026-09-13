@@ -22,6 +22,7 @@ vi.mock("../db", () => ({
 
 import { useBlocksStore } from "../store/blocksStore";
 import { useConversationsStore } from "../store/conversationsStore";
+import { useMemoireStore } from "../store/memoireStore";
 import { useProjectsStore } from "../store/projectsStore";
 import { ARCHIVE_FORMAT, buildArchive, parseArchive } from "./projectArchive";
 
@@ -33,6 +34,26 @@ beforeEach(() => {
       { id: "c1", projectId: "p1", titre: "Boss final", creeLe: 10, majLe: 20, elements: [{ role: "user", text: "Et le boss ?" }], historique: [{ role: "user", content: "Et le boss ?" }] },
       { id: "c2", projectId: "autre", titre: "Pas à moi", creeLe: 1, majLe: 1, elements: [], historique: [] },
     ],
+  });
+  useMemoireStore.setState({
+    entrees: [
+      { id: "m1", projectId: "p1", rubrique: "decision", texte: "Pas de magie", creeLe: 5 },
+      { id: "m2", projectId: "autre", rubrique: "decision", texte: "Pas à moi", creeLe: 6 },
+    ],
+  });
+});
+
+describe("mémoire de l'assistant dans la sauvegarde", () => {
+  it("n'exporte que celle du projet, et la relit", () => {
+    const json = String(buildArchive("p1")!.files.find((f) => f.path === "projekt.json")?.contents);
+    expect(parseArchive(json).memoire).toEqual([{ rubrique: "decision", texte: "Pas de magie", creeLe: 5 }]);
+  });
+
+  it("ignore une rubrique inconnue et relit une ancienne sauvegarde sans mémoire", () => {
+    const base = { format: ARCHIVE_FORMAT, version: 1, project: { name: "Vieux" }, pages: [] };
+    expect(parseArchive(JSON.stringify(base)).memoire).toEqual([]);
+    const bizarre = { ...base, memoire: [{ rubrique: "n'importe", texte: "x" }] };
+    expect(parseArchive(JSON.stringify(bizarre)).memoire).toEqual([]);
   });
 });
 

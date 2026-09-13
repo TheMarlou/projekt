@@ -5,6 +5,7 @@ import { useBlocksStore, type Block, type ContentBlock } from "../store/blocksSt
 import { useCanvasStore } from "../store/canvasStore";
 import { useCarteStore } from "../store/carteStore";
 import { useConversationsStore } from "../store/conversationsStore";
+import { useMemoireStore } from "../store/memoireStore";
 import { useProjectsStore } from "../store/projectsStore";
 import { docToMarkdown, type MarkdownContext } from "./markdown";
 import { parPosition } from "./reorder";
@@ -384,6 +385,11 @@ export async function importProject(): Promise<IOResult> {
   // 7. Les conversations avec l'assistant (nouveaux identifiants : un import ne remplace rien).
   for (const c of payload.conversations) {
     useConversationsStore.getState().enregistrer({ id: crypto.randomUUID(), projectId, ...c });
+  }
+
+  // 8. La mémoire de l'assistant.
+  for (const m of payload.memoire) {
+    useMemoireStore.getState().ajouter(projectId, m.rubrique, m.texte, m.creeLe);
   }
 
   const pages = payload.pages.length;

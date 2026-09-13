@@ -26,7 +26,8 @@ import { useBlocksStore, type Block } from "../store/blocksStore";
 import { useProjectsStore } from "../store/projectsStore";
 import { appliquerPlan, executeTool, outilsDisponibles, OUTILS_ECRITURE, OUTILS_LECTURE, Plan, setAiContextProject } from "./aiTools";
 import { changerReglagesIa, REGLAGES_PAR_DEFAUT } from "./iaReglages";
-import { pageMemoire } from "./memoireProjet";
+import { entreesMemoire, texteMemoire } from "./memoireProjet";
+import { useMemoireStore } from "../store/memoireStore";
 
 function page(id: string, titre: string, texte: string, parentId: string | null = null): Block {
   return {
@@ -47,6 +48,7 @@ beforeEach(() => {
   changerReglagesIa({ ...REGLAGES_PAR_DEFAUT });
   useProjectsStore.setState({ projects: [{ id: "p1", name: "Mon jeu", createdAt: 1, position: 0 }] });
   useBlocksStore.setState({ blocks: [page("b1", "Boss", "Le boss s'appelle NÉMÉSIS.")] });
+  useMemoireStore.setState({ entrees: [] });
   setAiContextProject("p1");
 });
 
@@ -72,19 +74,27 @@ describe("rien n'est écrit avant validation", () => {
     expect(empreinte()).not.toBe(avant);
   });
 
-  it("memoriser ne crée la page 🧠 Mémoire qu'à l'application, sous la bonne rubrique", async () => {
+  it("memoriser n'écrit la mémoire qu'à l'application, sous la bonne rubrique, sans créer de page", async () => {
     const plan = new Plan();
+    const avant = empreinte();
     await executeTool("memoriser", { rubrique: "decision", texte: "Pas de magie dans cet univers." }, plan);
-    expect(pageMemoire("p1")).toBeNull();
+    expect(entreesMemoire("p1")).toHaveLength(0);
 
     appliquerPlan(plan);
-    const memoire = pageMemoire("p1");
-    expect(memoire).not.toBeNull();
-    const noeuds = memoire!.content[0].doc.content ?? [];
-    const titre = noeuds.findIndex((n) => n.type === "heading" && JSON.stringify(n).includes("Décisions prises"));
-    expect(titre).toBeGreaterThanOrEqual(0);
-    expect(noeuds[titre + 1].type).toBe("bulletList");
-    expect(JSON.stringify(noeuds[titre + 1])).toContain("Pas de magie");
+    const memoire = entreesMemoire("p1");
+    expect(memoire).toHaveLength(1);
+    expect(memoire[0]).toMatchObject({ rubrique: "decision", texte: "Pas de magie dans cet univers." });
+    expect(empreinte()).toBe(avant);
+    expect(texteMemoire("p1")).toContain("## Décisions prises\n- Pas de magie");
+  });
+
+  it("une information déjà retenue n'est pas doublée", async () => {
+    for (let i = 0; i < 2; i++) {
+      const plan = new Plan();
+      await executeTool("memoriser", { rubrique: "preference", texte: "Des noms courts" }, plan);
+      appliquerPlan(plan);
+    }
+    expect(entreesMemoire("p1")).toHaveLength(1);
   });
 
   it("note_discussion ne crée la note qu'à l'application, rangée dans « 💬 Discussions »", async () => {

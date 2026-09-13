@@ -142,6 +142,21 @@ CREATE TABLE IF NOT EXISTS ai_conversations (
 CREATE INDEX IF NOT EXISTS ai_conversations_projet ON ai_conversations(project_id, maj_le);
 ";
 
+// Memoire de l'assistant, A PART des pages du projet (demande du 13/09 : « une page
+// a part du projet, disponible dans son menu comme les reglages »). Une ligne par
+// information, rangee dans l'une des 4 rubriques (resume, decision, preference,
+// idee_ecartee).
+const SCHEMA_V9: &str = "
+CREATE TABLE IF NOT EXISTS ai_memoire (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  rubrique TEXT NOT NULL,
+  texte TEXT NOT NULL,
+  cree_le INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ai_memoire_projet ON ai_memoire(project_id, rubrique, cree_le);
+";
+
 /// Écrit un fichier dans les assets du projet, nommé par l'empreinte de son contenu.
 fn ecrire_asset(app: &tauri::AppHandle, project_id: &str, ext: &str, bytes: &[u8]) -> Result<String, String> {
     // Le projet et l'extension viennent de l'interface : rien qui puisse sortir du dossier.
@@ -506,6 +521,12 @@ pub fn run() {
             sql: SCHEMA_V8,
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 9,
+            description: "ai_memoire",
+            sql: SCHEMA_V9,
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
@@ -547,7 +568,32 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::{SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8};
+    use super::{SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8, SCHEMA_V9};
+
+    /// La v9 ajoute la mémoire de l'assistant, à part des pages, sans toucher au reste.
+    #[test]
+    fn migration_v9_ajoute_la_memoire_sans_rien_toucher() {
+        let conn = rusqlite::Connection::open_in_memory().expect("connexion en mémoire");
+        for schema in [SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8] {
+            conn.execute_batch(schema).expect("migrations précédentes");
+        }
+        conn.execute("INSERT INTO projects (id, name, created_at) VALUES ('p1', 'Mon jeu', 1)", []).unwrap();
+        conn.execute(
+            "INSERT INTO ai_conversations (id, project_id, titre, cree_le, maj_le) VALUES ('c1', 'p1', 'Boss', 1, 2)",
+            [],
+        )
+        .unwrap();
+        conn.execute_batch(SCHEMA_V9).expect("migration v9");
+        conn.execute(
+            "INSERT INTO ai_memoire (id, project_id, rubrique, texte, cree_le) VALUES ('m1', 'p1', 'decision', 'Pas de magie', 3)",
+            [],
+        )
+        .expect("une ligne de mémoire s'enregistre");
+        let texte: String = conn.query_row("SELECT texte FROM ai_memoire WHERE id = 'm1'", [], |r| r.get(0)).unwrap();
+        assert_eq!(texte, "Pas de magie");
+        let titre: String = conn.query_row("SELECT titre FROM ai_conversations WHERE id = 'c1'", [], |r| r.get(0)).unwrap();
+        assert_eq!(titre, "Boss");
+    }
 
     /// La v8 ajoute les conversations avec l'assistant, sans toucher au reste.
     #[test]

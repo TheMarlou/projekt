@@ -3,6 +3,7 @@ import { useBlocksStore, type Block, type ContentBlock } from "../store/blocksSt
 import { fichiersElement, useCanvasStore, type MetaElement } from "../store/canvasStore";
 import { useCarteStore } from "../store/carteStore";
 import { useConversationsStore } from "../store/conversationsStore";
+import { entreesMemoire, RUBRIQUES, type Rubrique } from "./memoireProjet";
 import { useProjectsStore } from "../store/projectsStore";
 import { docToMarkdown, type MarkdownContext } from "./markdown";
 import { parPosition } from "./reorder";
@@ -66,6 +67,14 @@ export interface ArchivePayload {
   carte: ArchiveCarte;
   /** Conversations avec l'assistant (base v8). Facultatif, comme la carte : une ancienne sauvegarde n'en a pas. */
   conversations: ArchiveConversation[];
+  /** Mémoire de l'assistant (base v9), facultative elle aussi. */
+  memoire: ArchiveMemoire[];
+}
+
+export interface ArchiveMemoire {
+  rubrique: Rubrique;
+  texte: string;
+  creeLe: number;
 }
 
 export interface ArchiveConversation {
@@ -215,6 +224,7 @@ export function buildArchive(projectId: string): ArchiveBundle | null {
       .getState()
       .conversations.filter((c) => c.projectId === projectId)
       .map(({ titre, creeLe, majLe, elements, historique }) => ({ titre, creeLe, majLe, elements, historique })),
+    memoire: entreesMemoire(projectId).map(({ rubrique, texte, creeLe }) => ({ rubrique: rubrique as Rubrique, texte, creeLe })),
   };
 
   // --- Lecture partageable --------------------------------------------------
@@ -374,7 +384,20 @@ export function parseArchive(brut: string): ArchivePayload {
     canvas: Array.isArray(p.canvas) ? p.canvas : [],
     carte: lireCarte(p.carte),
     conversations: lireConversations((p as { conversations?: unknown }).conversations),
+    memoire: lireMemoire((p as { memoire?: unknown }).memoire),
   };
+}
+
+/** Relit la mémoire d'une sauvegarde ; une ligne mal formée ou d'une rubrique inconnue est ignorée. */
+function lireMemoire(brut: unknown): ArchiveMemoire[] {
+  if (!Array.isArray(brut)) return [];
+  return brut
+    .filter((m) => m && RUBRIQUES.includes(m.rubrique) && typeof m.texte === "string" && m.texte.trim())
+    .map((m) => ({
+      rubrique: m.rubrique,
+      texte: m.texte.trim(),
+      creeLe: typeof m.creeLe === "number" && Number.isFinite(m.creeLe) ? m.creeLe : Date.now(),
+    }));
 }
 
 /** Relit les conversations d'une sauvegarde ; une entrée mal formée est ignorée. */

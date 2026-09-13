@@ -291,7 +291,7 @@ const DEFINITIONS_MEMOIRE_ET_NOTE = [
     function: {
       name: "memoriser",
       description:
-        "Propose d'ajouter une information à la page « 🧠 Mémoire » du projet, que tu relis à chaque conversation. À utiliser quand l'utilisateur te demande de retenir quelque chose. rubrique : resume (ce qu'est le projet), decision (un choix arrêté), preference (un goût ou une façon de travailler de l'utilisateur), idee_ecartee (une idée refusée, à ne plus proposer). Un appel par information.",
+        "Propose d'ajouter une information à la mémoire du projet (🧠, rangée à part des pages), que tu relis à chaque conversation. À utiliser quand l'utilisateur te demande de retenir quelque chose. rubrique : resume (ce qu'est le projet), decision (un choix arrêté), preference (un goût ou une façon de travailler de l'utilisateur), idee_ecartee (une idée refusée, à ne plus proposer). Un appel par information.",
       parameters: {
         type: "object",
         properties: {

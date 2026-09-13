@@ -38,7 +38,7 @@ export function invitePanneau(contexte: {
   definitions?: string[];
   /** Ce que l'assistant a le droit de faire, d'après ses réglages (voir `iaReglages.ts`). */
   capacites?: string;
-  /** Contenu de la page « 🧠 Mémoire » du projet. */
+  /** Mémoire du projet (🧠, rangée à part des pages), en Markdown par rubrique. */
   memoire?: string | null;
 }): string {
   const lignes = [

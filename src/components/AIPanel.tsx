@@ -29,6 +29,7 @@ import { tr, enAnglais, localeDates } from "../lib/i18n";
 import { capacitesPourInvite, changerReglagesIa, LIBELLES_REGLAGES, reglagesIa, suivreReglagesIa, type ModeReflexion } from "../lib/iaReglages";
 import { contenuPourQuestion, demandeDeMemoriser, demandeDeModification, demandeSurCapacites, demandeUneNoteDeDiscussion, INDICE_CAPACITES, INDICE_SANS_MODIFICATION, questionSurLeProjet, transcrire, verifierReponse, type EchangeTranscrit } from "../lib/iaVerite";
 import { texteMemoire } from "../lib/memoireProjet";
+import MemoireVolet from "./MemoireVolet";
 import { resolvePagePath } from "../lib/pagePath";
 import { useConversationsStore, type ConversationEnregistree } from "../store/conversationsStore";
 
@@ -121,6 +122,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
   const web = useSyncExternalStore(suivreRechercheWeb, rechercheWebActivee);
   const reglages = useSyncExternalStore(suivreReglagesIa, reglagesIa);
   const [vueReglages, setVueReglages] = useState(false);
+  const [vueMemoire, setVueMemoire] = useState(false);
   const [vueConversations, setVueConversations] = useState(false);
   const [aSupprimer, setASupprimer] = useState<string | null>(null);
   const conversations = useConversationsStore((s) => s.conversations);
@@ -577,6 +579,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                 onClick={() => {
                   setVueReglages((v) => !v);
                   setVueConversations(false);
+                  setVueMemoire(false);
                 }}
                 aria-pressed={vueReglages}
                 title={tr("Réglages de l'assistant", "Assistant settings")}
@@ -589,12 +592,27 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                   onClick={() => {
                     setVueConversations((v) => !v);
                     setVueReglages(false);
+                    setVueMemoire(false);
                   }}
                   aria-pressed={vueConversations}
                   title={tr("Conversations enregistrées", "Saved conversations")}
                   style={{ ...boutonDiscret, fontSize: 14, color: vueConversations ? "var(--accent)" : "var(--text-dim)" }}
                 >
                   🗂
+                </button>
+              )}
+              {projectId && (
+                <button
+                  onClick={() => {
+                    setVueMemoire((v) => !v);
+                    setVueReglages(false);
+                    setVueConversations(false);
+                  }}
+                  aria-pressed={vueMemoire}
+                  title={tr("Mémoire du projet", "Project memory")}
+                  style={{ ...boutonDiscret, fontSize: 14, opacity: vueMemoire ? 1 : 0.7 }}
+                >
+                  🧠
                 </button>
               )}
               {elements.length > 0 && (
@@ -689,6 +707,8 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
               </div>
             </div>
           )}
+
+          {vueMemoire && projectId && <MemoireVolet projectId={projectId} active={reglages.memoireProjet} style={volet} titreStyle={titreVolet} />}
 
           {vueConversations && projectId && (
             <div className="scroll" style={volet}>
