@@ -434,6 +434,26 @@ button {
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
 }
+.rich-text .pk-audio-seek {
+  width: 120px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.rich-text .pk-audio-volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.8em;
+}
+.rich-text .pk-audio-volume input {
+  width: 56px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 
 /* L'enveloppe que ProseMirror pose autour de l'image occupait toute la largeur du
    bloc : cliquer à droite de l'image retombait dessus et la resélectionnait, ce

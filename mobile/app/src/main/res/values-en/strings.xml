@@ -7,6 +7,7 @@
     <string name="pc_aide">On your PC, open Projekt, click the phone button at the top right, then “Show QR code”.</string>
     <string name="bouton_appairer">Pair a PC</string>
     <string name="bouton_changer_pc">Change PC</string>
+    <string name="bouton_reappairer">Pair again</string>
     <string name="scan_invite">Scan the QR code shown by Projekt on your PC</string>
     <string name="pc_nom">PC: %1$s</string>
     <string name="pc_connecte">Connected</string>

@@ -225,6 +225,23 @@ pub fn traiter(etat: &mut Etat, req: &Requete, maintenant: i64) -> Reponse {
             Err(r) => *r,
         },
         ("POST", "/v1/envoi") => envoi(etat, req, maintenant),
+        // Le téléphone oublie ce PC : il disparaît aussitôt de la liste, au lieu d'y
+        // rester « connecté » (recette du 13/09).
+        ("POST", "/v1/oublier") => match authentifier(etat, req, "oublier", maintenant) {
+            Ok((i, _)) => {
+                let appareil = etat.registre.appareils.remove(i);
+                let mut r = Reponse::chiffree(
+                    &cle_de(&appareil.cle).unwrap_or_default(),
+                    "oublier",
+                    &appareil.id,
+                    &json!({ "ok": true }),
+                );
+                r.sauver = true;
+                r.contact = Some(appareil.id);
+                r
+            }
+            Err(r) => *r,
+        },
         _ => Reponse::texte(404, "introuvable"),
     }
 }
@@ -898,6 +915,20 @@ mod tests {
             traiter(&mut etat, &post("/v1/envoi", "tel1", &corps), T0);
         }
         assert_eq!(etat.registre.recus.len(), IDS_RETENUS);
+    }
+
+    #[test]
+    fn le_telephone_qui_oublie_le_pc_disparait_de_sa_liste() {
+        let mut etat = etat_vide();
+        let cle = appaire(&mut etat);
+        let corps = paquet(&cle, "oublier", "tel1", json!({ "envoyeLe": T0 }));
+        let r = traiter(&mut etat, &post("/v1/oublier", "tel1", &corps), T0);
+        assert_eq!(r.statut, 200);
+        assert!(r.sauver);
+        assert!(etat.registre.appareils.is_empty());
+        // Plus rien n'est accepté de sa part ensuite.
+        let envoi = paquet(&cle, "envoi", "tel1", json!({ "envoyeLe": T0, "element": { "id": "e1", "genre": "texte", "creeLe": T0 } }));
+        assert_eq!(traiter(&mut etat, &post("/v1/envoi", "tel1", &envoi), T0).statut, 401);
     }
 
     #[test]

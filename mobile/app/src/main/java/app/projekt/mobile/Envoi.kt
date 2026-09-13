@@ -79,6 +79,19 @@ object Envoi {
         }
     }
 
+    /**
+     * Prévient le PC que ce téléphone l'oublie : il le retire aussitôt de sa liste
+     * (sinon il l'y affichait encore « connecté »). Au mieux : hors réseau, on oublie quand même.
+     */
+    fun oublierPc(context: Context) {
+        val reglages = Reglages(context)
+        val pc = reglages.pc ?: return
+        runCatching {
+            val hote = reglages.derniereAdresse ?: pc.adresses.firstOrNull() ?: return
+            ClientPc(pc.cle, reglages.appareil).appeler(hote, pc.port, "oublier", JSONObject())
+        }
+    }
+
     /** Envoie la file d'attente, du plus ancien au plus récent. S'arrête au premier souci de réseau. */
     fun envoyerTout(context: Context): Bilan = synchronized(verrou) {
         val reglages = Reglages(context)

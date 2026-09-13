@@ -92,6 +92,8 @@ export function lienTikTok(texte: string): string | null {
 
 export interface InfosTikTok {
   videoId: string;
+  /** Publication en mode photo (carrousel) plutôt qu'une vidéo. */
+  photo: boolean;
   url: string;
   titre: string;
   auteur: string;
@@ -113,13 +115,18 @@ export async function infosTikTok(lien: string): Promise<InfosTikTok> {
     throw new ErreurTikTok(tr("Mince ! Vous êtes hors ligne : impossible de récupérer la vidéo TikTok.", "Oops! You're offline: the TikTok video can't be fetched."));
   }
   let adresse = lien.replace(/^http:/, "https:");
-  if (!/\/video\/\d+/.test(adresse)) {
+  if (!/\/(?:video|photo)\/\d+/.test(adresse)) {
     // Lien court (« Partager » dans l'app mobile) : seule sa cible contient le numéro de la vidéo.
     adresse = await invoke<string>("resoudre_lien_tiktok", { url: adresse.split("?")[0].replace(/\/?$/, "/") }).catch((e) => {
       throw new ErreurTikTok(tr(`Ce lien TikTok n'a pas pu être ouvert : ${String(e)}`, `This TikTok link couldn't be opened: ${String(e)}`));
     });
   }
-  const videoId = adresse.match(/\/video\/(\d+)/)?.[1];
+  // Recette du 13/09 : les publications en mode photo (carrousel) ont une adresse
+  // en /photo/ au lieu de /video/, et arrivaient seulement comme un lien.
+  const correspondance = adresse.match(/\/(video|photo)\/(\d+)/);
+  const photo = correspondance?.[1] === "photo";
+  const videoId = correspondance?.[2];
+  const auteurDansLien = adresse.match(/tiktok\.com\/(@[^/?#]+)\//)?.[1];
   if (!videoId) throw new ErreurTikTok(
       tr(
         "Ce lien ne mène pas à une vidéo TikTok (un profil ou une musique ne peuvent pas s'ajouter).",
@@ -129,7 +136,11 @@ export async function infosTikTok(lien: string): Promise<InfosTikTok> {
 
   let reponse: Response;
   try {
-    reponse = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(`https://www.tiktok.com/video/${videoId}`)}`);
+    // Une photo se décrit avec son adresse complète (auteur compris) quand on la connaît.
+    const cible = photo
+      ? `https://www.tiktok.com/${auteurDansLien ?? "@tiktok"}/photo/${videoId}`
+      : `https://www.tiktok.com/video/${videoId}`;
+    reponse = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(cible)}`);
   } catch {
     throw new ErreurTikTok(tr("Mince ! Vous êtes hors ligne : impossible de récupérer la vidéo TikTok.", "Oops! You're offline: the TikTok video can't be fetched."));
   }
@@ -145,7 +156,10 @@ export async function infosTikTok(lien: string): Promise<InfosTikTok> {
   if (!j.thumbnail_url) throw new ErreurTikTok(tr("TikTok n'a pas fourni d'aperçu pour cette vidéo.", "TikTok didn't provide a preview for this video."));
   return {
     videoId,
-    url: j.author_unique_id ? `https://www.tiktok.com/@${j.author_unique_id}/video/${videoId}` : `https://www.tiktok.com/video/${videoId}`,
+    photo,
+    url: j.author_unique_id
+      ? `https://www.tiktok.com/@${j.author_unique_id}/${photo ? "photo" : "video"}/${videoId}`
+      : `https://www.tiktok.com/${auteurDansLien ? `${auteurDansLien}/` : ""}${photo ? "photo" : "video"}/${videoId}`,
     titre: (j.title ?? "").trim(),
     auteur: j.author_name || (j.author_unique_id ? `@${j.author_unique_id}` : ""),
     miniature: j.thumbnail_url,

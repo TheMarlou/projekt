@@ -38,6 +38,25 @@ export function isAudioFile(file: File): boolean {
 // n'importe quel lecteur. Sans ça, deux puces lancées se superposent.
 let lectureEnCours: HTMLAudioElement | null = null;
 
+// Volume commun à tous les sons, retenu d'une session à l'autre (recette du 13/09 :
+// « on ne peut pas choisir le volume ni la timeline »).
+const CLE_VOLUME = "projekt-volume-audio";
+function volumeRetenu(): number {
+  try {
+    const v = Number(localStorage.getItem(CLE_VOLUME));
+    return Number.isFinite(v) && localStorage.getItem(CLE_VOLUME) !== null ? Math.min(1, Math.max(0, v)) : 0.8;
+  } catch {
+    return 0.8;
+  }
+}
+function retenirVolume(v: number) {
+  try {
+    localStorage.setItem(CLE_VOLUME, String(v));
+  } catch {
+    // Stockage indisponible : le volume vaut pour cette session seulement.
+  }
+}
+
 function formatDuree(secondes: number): string {
   if (!Number.isFinite(secondes) || secondes < 0) return "–:––";
   const m = Math.floor(secondes / 60);
@@ -60,6 +79,7 @@ function AudioClipView({ node, selected, deleteNode }: NodeViewProps) {
   const [etat, setEtat] = useState<"repos" | "chargement" | "lecture" | "pause" | "erreur">("repos");
   const [position, setPosition] = useState(0);
   const [duree, setDuree] = useState(NaN);
+  const [volume, setVolume] = useState(volumeRetenu);
 
   // Libère le son quand la puce disparaît (suppression, changement de page).
   useEffect(
@@ -81,6 +101,7 @@ function AudioClipView({ node, selected, deleteNode }: NodeViewProps) {
       urlBlob.current = await versUrlLecture(dataUrl);
 
       const a = new Audio(urlBlob.current);
+      a.volume = volumeRetenu();
       a.addEventListener("timeupdate", () => setPosition(a.currentTime));
       a.addEventListener("loadedmetadata", () => setDuree(a.duration));
       a.addEventListener("ended", () => {
@@ -149,9 +170,49 @@ function AudioClipView({ node, selected, deleteNode }: NodeViewProps) {
         {name}
       </span>
       {(etat === "lecture" || etat === "pause") && (
-        <span className="pk-audio-time">
-          {formatDuree(position)} / {formatDuree(duree)}
-        </span>
+        <>
+          {/* Barre de lecture et volume (recette du 13/09). Les curseurs gardent la
+              souris pour eux : sinon l'éditeur y verrait le début d'un glisser de la puce. */}
+          <input
+            className="pk-audio-seek"
+            type="range"
+            min={0}
+            max={Number.isFinite(duree) ? duree : 0}
+            step={0.1}
+            value={Math.min(position, Number.isFinite(duree) ? duree : 0)}
+            draggable={false}
+            title={tr("Se déplacer dans le son", "Seek")}
+            aria-label={tr("Position de lecture", "Playback position")}
+            onMouseDown={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              const t = Number(e.target.value);
+              if (audio.current) audio.current.currentTime = t;
+              setPosition(t);
+            }}
+          />
+          <span className="pk-audio-time">
+            {formatDuree(position)} / {formatDuree(duree)}
+          </span>
+          <span className="pk-audio-volume" title={tr("Volume", "Volume")}>
+            {volume === 0 ? "🔇" : "🔊"}
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={volume}
+              draggable={false}
+              aria-label={tr("Volume", "Volume")}
+              onMouseDown={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                setVolume(v);
+                retenirVolume(v);
+                if (audio.current) audio.current.volume = v;
+              }}
+            />
+          </span>
+        </>
       )}
       <button
         className="pk-pagelink-remove"

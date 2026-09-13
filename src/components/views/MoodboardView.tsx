@@ -319,7 +319,7 @@ export default function MoodboardView({
         width: largeur,
         height: hauteur,
         crop: null,
-        meta: { url: infos.url, videoId: infos.videoId, titre: infos.titre, auteur: infos.auteur },
+        meta: { url: infos.url, videoId: infos.videoId, titre: infos.titre, auteur: infos.auteur, photo: infos.photo || undefined },
       });
     } catch (err) {
       notify(false, err instanceof ErreurTikTok ? err.message : tr(`Le lien TikTok n'a pas pu être ajouté : ${String(err)}`, `The TikTok link couldn't be added: ${String(err)}`));
@@ -878,15 +878,27 @@ function TikTokMoodboard({
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <img src={item.src} draggable={false} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-      <span style={{ ...pastilleMedia, left: 6, top: 6 }}>♪ TikTok</span>
-      <button
-        title={tr("Lire la vidéo (il faut internet)", "Play the video (needs internet)")}
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={onLire}
-        style={boutonLecture}
-      >
-        ▶
-      </button>
+      <span style={{ ...pastilleMedia, left: 6, top: 6 }}>{meta.photo ? "📷 TikTok" : "♪ TikTok"}</span>
+      {meta.photo ? (
+        // Le lecteur intégré de TikTok ne lit que les vidéos : un carrousel photo s'ouvre dans le navigateur.
+        <button
+          title={tr("Voir toutes les photos dans ton navigateur (il faut internet)", "See all the photos in your browser (needs internet)")}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() => meta.url && openExternal(meta.url)}
+          style={boutonLecture}
+        >
+          ↗
+        </button>
+      ) : (
+        <button
+          title={tr("Lire la vidéo (il faut internet)", "Play the video (needs internet)")}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={onLire}
+          style={boutonLecture}
+        >
+          ▶
+        </button>
+      )}
       {(meta.titre || meta.auteur) && (
         <div style={legendeTikTok}>
           {meta.auteur && <div style={{ fontWeight: 600 }}>{meta.auteur}</div>}

@@ -15,6 +15,8 @@ export interface MetaElement {
   /** TikTok : adresse complète de la vidéo, son identifiant, son titre et son auteur. */
   url?: string;
   videoId?: string;
+  /** TikTok : publication en mode photo (carrousel) — s'ouvre dans le navigateur, pas dans le lecteur vidéo. */
+  photo?: boolean;
   titre?: string;
   auteur?: string;
 }

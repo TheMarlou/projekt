@@ -156,6 +156,10 @@ class MainActivity : AppCompatActivity() {
         cartePc.addView(ui.rangee(ui.point(couleur), ui.texte(getString(R.string.pc_nom, pc.nomPc), 16f, gras = true), espace = 10))
         cartePc.addView(ui.texte(statut, 13.5f, c.texteDim).avecMarge(haut = 6))
         erreurAppairage?.let { cartePc.addView(ui.texte(it, 13.5f, c.danger).avecMarge(haut = 10)) }
+        // Le PC a oublié ce téléphone : le moyen d'y remédier, bien en vue (recette du 13/09).
+        if (reglages.erreurPc != null && etatPc == EtatPc.INJOIGNABLE) {
+            cartePc.addView(ui.bouton(getString(R.string.bouton_reappairer)) { scanner.launch(optionsScan()) }.avecMarge(haut = 12))
+        }
         val maj = reglages.majDisponible
         if (maj != null && etatPc == EtatPc.CONNECTE) {
             cartePc.addView(ui.texte(getString(R.string.maj_disponible, maj), 13.5f, c.accent).avecMarge(haut = 12))
@@ -237,12 +241,18 @@ class MainActivity : AppCompatActivity() {
             .setMessage(getString(R.string.oublier_pc_message, pc.nomPc))
             .setNegativeButton(R.string.annuler, null)
             .setPositiveButton(R.string.oublier) { _, _ ->
-                reglages.pc = null
-                reglages.projets = emptyList()
-                etatPc = EtatPc.INCONNU
-                afficherPc()
-                afficherPuces()
-                afficherFile()
+                thread {
+                    Envoi.oublierPc(this)
+                    runOnUiThread {
+                        reglages.pc = null
+                        reglages.projets = emptyList()
+                        etatPc = EtatPc.INCONNU
+                        erreurAppairage = null
+                        afficherPc()
+                        afficherPuces()
+                        afficherFile()
+                    }
+                }
             }
             .show()
     }

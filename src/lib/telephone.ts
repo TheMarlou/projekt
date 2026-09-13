@@ -199,7 +199,7 @@ async function tiktokAuMoodboard(lien: string, projectId: string) {
     width: largeur,
     height: Math.round((largeur * infos.hauteur) / infos.largeur),
     crop: null,
-    meta: { url: infos.url, videoId: infos.videoId, titre: infos.titre, auteur: infos.auteur },
+    meta: { url: infos.url, videoId: infos.videoId, titre: infos.titre, auteur: infos.auteur, photo: infos.photo || undefined },
   });
 }
 
