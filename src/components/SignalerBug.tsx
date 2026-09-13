@@ -15,7 +15,7 @@ import { tr } from "../lib/i18n";
  */
 
 /** Adresse dédiée aux signalements, à créer par Marlou — jamais son adresse perso. Vide = bouton désactivé. */
-export const ADRESSE_BUGS = "";
+export const ADRESSE_BUGS = "projekt.supportbug@gmail.com";
 
 interface Props {
   ouvert: boolean;

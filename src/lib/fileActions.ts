@@ -120,8 +120,8 @@ export function fileMenuGroups(options: {
               notify(
                 false,
                 tr(
-                  "Impossible de joindre GitHub pour l'instant : nouvel essai au prochain démarrage.",
-                  "Can't reach GitHub right now: Projekt will try again next time it starts."
+                  "Impossible de vérifier les mises à jour pour l'instant (GitHub injoignable, ou dépôt pas encore publié). Nouvel essai au prochain démarrage.",
+                  "Can't check for updates right now (GitHub unreachable, or the repository isn't published yet). Projekt will try again next time it starts."
                 )
               )
             );

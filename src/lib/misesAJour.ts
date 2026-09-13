@@ -54,7 +54,8 @@ export async function derniereVersion(): Promise<{ version: string; url: string 
   const reponse = await fetch(`https://api.github.com/repos/${DEPOT_GITHUB}/releases/latest`, {
     headers: { Accept: "application/vnd.github+json" },
   });
-  if (!reponse.ok) return null;
+  // 404 = dépôt pas encore publié : ce n'est PAS « tu as la dernière version » (recette du 13/09).
+  if (!reponse.ok) throw new Error(`GitHub a répondu ${reponse.status}`);
   const donnees = (await reponse.json()) as { tag_name?: string; html_url?: string };
   if (!donnees.tag_name || !donnees.html_url) return null;
   const locale = await getVersion();
