@@ -219,9 +219,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     .onFailure {
                         erreurAppairage = getString(R.string.appairage_echec, it.message ?: it.toString()) +
-                            "
-
-" + getString(R.string.appairage_aide)
+                            "\n\n" + getString(R.string.appairage_aide)
                         toast(getString(R.string.appairage_echec, it.message ?: it.toString()))
                         etatPc = if (reglages.pc != null) EtatPc.INJOIGNABLE else EtatPc.INCONNU
                     }
