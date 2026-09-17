@@ -20,6 +20,7 @@
     <a href="#fonctions">Ce que ça fait</a>
     <a href="#installer">Installer</a>
     <a href="#ia">L'IA locale</a>
+    <a href="#mobile">Projekt Mobile</a>
     <a href="#donnees">Tes données</a>
     <a href="en/">English</a>
   </nav>
@@ -32,7 +33,7 @@
     <a class="bouton" href="https://github.com/TheMarlou/projekt/releases/latest">Télécharger pour Windows</a>
     <a class="bouton secondaire" href="https://github.com/TheMarlou/projekt">Voir le code</a>
   </div>
-  <p class="precision">Windows 10 et 11 · gratuit · sans compte · 3,5 Mo</p>
+  <p class="precision">Windows 10 et 11 · gratuit · sans compte · 4,5 Mo · français et anglais</p>
   <figure style="margin-top:34px">
     <div class="attente">Capture de l'application — vue Notes</div>
     <figcaption>Les pages d'un projet, avec leurs sous-pages, leurs tableaux et leurs images.</figcaption>
@@ -46,7 +47,7 @@
     <div class="carte"><h3>Des notes qui s'emboîtent</h3><p>Des pages dans des pages, du texte mis en forme, des tableaux, des images, des extraits audio, et des mentions d'une page à l'autre.</p></div>
     <div class="carte"><h3>Un moodboard sans bords</h3><p>Dépose tes images et tes vidéos sur une toile infinie, recadre, compare. Colle un lien TikTok : sa miniature s'ajoute, et la vidéo se lit d'un clic.</p></div>
     <div class="carte"><h3>Une carte mentale vivante</h3><p>Ton projet au centre, tes pages autour. Relie deux pages d'un trait coloré, avec une étiquette — ou demande à l'IA les liens qu'elle voit.</p></div>
-    <div class="carte"><h3>Un assistant qui reste chez toi</h3><p>Il lit tes pages pour répondre, propose des idées de personnages ou de quêtes, écrit à l'endroit du curseur. Rien n'est modifié sans ta validation.</p></div>
+    <div class="carte"><h3>Un assistant qui reste chez toi</h3><p>Il lit tes pages pour répondre, propose des idées de personnages ou de quêtes, écrit à l'endroit du curseur, fait une note de votre discussion et retient les décisions du projet. Rien n'est modifié sans ta validation.</p></div>
     <div class="carte"><h3>Retrouver, sauvegarder</h3><p>Une recherche dans toutes tes pages avec <kbd>Ctrl</kbd>+<kbd>P</kbd>, une sauvegarde automatique à chaque ouverture, et l'export d'un projet en <code>.zip</code>.</p></div>
     <div class="carte"><h3>À ton goût</h3><p>Sept fonds, neuf couleurs, et le choix des couleurs de liens sur la carte. Sombre par défaut, clair si tu préfères.</p></div>
   </div>
@@ -74,11 +75,22 @@
   <p>Projekt marche très bien sans. Si tu la veux, elle tourne sur ton ordinateur, gratuitement : <strong>aucun abonnement, aucune clé, aucune de tes pages envoyée sur internet.</strong></p>
   <ol class="etapes">
     <li><div>Installe <a href="https://ollama.com">Ollama</a>, qui fait tourner les modèles en local.</div></li>
-    <li><div>Dans un terminal : <code>ollama pull qwen3:8b</code> pour le texte, et <code>ollama pull gemma3:4b</code> pour l'analyse d'images.</div></li>
-    <li><div>Relance Projekt : l'assistant apparaît en bas à droite (<kbd>Ctrl</kbd>+<kbd>J</kbd>).</div></li>
+    <li><div>Ouvre l'assistant dans Projekt (<kbd>Ctrl</kbd>+<kbd>J</kbd>) : il propose de télécharger son modèle, sans taper de commande (5,2 Go, plus 3,3 Go pour analyser les images).</div></li>
+    <li><div>Dans son panneau, <strong>⚙</strong> règle ce qu'il a le droit de faire, et <strong>🧠</strong> montre ce qu'il retient de ton projet.</div></li>
   </ol>
   <p class="precision" style="margin-top:16px">Une carte graphique d'au moins 6 Go est conseillée. Sans elle, l'assistant répondra plus lentement.</p>
   <figure style="margin-top:22px"><div class="attente">Capture — l'assistant qui propose une modification</div><figcaption>Chaque modification est proposée, puis appliquée seulement si tu l'acceptes.</figcaption></figure>
+</div></section>
+
+<section id="mobile"><div class="bande">
+  <h2>Projekt Mobile : tes trouvailles, depuis ton téléphone</h2>
+  <p>Un TikTok qui t'inspire, une capture, un lien, un son : <em>Partager → Projekt Mobile</em>, choisis le projet, c'est rangé sur ton PC. <strong>Par ton réseau local, sans cloud ni compte.</strong></p>
+  <ol class="etapes">
+    <li><div><strong>Télécharge <code>Projekt-Mobile.apk</code></strong> sur <a href="https://github.com/TheMarlou/projekt/releases/latest">la page des versions</a>, depuis ton téléphone Android, et installe-le.</div></li>
+    <li><div><strong>Mets le téléphone et le PC sur le même réseau</strong> (Wi-Fi de la maison, ou partage de connexion).</div></li>
+    <li><div><strong>Dans Projekt, clique sur 📱</strong> et scanne le QR code depuis l'app. C'est fait une fois pour toutes.</div></li>
+  </ol>
+  <p class="precision" style="margin-top:16px">Les textes et liens arrivent dans la page « 📥 Reçu du téléphone », les images et les TikToks dans le moodboard. Si le PC est éteint, l'envoi attend. Android uniquement : un iPhone demanderait un abonnement Apple payant.</p>
 </div></section>
 
 <section id="donnees"><div class="bande">
@@ -92,6 +104,7 @@
 <section><div class="bande">
   <h2>Questions</h2>
   <details><summary>C'est vraiment gratuit ?</summary><p>Oui, sans compte ni version payante cachée, y compris pour ton travail. Le code est lisible par tous ; la seule chose interdite, c'est d'en faire une copie concurrente (licence <a href="https://github.com/TheMarlou/projekt/blob/main/LICENCE-fr.md">PolyForm Shield</a>).</p></details>
+  <details><summary>Et sur iPhone ?</summary><p>Non : publier une app iPhone coûte un abonnement annuel chez Apple, et Projekt est entièrement gratuit. Projekt Mobile existe pour Android.</p></details>
   <details><summary>Mac ou Linux ?</summary><p>Pas pour l'instant : Projekt est né sur Windows et n'a été testé que là.</p></details>
   <details><summary>Est-ce que je peux emmener mes projets ailleurs ?</summary><p>Oui. L'export <code>.zip</code> contient un fichier réimportable, mais aussi tes pages en Markdown, lisibles dans n'importe quel éditeur de texte.</p></details>
   <details><summary>L'IA peut-elle modifier mes pages toute seule ?</summary><p>Non. Elle prépare une proposition, tu vois ce qu'elle changerait, et rien n'est écrit tant que tu n'as pas cliqué.</p></details>

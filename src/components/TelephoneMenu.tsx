@@ -13,6 +13,22 @@ import {
   type EtatTelephone,
 } from "../lib/telephone";
 import { enAnglais, tr } from "../lib/i18n";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { DEPOT_GITHUB } from "../lib/misesAJour";
+
+const ouvrirVersions = () =>
+  void openUrl(`https://github.com/${DEPOT_GITHUB}/releases/latest`).catch((err) =>
+    notify(false, `${tr("Impossible d'ouvrir le navigateur", "Couldn't open the browser")} : ${String(err)}`)
+  );
+const lienVersions: CSSProperties = {
+  border: "none",
+  background: "none",
+  padding: 0,
+  color: "var(--accent)",
+  cursor: "pointer",
+  font: "inherit",
+  textDecoration: "underline",
+};
 
 /**
  * Bouton 📱 de la barre du haut (choix du 12/09) : appairer Projekt Mobile par
@@ -212,13 +228,25 @@ export default function TelephoneMenu() {
                   <ol style={{ ...texteDim, paddingLeft: 18, margin: "8px 0 10px" }}>
                     {enAnglais ? (
                       <>
-                        <li>Install <b>Projekt Mobile</b> on your phone (file <code>Projekt-Mobile.apk</code>).</li>
+                        <li>
+                          Install <b>Projekt Mobile</b> on your Android phone: the file <code>Projekt-Mobile.apk</code> is on{" "}
+                          <button style={lienVersions} onClick={ouvrirVersions}>
+                            the releases page
+                          </button>
+                          .
+                        </li>
                         <li>Put the phone and the PC on the same network.</li>
                         <li>Show the QR code below and scan it from the app.</li>
                       </>
                     ) : (
                       <>
-                        <li>Installe <b>Projekt Mobile</b> sur ton téléphone (fichier <code>Projekt-Mobile.apk</code>).</li>
+                        <li>
+                          Installe <b>Projekt Mobile</b> sur ton téléphone Android : le fichier <code>Projekt-Mobile.apk</code> est sur{" "}
+                          <button style={lienVersions} onClick={ouvrirVersions}>
+                            la page des versions
+                          </button>
+                          .
+                        </li>
                         <li>Mets le téléphone et le PC sur le même réseau.</li>
                         <li>Affiche le QR code ci-dessous et scanne-le depuis l'app.</li>
                       </>

@@ -1,0 +1,7 @@
+# Tickets libres gardés : le bouton « Signaler un problème » de l'app ouvre un ticket déjà rempli.
+# Sans compte GitHub, on peut écrire à projekt.supportbug@gmail.com (indiqué dans le modèle « bug »).
+blank_issues_enabled: true
+contact_links:
+  - name: "☕ Soutenir Projekt / Support Projekt"
+    url: "https://ko-fi.com/themarlou"
+    about: "Projekt est gratuit. / Projekt is free."

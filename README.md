@@ -1,60 +1,80 @@
 # Projekt
 
-**Un carnet de brainstorming pour créateurs de jeux vidéo.** Notes, moodboard et carte
-mentale dans une seule fenêtre, avec un assistant qui tourne entièrement sur votre
-ordinateur. Windows, gratuit, sans compte.
+*[Lire en français](README.fr.md)*
 
-## Ce que ça fait
+**A brainstorming notebook for game creators.** Notes, moodboard and mind map in a single
+window, with an AI assistant that runs entirely on your own computer. Windows, free, no
+account.
 
-- **Notes** — pages imbriquées, mise en forme, images, tableaux, extraits audio, mentions
-  entre pages.
-- **Moodboard** — toile infinie : images, vidéos, et liens TikTok avec leur miniature.
-- **Carte mentale** — le projet au centre, les pages autour ; liens tracés à la main
-  (couleur et étiquette) ou proposés par l'IA, à garder ou à rejeter.
-- **Assistant IA local** — il lit vos pages, répond, propose des idées, écrit au curseur.
-  Il **propose**, vous validez : rien n'est écrit sans vous.
-- **Recherche** (Ctrl+P), **thèmes**, **sauvegarde automatique** (7 dernières), **export
-  et import** d'un projet en `.zip`.
+**[Download for Windows](https://github.com/TheMarlou/projekt/releases/latest)** ·
+[Website](https://themarlou.github.io/projekt/en/) ·
+[Report a problem](https://github.com/TheMarlou/projekt/issues/new/choose)
 
-## Installation
+## What it does
 
-1. Téléchargez `Projekt_x.y.z_x64-setup.exe` et lancez-le.
-2. Windows affichera « Éditeur inconnu » : *Informations complémentaires* → *Exécuter
-   quand même*. L'application n'est pas signée (un certificat coûte plusieurs centaines
-   d'euros par an) ; le code est ici, vous pouvez le lire et le compiler vous-même.
+- **Notes** — nested pages, rich text, images, tables, audio clips, mentions between pages.
+- **Moodboard** — an endless canvas for images, videos, and TikTok links with their thumbnail.
+- **Mind map** — the project in the middle, pages around it; links you draw (colour and
+  label) or links the AI suggests, which you keep or reject.
+- **Local AI assistant** — reads your pages, answers, suggests ideas, writes at the cursor,
+  turns a discussion into a note, and keeps a memory of your project's decisions. It
+  **suggests**, you approve: nothing is written without you. What it may do is set in its
+  own settings panel.
+- **Projekt Mobile** (Android) — share a TikTok, an image, a link or an MP3 from your phone
+  straight into a project, over your home network. No cloud, no account.
+- **Search** (Ctrl+P), **themes**, **automatic backups** (last 7), **export and import** of a
+  project as a `.zip`, interface in **English and French**.
 
-### Pour l'assistant IA (facultatif)
+## Install
 
-L'app fonctionne sans. Pour l'activer :
+1. Download `Projekt_x.y.z_x64-setup.exe` from the
+   [releases page](https://github.com/TheMarlou/projekt/releases/latest) and run it.
+2. Windows will say "Unknown publisher": *More info* → *Run anyway*. The app isn't signed
+   (a certificate costs several hundred euros a year); the code is right here, you can read
+   it and build it yourself.
+3. On first launch, open the **sample project** to look around.
 
-1. Installez [Ollama](https://ollama.com) ;
-2. `ollama pull qwen3:8b` (texte, ~5 Go) et `ollama pull gemma3:4b` (analyse d'images, ~3 Go) ;
-3. Relancez Projekt. Une carte graphique d'au moins 6 Go est conseillée.
+### The AI assistant (optional)
 
-## Vos données
+The app works without it. To turn it on, install [Ollama](https://ollama.com), then open
+the assistant (Ctrl+J): it offers to download its model for you (`qwen3:8b`, 5.2 GB, plus
+`gemma3:4b`, 3.3 GB, to analyse images). A graphics card with 6 GB or more is recommended.
 
-Tout reste sur votre machine : une base SQLite et vos fichiers dans
-`%APPDATA%\app.projekt.desktop`. Aucun compte, aucun serveur, aucune mesure d'audience.
-Deux fonctions touchent à internet, et seulement si vous les utilisez : la recherche
-Wikipédia de l'assistant (coupée par défaut), et les liens TikTok du moodboard.
+### Projekt Mobile (optional)
 
-## Développement
+1. Install `Projekt-Mobile.apk` (on the same releases page) on your Android phone.
+2. Put the phone and the PC on the same network.
+3. In Projekt, click 📱 and scan the QR code from the app.
+
+Later updates of the mobile app are offered by the PC itself.
+
+## Your data
+
+Everything stays on your computer: one SQLite database and your files in
+`%APPDATA%\app.projekt.desktop`. No account, no server, no analytics. A few features go
+online, and only when you use them: the assistant's Wikipedia lookup (off by default),
+TikTok videos on the moodboard, downloading an AI model, and the update check (off by
+default).
+
+## Development
 
 ```bash
 npm install
-npm run tauri dev      # fenêtre de développement
-npm run tauri build    # version finale + installeur
+npm run tauri dev      # development window
+npm run tauri build    # release build + installer
+npm test               # assistant guarantees (nothing written without approval…)
 cd src-tauri && cargo test --lib
 ```
 
-Tauri 2 (Rust) + React + TypeScript + SQLite. Aucun service payant, aucune dépendance cloud.
+Tauri 2 (Rust) + React + TypeScript + SQLite; Android app in Kotlin (`mobile/`). No paid
+service, no cloud dependency. The code and its comments are in French.
 
 ## Licence
 
-[PolyForm Shield 1.0.0](LICENSE) — résumé en français : [LICENCE-fr.md](LICENCE-fr.md).
+[PolyForm Shield 1.0.0](LICENSE). In short: the app is free to use, including for work,
+and its code is open to read. The only thing you may not do is build a competing product
+from it, paid or free.
 
-En bref : l'app est gratuite et libre d'usage, y compris pour ton travail, et le code est lisible par tous. Il est seulement interdit d'en faire un produit concurrent, payant ou gratuit.
+## Support
 
-## Soutenir
-
-Projekt est gratuit. Si l'app t'est utile, tu peux [offrir un café à son auteur](https://ko-fi.com/themarlou).
+Projekt is free. If it helps you, you can [buy its author a coffee](https://ko-fi.com/themarlou).

@@ -1,0 +1,21 @@
+name: "💡 Proposer une idée / Suggest an idea"
+description: "Une fonction qui t'aiderait dans tes projets de jeu. / A feature that would help with your game projects."
+labels: ["idée"]
+body:
+  - type: textarea
+    id: besoin
+    attributes:
+      label: "Ton besoin / What you need"
+      description: "Ce que tu essaies de faire aujourd'hui, et ce qui coince. / What you're trying to do today, and what gets in the way."
+    validations:
+      required: true
+  - type: textarea
+    id: idee
+    attributes:
+      label: "Ton idée / Your idea"
+      description: "Comment tu l'imagines dans Projekt. / How you picture it in Projekt."
+  - type: textarea
+    id: autre
+    attributes:
+      label: "Autre chose ? / Anything else?"
+      description: "Exemple d'une autre app, capture, croquis… / An example from another app, a screenshot, a sketch…"

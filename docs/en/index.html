@@ -20,6 +20,7 @@
     <a href="#features">Features</a>
     <a href="#install">Install</a>
     <a href="#ai">Local AI</a>
+    <a href="#mobile">Projekt Mobile</a>
     <a href="#data">Your data</a>
     <a href="../">Français</a>
   </nav>
@@ -32,7 +33,7 @@
     <a class="bouton" href="https://github.com/TheMarlou/projekt/releases/latest">Download for Windows</a>
     <a class="bouton secondaire" href="https://github.com/TheMarlou/projekt">View the code</a>
   </div>
-  <p class="precision">Windows 10 and 11 · free · no account · 3.5 MB · interface in French</p>
+  <p class="precision">Windows 10 and 11 · free · no account · 4.5 MB · English and French</p>
   <figure style="margin-top:34px">
     <div class="attente">Screenshot — Notes view</div>
     <figcaption>The pages of a project, with their sub-pages, tables and images.</figcaption>
@@ -46,7 +47,7 @@
     <div class="carte"><h3>Notes that nest</h3><p>Pages inside pages, formatted text, tables, images, audio clips, and mentions from one page to another.</p></div>
     <div class="carte"><h3>An endless moodboard</h3><p>Drop images and videos on an infinite canvas, crop them, compare them. Paste a TikTok link: its thumbnail lands there, and the video plays in one click.</p></div>
     <div class="carte"><h3>A living mind map</h3><p>Your project at the centre, your pages around it. Link two pages with a coloured line and a label — or ask the AI which links it sees.</p></div>
-    <div class="carte"><h3>An assistant that stays home</h3><p>It reads your pages to answer, suggests characters or quests, writes at the cursor. Nothing changes without your approval.</p></div>
+    <div class="carte"><h3>An assistant that stays home</h3><p>It reads your pages to answer, suggests characters or quests, writes at the cursor, turns your discussion into a note and remembers the project's decisions. Nothing changes without your approval.</p></div>
     <div class="carte"><h3>Find it, keep it</h3><p>Search across every page with <kbd>Ctrl</kbd>+<kbd>P</kbd>, an automatic backup on every launch, and export a whole project as a <code>.zip</code>.</p></div>
     <div class="carte"><h3>Your colours</h3><p>Seven backgrounds, nine accent colours, and your own colours for the links on the map. Dark by default, light if you prefer.</p></div>
   </div>
@@ -74,11 +75,22 @@
   <p>Projekt works fine without it. If you want it, it runs on your computer, for free: <strong>no subscription, no API key, none of your pages sent over the internet.</strong></p>
   <ol class="etapes">
     <li><div>Install <a href="https://ollama.com">Ollama</a>, which runs the models locally.</div></li>
-    <li><div>In a terminal: <code>ollama pull qwen3:8b</code> for text, and <code>ollama pull gemma3:4b</code> to analyse images.</div></li>
-    <li><div>Restart Projekt: the assistant appears at the bottom right (<kbd>Ctrl</kbd>+<kbd>J</kbd>).</div></li>
+    <li><div>Open the assistant in Projekt (<kbd>Ctrl</kbd>+<kbd>J</kbd>): it offers to download its model, no command to type (5.2 GB, plus 3.3 GB to analyse images).</div></li>
+    <li><div>In its panel, <strong>⚙</strong> sets what it may do, and <strong>🧠</strong> shows what it remembers about your project.</div></li>
   </ol>
   <p class="precision" style="margin-top:16px">A graphics card with 6 GB or more is recommended. Without one, answers will simply take longer.</p>
   <figure style="margin-top:22px"><div class="attente">Screenshot — the assistant proposing a change</div><figcaption>Every change is proposed first, and applied only if you accept it.</figcaption></figure>
+</div></section>
+
+<section id="mobile"><div class="bande">
+  <h2>Projekt Mobile: your finds, from your phone</h2>
+  <p>A TikTok that inspires you, a screenshot, a link, a sound: <em>Share → Projekt Mobile</em>, pick the project, and it lands on your PC. <strong>Over your local network, no cloud, no account.</strong></p>
+  <ol class="etapes">
+    <li><div><strong>Download <code>Projekt-Mobile.apk</code></strong> from <a href="https://github.com/TheMarlou/projekt/releases/latest">the releases page</a> on your Android phone, and install it.</div></li>
+    <li><div><strong>Put the phone and the PC on the same network</strong> (home Wi-Fi, or a phone hotspot).</div></li>
+    <li><div><strong>In Projekt, click 📱</strong> and scan the QR code from the app. You only do it once.</div></li>
+  </ol>
+  <p class="precision" style="margin-top:16px">Text and links go to the “📥 Received from phone” page, images and TikToks to the moodboard. If the PC is off, sending waits. Android only: an iPhone app would need a paid Apple subscription.</p>
 </div></section>
 
 <section id="data"><div class="bande">
@@ -93,7 +105,8 @@
   <h2>Questions</h2>
   <details><summary>Is it really free?</summary><p>Yes, with no account and no paid tier hiding behind it, including for professional work. The source code is open to read; the only thing you can't do is turn it into a competing copy (<a href="https://github.com/TheMarlou/projekt/blob/main/LICENSE">PolyForm Shield licence</a>).</p></details>
   <details><summary>Mac or Linux?</summary><p>Not for now: Projekt was built on Windows and has only been tested there.</p></details>
-  <details><summary>Is the app in English?</summary><p>Not yet — the interface is in French. Translating it is on the list.</p></details>
+  <details><summary>Is the app in English?</summary><p>Yes: ☰ → Language → English. Only the sample project is in French for now.</p></details>
+  <details><summary>What about iPhone?</summary><p>No: publishing an iPhone app requires a yearly Apple subscription, and Projekt is entirely free. Projekt Mobile is available for Android.</p></details>
   <details><summary>Can I take my projects elsewhere?</summary><p>Yes. The <code>.zip</code> export holds a file you can re-import, and also your pages as Markdown, readable in any text editor.</p></details>
   <details><summary>Can the AI change my pages on its own?</summary><p>No. It prepares a proposal, you see exactly what it would change, and nothing is written until you click.</p></details>
   <details><summary>I found a bug.</summary><p><a href="https://github.com/TheMarlou/projekt/issues">Report it here</a>, with what you were doing when it happened.</p></details>

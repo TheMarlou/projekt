@@ -1,0 +1,48 @@
+name: "🐛 Signaler un bug / Report a bug"
+description: "Quelque chose ne marche pas comme prévu. / Something doesn't work as expected."
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci ! Le plus simple : dans Projekt, **☰ → Aide → Signaler un problème** remplit ce ticket pour toi (journal technique et capture en option).
+        Thanks! Easiest way: in Projekt, **☰ → Help → Report a problem** fills this in for you (technical log and screenshot optional).
+
+        Pas de compte GitHub ? Écris à / No GitHub account? Email **projekt.supportbug@gmail.com**.
+  - type: textarea
+    id: quoi
+    attributes:
+      label: "Ce qui s'est passé / What happened"
+      description: "Ce que tu faisais, et ce qui ne s'est pas passé comme prévu. / What you were doing, and what went wrong."
+    validations:
+      required: true
+  - type: textarea
+    id: etapes
+    attributes:
+      label: "Pour le reproduire / Steps to reproduce"
+      placeholder: |
+        1. Ouvrir le moodboard / Open the moodboard
+        2. …
+  - type: input
+    id: version
+    attributes:
+      label: "Version de Projekt / Projekt version"
+      description: "☰ → Aide → À propos / ☰ → Help → About"
+      placeholder: "0.2.0"
+  - type: dropdown
+    id: partie
+    attributes:
+      label: "Partie concernée / Area"
+      options:
+        - Notes
+        - Moodboard
+        - "Carte mentale / Mind map"
+        - "Assistant IA / AI assistant"
+        - "Projekt Mobile (Android)"
+        - "Sauvegarde, export, import / Backup, export, import"
+        - "Autre / Other"
+  - type: textarea
+    id: journal
+    attributes:
+      label: "Journal technique (facultatif) / Technical log (optional)"
+      render: text
