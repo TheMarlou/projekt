@@ -18,7 +18,9 @@ import { useConversationsStore } from "./store/conversationsStore";
 import { useMemoireStore } from "./store/memoireStore";
 import { demarrerReception } from "./lib/telephone";
 import SignalerBug from "./components/SignalerBug";
-import { EVENEMENT_SIGNALER } from "./lib/fileActions";
+import { EVENEMENT_A_PROPOS, EVENEMENT_ACCUEIL, EVENEMENT_SIGNALER } from "./lib/fileActions";
+import APropos from "./components/APropos";
+import Accueil, { accueilDejaVu } from "./components/Accueil";
 import { annoncerMiseAJour } from "./lib/misesAJour";
 import { tr } from "./lib/i18n";
 
@@ -46,11 +48,19 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [recherche, setRecherche] = useState(false);
   const [signalement, setSignalement] = useState(false);
+  const [aPropos, setAPropos] = useState(false);
+  const [accueil, setAccueil] = useState(false);
 
   useEffect(() => {
-    const ouvrir = () => setSignalement(true);
-    window.addEventListener(EVENEMENT_SIGNALER, ouvrir);
-    return () => window.removeEventListener(EVENEMENT_SIGNALER, ouvrir);
+    const ouvertures: [string, () => void][] = [
+      [EVENEMENT_SIGNALER, () => setSignalement(true)],
+      [EVENEMENT_A_PROPOS, () => setAPropos(true)],
+      [EVENEMENT_ACCUEIL, () => setAccueil(true)],
+    ];
+    for (const [nom, ouvrir] of ouvertures) window.addEventListener(nom, ouvrir);
+    return () => {
+      for (const [nom, ouvrir] of ouvertures) window.removeEventListener(nom, ouvrir);
+    };
   }, []);
 
   // Ctrl+P ouvre la recherche partout (et empêche l'impression de la page, que
@@ -85,6 +95,9 @@ export default function App() {
   // sinon un élément arrivé pendant le démarrage ne trouverait pas son projet.
   useEffect(() => {
     if (!ready) return;
+    // Premier lancement : l'accueil, seulement s'il n'y a encore aucun projet
+    // (une personne qui a déjà ses projets n'a pas besoin qu'on lui présente l'app).
+    if (!accueilDejaVu() && useProjectsStore.getState().projects.length === 0) setAccueil(true);
     void annoncerMiseAJour();
     void demarrerReception((projectId, vue, pageId) => {
       setSelectedProjectId(projectId);
@@ -107,7 +120,8 @@ export default function App() {
   // Ouvrir un projet sur un écran vide n'apprend rien : on affiche sa première
   // page racine, celle qui est en tête de l'arborescence à gauche.
   const firstPageOf = (projectId: string): string | null => {
-    const inProject = allBlocks.filter((b) => b.projectId === projectId);
+    // Lu dans le store, pas dans le rendu : un projet tout juste importé n'y est pas encore.
+    const inProject = useBlocksStore.getState().blocks.filter((b) => b.projectId === projectId);
     // « En tête » au sens de l'ordre choisi par l'utilisateur, pas de l'ordre en mémoire.
     const racines = inProject.filter((b) => !b.parentId).sort((a, b) => a.position - b.position);
     return (racines[0] ?? inProject[0])?.id ?? null;
@@ -281,6 +295,17 @@ export default function App() {
       />
       <Notices />
       <SignalerBug ouvert={signalement} onFermer={() => setSignalement(false)} />
+      {aPropos && <APropos onFermer={() => setAPropos(false)} />}
+      {accueil && (
+        <Accueil
+          onFermer={() => setAccueil(false)}
+          onCreerProjet={handleAddProject}
+          onOuvrirProjet={(id) => {
+            handleSelectProject(id);
+            setView("notes");
+          }}
+        />
+      )}
       <Recherche
         ouvert={recherche}
         projetCourant={selectedProjectId}

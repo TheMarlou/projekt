@@ -1,3 +1,5 @@
+import { tr } from "./i18n";
+
 export interface ToolCall {
   id?: string;
   function: { name: string; arguments: Record<string, unknown> };
@@ -90,6 +92,60 @@ function optionsContexte(messages: ChatMessage[], tools?: unknown[]): Record<str
 /** Retire un éventuel bloc de réflexion, si le modèle l'a produit malgré tout. */
 export function sansReflexion(texte: string): string {
   return texte.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+}
+
+/** Modèles conseillés, dans l'ordre où l'aide intégrée propose de les télécharger. */
+export const MODELES_CONSEILLES = [
+  { nom: "qwen3:8b", taille: "5,2 Go", role: () => tr("discuter, lire et écrire tes pages", "chat, read and write your pages") },
+  { nom: "gemma3:4b", taille: "3,3 Go", role: () => tr("analyser les images du moodboard", "analyse moodboard images") },
+];
+
+/** Aucun modèle capable de discuter n'est installé : l'assistant ne peut rien faire. */
+export function manqueModeleTexte(liste: string[]): boolean {
+  return !liste.some((m) => !MODELES_VISION.includes(m));
+}
+
+export interface ProgresTelechargement {
+  statut: string;
+  /** Octets reçus et attendus pour la partie en cours (0 tant qu'Ollama ne les connaît pas). */
+  fait: number;
+  total: number;
+}
+
+/**
+ * Télécharge un modèle par Ollama (/api/pull), en suivant sa progression. Un
+ * téléchargement interrompu reprend là où il s'était arrêté à l'essai suivant :
+ * Ollama garde les morceaux déjà reçus.
+ */
+export async function telechargerModele(
+  nom: string,
+  surProgres: (p: ProgresTelechargement) => void,
+  signal?: AbortSignal
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/pull`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: nom, stream: true }),
+    signal,
+  });
+  if (!res.ok || !res.body) throw new Error(`Ollama a répondu ${res.status}`);
+  const lecteur = res.body.getReader();
+  const decodeur = new TextDecoder();
+  let reste = "";
+  for (;;) {
+    const { done, value } = await lecteur.read();
+    if (done) break;
+    reste += decodeur.decode(value, { stream: true });
+    const lignes = reste.split("\n");
+    reste = lignes.pop() ?? "";
+    for (const ligne of lignes) {
+      if (!ligne.trim()) continue;
+      const j = JSON.parse(ligne) as { status?: string; completed?: number; total?: number; error?: string };
+      if (j.error) throw new Error(j.error);
+      surProgres({ statut: j.status ?? "", fait: j.completed ?? 0, total: j.total ?? 0 });
+    }
+  }
+  installes = null;
 }
 
 export interface OllamaCheckResult {

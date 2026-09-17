@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { resolveResource } from "@tauri-apps/api/path";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type { JSONContent } from "@tiptap/react";
 import { useBlocksStore, type Block, type ContentBlock } from "../store/blocksStore";
@@ -38,6 +39,8 @@ export interface IOResult {
   message: string;
   /** Vrai quand l'utilisateur a simplement fermé le sélecteur de fichier. */
   annule?: boolean;
+  /** Projet créé par un import réussi, pour l'ouvrir aussitôt. */
+  projectId?: string;
 }
 
 const annulation: IOResult = { ok: true, message: "", annule: true };
@@ -287,7 +290,24 @@ export async function importProject(): Promise<IOResult> {
     return echec(tr("Impossible d'ouvrir la fenêtre de sélection", "Couldn't open the file picker"), err);
   }
   if (!source || Array.isArray(source)) return annulation;
+  return importerFichier(source);
+}
 
+/**
+ * Projet d'exemple livré avec l'app (accueil du premier lancement) : une
+ * sauvegarde .zip ordinaire, importée comme les autres.
+ */
+export async function importerExemple(): Promise<IOResult> {
+  try {
+    return await importerFichier(await resolveResource(CHEMIN_EXEMPLE));
+  } catch (err) {
+    return echec(tr("Projet d'exemple introuvable", "Sample project not found"), err);
+  }
+}
+
+export const CHEMIN_EXEMPLE = "exemples/projet-exemple.zip";
+
+export async function importerFichier(source: string): Promise<IOResult> {
   // 1. Lire et VALIDER avant de créer quoi que ce soit : un fichier étranger ne
   //    doit pas laisser derrière lui un projet à moitié construit.
   let brut: string;
@@ -403,5 +423,6 @@ export async function importProject(): Promise<IOResult> {
         imagesMoodboard ? `, ${imagesMoodboard} moodboard item${imagesMoodboard > 1 ? "s" : ""}` : ""
       }${liensCarte ? `, ${liensCarte} map link${liensCarte > 1 ? "s" : ""}` : ""}.`
     ),
+    projectId,
   };
 }

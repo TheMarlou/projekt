@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
-import { checkOllamaAvailable, chatWithTools, modeleTexte, prechauffer, ChatMessage } from "../lib/ollama";
+import { checkOllamaAvailable, chatWithTools, listerModeles, manqueModeleTexte, modeleTexte, prechauffer, ChatMessage } from "../lib/ollama";
+import AideOllama from "./AideOllama";
 import {
   Plan,
   appliquerPlan,
@@ -109,6 +110,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
   const [open, setOpen] = useState(false);
   const [available, setAvailable] = useState<boolean | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [sansModele, setSansModele] = useState(false);
   const [modele, setModele] = useState<string | null>(null);
   const [elements, setElements] = useState<Element[]>([]);
   const historique = useRef<ChatMessage[]>([]);
@@ -147,16 +149,22 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
 
   // Revérifie la connexion à chaque ouverture du panneau — Ollama a pu démarrer
   // (ou s'arrêter) entre deux ouvertures, un statut mis en cache serait trompeur.
+  const verifierOllama = async () => {
+    const res = await checkOllamaAvailable();
+    setAvailable(res.ok);
+    setConnectionError(res.error ?? null);
+    if (!res.ok) return;
+    const manque = manqueModeleTexte(await listerModeles().catch(() => [] as string[]));
+    setSansModele(manque);
+    if (manque) return;
+    const m = await modeleTexte();
+    setModele(m);
+    prechauffer(m);
+  };
+
   useEffect(() => {
     if (!open) return;
-    checkOllamaAvailable().then(async (res) => {
-      setAvailable(res.ok);
-      setConnectionError(res.error ?? null);
-      if (!res.ok) return;
-      const m = await modeleTexte();
-      setModele(m);
-      prechauffer(m);
-    });
+    void verifierOllama();
     window.setTimeout(() => champ.current?.focus(), 0);
   }, [open]);
 
@@ -631,37 +639,13 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
             </div>
           </div>
 
-          {available === false && (
-            <div style={alerte}>
-              <span>
-                {enAnglais ? (
-                  <>
-                    Ollama isn't detected on <code>localhost:11434</code>. Start it to enable the assistant — 100% local and
-                    free.
-                  </>
-                ) : (
-                  <>
-                    Ollama n'est pas détecté sur <code>localhost:11434</code>. Lance-le pour activer l'assistant — 100 %
-                    local et gratuit.
-                  </>
-                )}
-              </span>
-              {connectionError && (
-                <code style={{ fontSize: 11, color: "var(--danger)", wordBreak: "break-word" }}>{connectionError}</code>
-              )}
-              <button
-                onClick={() =>
-                  checkOllamaAvailable().then(async (res) => {
-                    setAvailable(res.ok);
-                    setConnectionError(res.error ?? null);
-                    if (res.ok) setModele(await modeleTexte());
-                  })
-                }
-                style={{ ...puce, alignSelf: "flex-start" }}
-              >
-                ↻ {tr("Réessayer", "Retry")}
-              </button>
-            </div>
+          {(available === false || (available && sansModele)) && (
+            <AideOllama
+              etat={available === false ? "absent" : "sansModele"}
+              erreur={connectionError}
+              onReessayer={() => void verifierOllama()}
+              style={alerte}
+            />
           )}
 
           {vueReglages && (

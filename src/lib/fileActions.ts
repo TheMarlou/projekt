@@ -24,6 +24,9 @@ async function annoncer(travail: Promise<IOResult>) {
 
 /** Ouvre la fenêtre « Signaler un problème » (écoutée par App). */
 export const EVENEMENT_SIGNALER = "projekt:signaler-probleme";
+/** Ouvrent « À propos » et l'accueil (écoutés par App). */
+export const EVENEMENT_A_PROPOS = "projekt:a-propos";
+export const EVENEMENT_ACCUEIL = "projekt:accueil";
 
 export function fileMenuGroups(options: {
   projectId: string | null;
@@ -80,6 +83,10 @@ export function fileMenuGroups(options: {
     caption: tr("Aide", "Help"),
     entries: [
       {
+        label: tr("Accueil et projet d'exemple…", "Welcome and sample project…"),
+        run: () => window.dispatchEvent(new CustomEvent(EVENEMENT_ACCUEIL)),
+      },
+      {
         label: tr("Signaler un problème…", "Report a problem…"),
         run: () => window.dispatchEvent(new CustomEvent(EVENEMENT_SIGNALER)),
       },
@@ -126,6 +133,10 @@ export function fileMenuGroups(options: {
               )
             );
         },
+      },
+      {
+        label: tr("À propos de Projekt…", "About Projekt…"),
+        run: () => window.dispatchEvent(new CustomEvent(EVENEMENT_A_PROPOS)),
       },
     ],
   });
