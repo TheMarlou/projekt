@@ -4,7 +4,7 @@
 // Markdown converti par le VRAI convertisseur de l'app ; « @[Titre] » devient
 // une mention de page ; chaque parent reçoit la puce de ses sous-pages.
 import { writeFileSync, mkdirSync } from "node:fs";
-import { dessiner, zip } from "./pixel-art.mjs";
+import { dessiner, tiktoks, zip } from "./pixel-art.mjs";
 import { markdownToDoc } from "../../src/lib/markdownToDoc.ts";
 
 const PAGES = [
@@ -260,13 +260,19 @@ const canvas = images.map((im, i) => {
   const [x, y, l] = DISPO[i];
   return { asset: "assets/" + im.nom, x, y, width: l, height: Math.round((l * im.hauteur) / im.largeur), crop: null, genre: "image", meta: null };
 });
+// TikToks : couverture dessinée, la vidéo se lit dans le lecteur de TikTok.
+const videos = tiktoks();
+videos.forEach((v, i) => {
+  canvas.push({ asset: "assets/" + v.nom, x: 1140 + i * 200, y: 0, width: 180, height: Math.round((180 * v.hauteur) / v.largeur), crop: null, genre: "tiktok", meta: v.meta });
+});
+const fichiers = [...images, ...videos];
 const payload = { format: "projekt-export", version: 1, exportedAt: maintenant, project: { name: "Minecraft (exemple)" }, pages, canvas, carte: { decalages: [], liens: [] } };
 const dossier = process.argv[2];
 mkdirSync(dossier, { recursive: true });
 writeFileSync(`${dossier}/projekt.json`, JSON.stringify(payload, null, 2));
-for (const im of images) writeFileSync(`${dossier}/${im.nom}`, im.octets);
+for (const im of fichiers) writeFileSync(`${dossier}/${im.nom}`, im.octets);
 if (process.argv[3]) {
-  writeFileSync(process.argv[3], zip([{ nom: "projekt.json", octets: Buffer.from(JSON.stringify(payload, null, 2)) }, ...images.map((im) => ({ nom: "assets/" + im.nom, octets: im.octets }))]));
+  writeFileSync(process.argv[3], zip([{ nom: "projekt.json", octets: Buffer.from(JSON.stringify(payload, null, 2)) }, ...fichiers.map((im) => ({ nom: "assets/" + im.nom, octets: im.octets }))]));
   console.log("sauvegarde écrite :", process.argv[3]);
 }
 const nbMentions = JSON.stringify(pages).split('"pageLink"').length - 1;

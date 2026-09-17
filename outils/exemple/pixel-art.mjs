@@ -197,6 +197,61 @@ function fabrication() {
   return t;
 }
 
+// --- Couvertures des TikToks (format vertical 9:16) ---------------------------
+// Dessinées plutôt que téléchargées : les vraies miniatures appartiennent à leurs
+// auteurs, et ce projet d'exemple est distribué publiquement. La vidéo, elle, se
+// lit dans le lecteur officiel de TikTok.
+const LV = 36, HV = 64;
+
+function couvertureCerisiers() {
+  const alea = hasard(71), t = toile(LV, HV);
+  ciel(t, hex("#f7b2c4"), hex("#ffe6d2"));
+  rect(t, 24, 10, 6, 6, hex("#fff4e0"));
+  // Lac et reflets.
+  for (let y = 40; y < 50; y++) rect(t, 0, y, LV, 1, nuance(hex("#7fa8e0"), (y - 40) * -3));
+  for (let k = 0; k < 10; k++) rect(t, Math.floor(alea() * (LV - 3)), 41 + Math.floor(alea() * 8), 3, 1, hex("#ffd9e4"));
+  for (let x = 0; x < LV; x++) {
+    const s = 50 + Math.round(Math.sin(x / 4) * 1.5);
+    matiere(t, x, s, 1, 1, C.herbe, 30, alea);
+    matiere(t, x, s + 1, 1, HV - s - 1, C.terre, 24, alea);
+  }
+  // Deux cerisiers en fleurs.
+  for (const [x, sol, haut] of [[7, 50, 12], [27, 50, 16]]) {
+    matiere(t, x, sol - haut, 2, haut, hex("#5a3a2a"), 14, alea);
+    matiere(t, x - 6, sol - haut - 6, 14, 6, hex("#f48fb1"), 40, alea);
+    matiere(t, x - 4, sol - haut - 9, 10, 3, hex("#f8bbd0"), 36, alea);
+  }
+  for (let k = 0; k < 14; k++) point(t, Math.floor(alea() * LV), 20 + Math.floor(alea() * 30), hex("#fce4ec"));
+  return t;
+}
+
+function couvertureJukebox() {
+  const alea = hasard(83), t = toile(LV, HV);
+  // Intérieur de cabane : murs en planches, fenêtre de nuit.
+  for (let y = 0; y < 48; y += 4) matiere(t, 0, y, LV, 4, y % 8 ? C.planche : nuance(C.planche, -18), 16, alea);
+  rect(t, 4, 8, 12, 12, nuance(C.bois, -30));
+  rect(t, 5, 9, 10, 10, hex("#1a2350"));
+  point(t, 8, 12, hex("#e8ecff"));
+  point(t, 12, 15, hex("#e8ecff"));
+  rect(t, 11, 10, 3, 3, hex("#e9e9dc"));
+  for (let y = 48; y < HV; y += 4) for (let x = 0; x < LV; x += 4) bloc(t, x, y, 4, "planche", alea);
+  // Le jukebox, un disque qui dépasse, et des notes de musique.
+  matiere(t, 20, 34, 12, 14, nuance(C.bois, -10), 16, alea);
+  rect(t, 21, 35, 10, 3, nuance(C.bois, -40));
+  rect(t, 23, 33, 6, 2, hex("#2b2b2b"));
+  rect(t, 25, 33, 2, 1, hex("#e04848"));
+  rect(t, 22, 40, 8, 1, nuance(C.bois, -35));
+  for (const [x, y] of [[18, 26], [24, 21], [30, 25]]) {
+    rect(t, x, y, 2, 2, hex("#ffffff"));
+    rect(t, x + 1, y - 5, 1, 5, hex("#ffffff"));
+    rect(t, x + 2, y - 5, 2, 1, hex("#ffffff"));
+  }
+  // Une lanterne.
+  rect(t, 6, 38, 4, 5, hex("#3a3a3a"));
+  rect(t, 7, 39, 2, 3, hex("#ffc94a"));
+  return t;
+}
+
 // --- PNG -----------------------------------------------------------------------
 function png(t, echelle) {
   const l = t.l * echelle, h = t.h * echelle;
@@ -240,6 +295,22 @@ export function dessiner() {
     ["palette-des-blocs.png", palette()],
     ["recette-de-la-pioche.png", fabrication()],
   ].map(([nom, t]) => ({ nom, largeur: t.l * E, hauteur: t.h * E, octets: png(t, E) }));
+}
+
+/** Les TikToks choisis par Marlou (17/09), avec une couverture dessinée. */
+export function tiktoks() {
+  return [
+    {
+      nom: "tiktok-cerisiers.png",
+      toile: couvertureCerisiers(),
+      meta: { url: "https://www.tiktok.com/@elsewhere557/video/7679642113310575904", videoId: "7679642113310575904", titre: "", auteur: "@elsewhere557" },
+    },
+    {
+      nom: "tiktok-jukebox.png",
+      toile: couvertureJukebox(),
+      meta: { url: "https://www.tiktok.com/@yuuzjw/video/7677832836509961492", videoId: "7677832836509961492", titre: "my kind of woman | #macdemarco #minecraft", auteur: "yuji" },
+    },
+  ].map(({ nom, toile: t, meta }) => ({ nom, meta, largeur: t.l * E, hauteur: t.h * E, octets: png(t, E) }));
 }
 
 // --- Zip (sans compression : les PNG le sont déjà) -----------------------------
