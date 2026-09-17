@@ -9,7 +9,8 @@ import { notify } from "../lib/notify";
 import Fenetre, { boutonSecondaire, texteDim } from "./Fenetre";
 import Logo from "./Logo";
 
-export const LIEN_SOUTIEN = "https://ko-fi.com/themarlou";
+/** Page de soutien (Ko-fi…). Vide tant que le compte n'existe pas : le bouton est alors masqué. */
+export const LIEN_SOUTIEN = "";
 
 /** ☰ → Aide → À propos de Projekt (demande du 17/09, avant la publication). */
 export default function APropos({ onFermer }: { onFermer: () => void }) {
@@ -87,9 +88,11 @@ export default function APropos({ onFermer }: { onFermer: () => void }) {
         </div>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button style={boutonSecondaire} onClick={() => ouvrir(LIEN_SOUTIEN)}>
-            ☕ {tr("Soutenir Projekt", "Support Projekt")}
-          </button>
+          {LIEN_SOUTIEN && (
+            <button style={boutonSecondaire} onClick={() => ouvrir(LIEN_SOUTIEN)}>
+              ☕ {tr("Soutenir Projekt", "Support Projekt")}
+            </button>
+          )}
           <button
             style={boutonSecondaire}
             onClick={() => {

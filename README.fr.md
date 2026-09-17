@@ -78,7 +78,3 @@ service payant, aucune dépendance cloud.
 En bref : l'app est gratuite et libre d'usage, y compris pour ton travail, et le code est
 lisible par tous. Il est seulement interdit d'en faire un produit concurrent, payant ou
 gratuit.
-
-## Soutenir
-
-Projekt est gratuit. Si l'app t'est utile, tu peux [offrir un café à son auteur](https://ko-fi.com/themarlou).

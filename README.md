@@ -74,7 +74,3 @@ service, no cloud dependency. The code and its comments are in French.
 [PolyForm Shield 1.0.0](LICENSE). In short: the app is free to use, including for work,
 and its code is open to read. The only thing you may not do is build a competing product
 from it, paid or free.
-
-## Support
-
-Projekt is free. If it helps you, you can [buy its author a coffee](https://ko-fi.com/themarlou).
