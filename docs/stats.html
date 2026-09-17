@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Projekt — chiffres</title>
+<link rel="icon" href="img/icone.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Page non listée dans le menu : les téléchargements, lus en direct sur l'API publique de GitHub. */
+  .chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 22px 0 30px; }
+  .chiffre { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .chiffre b { display: block; font-size: 2rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .chiffre span { color: var(--text-dim); font-size: 0.86rem; }
+  .tableau { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.93rem; font-variant-numeric: tabular-nums; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-dim); font-weight: 500; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; background: var(--surface); }
+  tr:last-child td { border-bottom: none; }
+  td.n { text-align: right; }
+  .barre { height: 6px; border-radius: 3px; background: var(--accent); min-width: 2px; }
+  #etat { color: var(--text-dim); font-size: 0.88rem; font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace; }
+</style>
+</head>
+<body>
+
+<header><div class="bande entete">
+  <a class="marque" href="./" style="color:inherit;text-decoration:none">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 3 20h18L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    Projekt
+  </a>
+  <nav><a href="https://github.com/TheMarlou/projekt">GitHub</a></nav>
+</div></header>
+
+<section><div class="bande">
+  <h1>Les chiffres</h1>
+  <p class="precision">Téléchargements comptés par GitHub, en direct. Les statistiques d'usage de l'app, elles, sont sur le tableau de bord Aptabase (privé).</p>
+  <p id="etat">Chargement…</p>
+
+  <div class="chiffres" id="chiffres" hidden>
+    <div class="chiffre"><b id="t-windows">–</b><span>téléchargements Windows</span></div>
+    <div class="chiffre"><b id="t-android">–</b><span>téléchargements Android</span></div>
+    <div class="chiffre"><b id="t-etoiles">–</b><span>étoiles sur GitHub</span></div>
+    <div class="chiffre"><b id="t-tickets">–</b><span>tickets ouverts (bugs, idées)</span></div>
+  </div>
+
+  <h2>Par version</h2>
+  <div class="tableau">
+    <table>
+      <thead><tr><th>Version</th><th>Publiée le</th><th class="n">Windows</th><th class="n">Android</th><th style="width:30%"></th></tr></thead>
+      <tbody id="versions"></tbody>
+    </table>
+  </div>
+</div></section>
+
+<script>
+  const DEPOT = "TheMarlou/projekt";
+  const nombre = (n) => n.toLocaleString("fr-FR");
+  const etat = document.getElementById("etat");
+
+  async function charger() {
+    try {
+      const [depot, versions] = await Promise.all([
+        fetch(`https://api.github.com/repos/${DEPOT}`).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch(`https://api.github.com/repos/${DEPOT}/releases?per_page=100`).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      ]);
+      const compte = (v, test) => v.assets.filter((a) => test.test(a.name)).reduce((s, a) => s + a.download_count, 0);
+      const lignes = versions.map((v) => ({
+        nom: v.name || v.tag_name,
+        date: new Date(v.published_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
+        windows: compte(v, /\.exe$|\.msi$/i),
+        android: compte(v, /\.apk$/i),
+      }));
+      const max = Math.max(1, ...lignes.map((l) => l.windows + l.android));
+      document.getElementById("t-windows").textContent = nombre(lignes.reduce((s, l) => s + l.windows, 0));
+      document.getElementById("t-android").textContent = nombre(lignes.reduce((s, l) => s + l.android, 0));
+      document.getElementById("t-etoiles").textContent = nombre(depot.stargazers_count);
+      // L'API compte les pull requests avec les tickets : sur ce dépôt, il n'y en a pas.
+      document.getElementById("t-tickets").textContent = nombre(depot.open_issues_count);
+      document.getElementById("versions").innerHTML = lignes.length
+        ? lignes.map((l) => `<tr><td>${l.nom}</td><td>${l.date}</td><td class="n">${nombre(l.windows)}</td><td class="n">${nombre(l.android)}</td><td><div class="barre" style="width:${((l.windows + l.android) / max) * 100}%"></div></td></tr>`).join("")
+        : `<tr><td colspan="5">Aucune version publiée.</td></tr>`;
+      document.getElementById("chiffres").hidden = false;
+      etat.textContent = `Mis à jour à ${new Date().toLocaleTimeString("fr-FR")} · recharge la page pour actualiser`;
+    } catch (err) {
+      etat.textContent = `GitHub ne répond pas pour l'instant (${err.message}). Réessaie dans une minute : l'API limite à 60 lectures par heure.`;
+    }
+  }
+  charger();
+</script>
+
+</body>
+</html>
