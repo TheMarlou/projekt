@@ -6,6 +6,7 @@ import { useCanvasStore } from "../store/canvasStore";
 import { useProjectsStore } from "../store/projectsStore";
 import { enregistrerBrut, infosTikTok, lienTikTok, telechargerMiniature } from "./mediasMoodboard";
 import { notify } from "./notify";
+import { fonctionUtilisee } from "./statistiques";
 import { localeDates, tr } from "./i18n";
 
 /**
@@ -271,6 +272,7 @@ export function rangerRecus(): Promise<void> {
         bilan.vue = r.vue;
         bilan.pageId = r.pageId ?? bilan.pageId;
         bilan.comptes.set(r.quoi, (bilan.comptes.get(r.quoi) ?? 0) + 1);
+        fonctionUtilisee(`telephone_${r.quoi}`);
         bilans.set(r.projectId, bilan);
       } catch (err) {
         dejaRanges.delete(fiche.id);

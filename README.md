@@ -51,7 +51,7 @@ Later updates of the mobile app are offered by the PC itself.
 ## Your data
 
 Everything stays on your computer: one SQLite database and your files in
-`%APPDATA%\app.projekt.desktop`. No account, no server, no analytics. A few features go
+`%APPDATA%\app.projekt.desktop`. No account, no server, and no usage statistics unless you turn them on (anonymous, never your content: ☰ → Help). A few features go
 online, and only when you use them: the assistant's Wikipedia lookup (off by default),
 TikTok videos on the moodboard, downloading an AI model, and the update check (off by
 default).

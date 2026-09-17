@@ -53,7 +53,7 @@ Les mises à jour de l'app mobile sont ensuite proposées par le PC lui-même.
 ## Tes données
 
 Tout reste sur ta machine : une base SQLite et tes fichiers dans
-`%APPDATA%\app.projekt.desktop`. Aucun compte, aucun serveur, aucune mesure d'audience.
+`%APPDATA%\app.projekt.desktop`. Aucun compte, aucun serveur, et aucune statistique d'usage sauf si tu les actives (anonymes, jamais ton contenu : ☰ → Aide).
 Quelques fonctions touchent à internet, et seulement si tu t'en sers : la recherche
 Wikipédia de l'assistant (coupée par défaut), les vidéos TikTok du moodboard, le
 téléchargement d'un modèle d'IA et la vérification des mises à jour (coupée par défaut).

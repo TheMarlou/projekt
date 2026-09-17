@@ -1,3 +1,4 @@
+import { mesurer } from "./statistiques";
 import { tr } from "./i18n";
 
 /**
@@ -70,6 +71,7 @@ export function changerReglagesIa(modif: Partial<ReglagesIa>) {
     // Stockage indisponible : valable pour cette session seulement.
   }
   auditeurs.forEach((a) => a());
+  for (const [cle, valeur] of Object.entries(modif)) mesurer("reglage_assistant", { cle, valeur: String(valeur) });
 }
 
 export function suivreReglagesIa(auditeur: () => void): () => void {

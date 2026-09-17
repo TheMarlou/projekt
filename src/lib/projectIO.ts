@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { resolveResource } from "@tauri-apps/api/path";
+import { fonctionUtilisee } from "./statistiques";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type { JSONContent } from "@tiptap/react";
 import { useBlocksStore, type Block, type ContentBlock } from "../store/blocksStore";
@@ -299,6 +300,7 @@ export async function importProject(): Promise<IOResult> {
  */
 export async function importerExemple(): Promise<IOResult> {
   try {
+    fonctionUtilisee("projet_exemple");
     return await importerFichier(await resolveResource(CHEMIN_EXEMPLE));
   } catch (err) {
     return echec(tr("Projet d'exemple introuvable", "Sample project not found"), err);

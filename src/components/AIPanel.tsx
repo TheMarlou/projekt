@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { checkOllamaAvailable, chatWithTools, listerModeles, manqueModeleTexte, modeleTexte, prechauffer, ChatMessage } from "../lib/ollama";
 import AideOllama from "./AideOllama";
+import { fonctionUtilisee, mesurer, tranche } from "../lib/statistiques";
 import {
   Plan,
   appliquerPlan,
@@ -164,6 +165,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
 
   useEffect(() => {
     if (!open) return;
+    fonctionUtilisee("assistant");
     void verifierOllama();
     window.setTimeout(() => champ.current?.focus(), 0);
   }, [open]);
@@ -245,6 +247,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
     setInput("");
     setEnCours(true);
     setDebut(Date.now());
+    const debutReponse = Date.now();
     setAiContextProject(projectId);
     const controleur = new AbortController();
     arret.current = controleur;
@@ -433,6 +436,15 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
         rienFait,
         sources: sources.size ? [...sources.values()] : undefined,
       });
+      mesurer("assistant_reponse", {
+        duree: tranche((Date.now() - debutReponse) / 1000),
+        reflexion: reflechir,
+        relance: relancee,
+        propositions: plan.actions.length,
+        modele: modele ?? "",
+        note: joindreDiscussion,
+        memoire: demandeDeMemoriser(text),
+      });
       let appliqueAuto = false;
       if (plan.actions.length) {
         if (permis.ecrireSansValidation) {
@@ -495,6 +507,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
       maj = { ...element, etat: "applique", bilan };
     }
     setElements((prev) => prev.map((e, i) => (i === index ? maj : e)));
+    mesurer("assistant_proposition", { decision: appliquer ? "acceptee" : "ecartee", actions: element.plan.actions.length });
     // Le modèle doit savoir ce qu'il est advenu de sa proposition au tour suivant.
     memoriser({
       role: "user",
@@ -599,6 +612,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                 <button
                   onClick={() => {
                     setVueConversations((v) => !v);
+                    fonctionUtilisee("conversations");
                     setVueReglages(false);
                     setVueMemoire(false);
                   }}
@@ -613,6 +627,7 @@ export default function AIPanel({ activePage, projectId, projectName, onOpenPage
                 <button
                   onClick={() => {
                     setVueMemoire((v) => !v);
+                    fonctionUtilisee("memoire");
                     setVueReglages(false);
                     setVueConversations(false);
                   }}

@@ -3,6 +3,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { changerLangue, langue, tr } from "./i18n";
 import { activerVerification, derniereVersion, verificationActivee } from "./misesAJour";
 import { notify } from "./notify";
+import { fonctionUtilisee, statistiquesActivees, statistiquesDisponibles } from "./statistiques";
 import { exportPageMarkdown, exportProject, importProject, type IOResult } from "./projectIO";
 
 /**
@@ -27,6 +28,7 @@ export const EVENEMENT_SIGNALER = "projekt:signaler-probleme";
 /** Ouvrent « À propos » et l'accueil (écoutés par App). */
 export const EVENEMENT_A_PROPOS = "projekt:a-propos";
 export const EVENEMENT_ACCUEIL = "projekt:accueil";
+export const EVENEMENT_STATISTIQUES = "projekt:statistiques";
 
 export function fileMenuGroups(options: {
   projectId: string | null;
@@ -52,11 +54,18 @@ export function fileMenuGroups(options: {
             : tr("Sauvegarder le projet sous…", "Save project as…"),
           hint: ".zip",
           disabled: !projectId,
-          run: () => projectId && annoncer(exportProject(projectId)),
+          run: () => {
+            if (!projectId) return;
+            fonctionUtilisee("export_projet");
+            void annoncer(exportProject(projectId));
+          },
         },
         {
           label: tr("Importer une sauvegarde…", "Import a backup…"),
-          run: () => annoncer(importProject()),
+          run: () => {
+            fonctionUtilisee("import_projet");
+            void annoncer(importProject());
+          },
         },
       ],
     },
@@ -73,7 +82,11 @@ export function fileMenuGroups(options: {
           : tr("Exporter la page en Markdown…", "Export page as Markdown…"),
         hint: ".zip",
         disabled: !pageId,
-        run: () => pageId && annoncer(exportPageMarkdown(pageId)),
+        run: () => {
+          if (!pageId) return;
+          fonctionUtilisee("export_markdown");
+          void annoncer(exportPageMarkdown(pageId));
+        },
       },
     ],
   });
@@ -134,6 +147,17 @@ export function fileMenuGroups(options: {
             );
         },
       },
+      ...(statistiquesDisponibles()
+        ? [
+            {
+              label: statistiquesActivees()
+                ? tr("Statistiques anonymes : activées", "Anonymous statistics: on")
+                : tr("Statistiques anonymes : désactivées", "Anonymous statistics: off"),
+              hint: tr("détails", "details"),
+              run: () => window.dispatchEvent(new CustomEvent(EVENEMENT_STATISTIQUES)),
+            },
+          ]
+        : []),
       {
         label: tr("À propos de Projekt…", "About Projekt…"),
         run: () => window.dispatchEvent(new CustomEvent(EVENEMENT_A_PROPOS)),

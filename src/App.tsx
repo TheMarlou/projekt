@@ -18,9 +18,12 @@ import { useConversationsStore } from "./store/conversationsStore";
 import { useMemoireStore } from "./store/memoireStore";
 import { demarrerReception } from "./lib/telephone";
 import SignalerBug from "./components/SignalerBug";
-import { EVENEMENT_A_PROPOS, EVENEMENT_ACCUEIL, EVENEMENT_SIGNALER } from "./lib/fileActions";
+import { EVENEMENT_A_PROPOS, EVENEMENT_ACCUEIL, EVENEMENT_SIGNALER, EVENEMENT_STATISTIQUES } from "./lib/fileActions";
 import APropos from "./components/APropos";
 import Accueil, { accueilDejaVu } from "./components/Accueil";
+import StatistiquesFenetre from "./components/StatistiquesFenetre";
+import { fonctionUtilisee, mesurer } from "./lib/statistiques";
+import { langue } from "./lib/i18n";
 import { annoncerMiseAJour } from "./lib/misesAJour";
 import { tr } from "./lib/i18n";
 
@@ -50,12 +53,14 @@ export default function App() {
   const [signalement, setSignalement] = useState(false);
   const [aPropos, setAPropos] = useState(false);
   const [accueil, setAccueil] = useState(false);
+  const [statistiques, setStatistiques] = useState(false);
 
   useEffect(() => {
     const ouvertures: [string, () => void][] = [
       [EVENEMENT_SIGNALER, () => setSignalement(true)],
       [EVENEMENT_A_PROPOS, () => setAPropos(true)],
       [EVENEMENT_ACCUEIL, () => setAccueil(true)],
+      [EVENEMENT_STATISTIQUES, () => setStatistiques(true)],
     ];
     for (const [nom, ouvrir] of ouvertures) window.addEventListener(nom, ouvrir);
     return () => {
@@ -98,6 +103,8 @@ export default function App() {
     // Premier lancement : l'accueil, seulement s'il n'y a encore aucun projet
     // (une personne qui a déjà ses projets n'a pas besoin qu'on lui présente l'app).
     if (!accueilDejaVu() && useProjectsStore.getState().projects.length === 0) setAccueil(true);
+    // Statistiques anonymes (seulement si la personne les a activées) : un lancement.
+    mesurer("lancement", { langue, projets: Math.min(useProjectsStore.getState().projects.length, 20) });
     void annoncerMiseAJour();
     void demarrerReception((projectId, vue, pageId) => {
       setSelectedProjectId(projectId);
@@ -105,6 +112,14 @@ export default function App() {
       setView(vue);
     });
   }, [ready]);
+
+  // Quelles vues servent vraiment (une fois par session).
+  useEffect(() => {
+    if (ready && selectedProjectId) fonctionUtilisee(view === "graph" ? "carte" : view);
+  }, [ready, view, selectedProjectId]);
+  useEffect(() => {
+    if (recherche) fonctionUtilisee("recherche");
+  }, [recherche]);
 
   const project = projects.find((p) => p.id === selectedProjectId) ?? null;
   const pages = selectedProjectId ? allBlocks.filter((b) => b.projectId === selectedProjectId) : [];
@@ -296,6 +311,7 @@ export default function App() {
       <Notices />
       <SignalerBug ouvert={signalement} onFermer={() => setSignalement(false)} />
       {aPropos && <APropos onFermer={() => setAPropos(false)} />}
+      {statistiques && <StatistiquesFenetre onFermer={() => setStatistiques(false)} />}
       {accueil && (
         <Accueil
           onFermer={() => setAccueil(false)}

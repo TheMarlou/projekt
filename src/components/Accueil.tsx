@@ -1,9 +1,11 @@
-import { useState, type CSSProperties } from "react";
+import { useState, useSyncExternalStore, type CSSProperties } from "react";
 import { tr } from "../lib/i18n";
 import { notify } from "../lib/notify";
 import { importerExemple } from "../lib/projectIO";
 import Fenetre, { boutonPrincipal, boutonSecondaire, texteDim } from "./Fenetre";
 import Logo from "./Logo";
+import { DetailStatistiques } from "./StatistiquesFenetre";
+import { activerStatistiques, mesurer, statistiquesActivees, statistiquesDisponibles, suivreStatistiques } from "../lib/statistiques";
 
 /** Déjà vu : l'accueil ne s'ouvre plus tout seul (il reste dans ☰ → Aide). */
 const CLE_VU = "projekt-accueil-vu";
@@ -38,9 +40,12 @@ export default function Accueil({
   onOuvrirProjet: (projectId: string) => void;
 }) {
   const [import_, setImport] = useState(false);
+  const [detail, setDetail] = useState(false);
+  const stats = useSyncExternalStore(suivreStatistiques, statistiquesActivees);
 
-  const fermer = () => {
+  const fermer = (choix: string) => {
     marquerVu();
+    mesurer("accueil", { choix });
     onFermer();
   };
 
@@ -51,7 +56,7 @@ export default function Accueil({
     notify(r.ok, r.message);
     if (r.ok && r.projectId) {
       onOuvrirProjet(r.projectId);
-      fermer();
+      fermer("exemple");
     }
   };
 
@@ -79,7 +84,7 @@ export default function Accueil({
   ];
 
   return (
-    <Fenetre titre={tr("Bienvenue dans Projekt", "Welcome to Projekt")} largeur={600} onFermer={fermer}>
+    <Fenetre titre={tr("Bienvenue dans Projekt", "Welcome to Projekt")} largeur={600} onFermer={() => fermer("fermee")}>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={pastille}>
@@ -112,7 +117,7 @@ export default function Accueil({
             style={boutonPrincipal}
             onClick={() => {
               onCreerProjet();
-              fermer();
+              fermer("creer");
             }}
           >
             {tr("Créer mon premier projet", "Create my first project")}
@@ -120,12 +125,29 @@ export default function Accueil({
           <button style={boutonSecondaire} disabled={import_} onClick={() => void exemple()}>
             {import_ ? tr("Ouverture…", "Opening…") : tr("Découvrir le projet d'exemple", "Explore the sample project")}
           </button>
-          <button style={{ ...boutonSecondaire, marginLeft: "auto", border: "none" }} onClick={fermer}>
+          <button style={{ ...boutonSecondaire, marginLeft: "auto", border: "none" }} onClick={() => fermer("plus_tard")}>
             {tr("Plus tard", "Later")}
           </button>
         </div>
+        {statistiquesDisponibles() && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+            <label style={{ display: "flex", gap: 9, alignItems: "center", fontSize: 12.5 }}>
+              <input
+                type="checkbox"
+                checked={stats}
+                onChange={(e) => activerStatistiques(e.target.checked)}
+                style={{ accentColor: "var(--accent)" }}
+              />
+              {tr("Aider à améliorer Projekt avec des statistiques anonymes", "Help improve Projekt with anonymous statistics")}
+              <button style={lien} onClick={() => setDetail((d) => !d)}>
+                {detail ? tr("masquer", "hide") : tr("voir ce qui est envoyé", "see what is sent")}
+              </button>
+            </label>
+            {detail && <DetailStatistiques />}
+          </div>
+        )}
         <p style={{ ...texteDim, fontSize: 11.5 }}>
-          {tr("Tu retrouveras cet accueil dans ☰ → Aide.", "You'll find this welcome screen again in ☰ → Help.")}
+          {tr("Tu retrouveras cet accueil et ce réglage dans ☰ → Aide.", "You'll find this welcome screen and this setting again in ☰ → Help.")}
         </p>
       </div>
     </Fenetre>
@@ -152,4 +174,14 @@ const carte: CSSProperties = {
   borderRadius: 8,
   border: "1px solid var(--border)",
   background: "var(--surface-2)",
+};
+
+const lien: CSSProperties = {
+  border: "none",
+  background: "none",
+  padding: 0,
+  color: "var(--accent)",
+  cursor: "pointer",
+  fontSize: 12,
+  textDecoration: "underline",
 };
