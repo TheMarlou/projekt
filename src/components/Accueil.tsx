@@ -5,7 +5,7 @@ import { importerExemple } from "../lib/projectIO";
 import Fenetre, { boutonPrincipal, boutonSecondaire, texteDim } from "./Fenetre";
 import Logo from "./Logo";
 import { DetailStatistiques } from "./StatistiquesFenetre";
-import { activerStatistiques, mesurer, statistiquesActivees, statistiquesDisponibles, suivreStatistiques } from "../lib/statistiques";
+import { activerStatistiques, choixStatistiquesFait, mesurer, statistiquesActivees, statistiquesDisponibles, suivreStatistiques } from "../lib/statistiques";
 
 /** Déjà vu : l'accueil ne s'ouvre plus tout seul (il reste dans ☰ → Aide). */
 const CLE_VU = "projekt-accueil-vu";
@@ -45,6 +45,7 @@ export default function Accueil({
 
   const fermer = (choix: string) => {
     marquerVu();
+    if (statistiquesDisponibles() && !choixStatistiquesFait()) activerStatistiques(false);
     mesurer("accueil", { choix });
     onFermer();
   };

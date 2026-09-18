@@ -52,6 +52,15 @@ export function statistiquesActivees(): boolean {
   }
 }
 
+/** La personne a-t-elle déjà répondu (oui ou non) ? Sinon, on lui pose la question une fois. */
+export function choixStatistiquesFait(): boolean {
+  try {
+    return localStorage.getItem(CLE_REGLAGE) !== null;
+  } catch {
+    return true;
+  }
+}
+
 export function activerStatistiques(oui: boolean) {
   try {
     localStorage.setItem(CLE_REGLAGE, oui ? "1" : "0");

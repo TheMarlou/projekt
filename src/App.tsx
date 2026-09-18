@@ -22,7 +22,8 @@ import { EVENEMENT_A_PROPOS, EVENEMENT_ACCUEIL, EVENEMENT_SIGNALER, EVENEMENT_ST
 import APropos from "./components/APropos";
 import Accueil, { accueilDejaVu } from "./components/Accueil";
 import StatistiquesFenetre from "./components/StatistiquesFenetre";
-import { fonctionUtilisee, mesurer } from "./lib/statistiques";
+import QuestionStatistiques from "./components/QuestionStatistiques";
+import { choixStatistiquesFait, fonctionUtilisee, mesurer, statistiquesDisponibles } from "./lib/statistiques";
 import { langue } from "./lib/i18n";
 import { annoncerMiseAJour } from "./lib/misesAJour";
 import { tr } from "./lib/i18n";
@@ -54,6 +55,7 @@ export default function App() {
   const [aPropos, setAPropos] = useState(false);
   const [accueil, setAccueil] = useState(false);
   const [statistiques, setStatistiques] = useState(false);
+  const [question, setQuestion] = useState(false);
 
   useEffect(() => {
     const ouvertures: [string, () => void][] = [
@@ -102,7 +104,10 @@ export default function App() {
     if (!ready) return;
     // Premier lancement : l'accueil, seulement s'il n'y a encore aucun projet
     // (une personne qui a déjà ses projets n'a pas besoin qu'on lui présente l'app).
-    if (!accueilDejaVu() && useProjectsStore.getState().projects.length === 0) setAccueil(true);
+    const premierLancement = !accueilDejaVu() && useProjectsStore.getState().projects.length === 0;
+    if (premierLancement) setAccueil(true);
+    // Statistiques : une question, une seule fois, à qui n'a pas encore choisi (l'accueil la pose déjà).
+    else if (statistiquesDisponibles() && !choixStatistiquesFait()) setQuestion(true);
     // Statistiques anonymes (seulement si la personne les a activées) : un lancement.
     mesurer("lancement", { langue, projets: Math.min(useProjectsStore.getState().projects.length, 20) });
     void annoncerMiseAJour();
@@ -312,6 +317,7 @@ export default function App() {
       <SignalerBug ouvert={signalement} onFermer={() => setSignalement(false)} />
       {aPropos && <APropos onFermer={() => setAPropos(false)} />}
       {statistiques && <StatistiquesFenetre onFermer={() => setStatistiques(false)} />}
+      {question && !accueil && <QuestionStatistiques onFermer={() => setQuestion(false)} />}
       {accueil && (
         <Accueil
           onFermer={() => setAccueil(false)}
