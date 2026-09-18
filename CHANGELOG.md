@@ -1,5 +1,11 @@
 # Versions / Changelog
 
+## 0.2.1
+
+- **Statistiques anonymes, désactivées par défaut** : si tu le souhaites, coche « Aider à améliorer Projekt » (écran d'accueil ou ☰ → Aide → Statistiques anonymes). Projekt envoie alors de courts comptes rendus d'usage (lancements, fonctions utilisées, temps de réponse de l'assistant, type des erreurs) au service Aptabase, hébergé en Europe. **Jamais** le contenu de tes pages, tes titres, tes images ni tes messages. La fenêtre montre tout ce qui a été envoyé.
+
+- **Anonymous statistics, off by default**: if you wish, tick “Help improve Projekt” (welcome screen or ☰ → Help → Anonymous statistics). Projekt then sends short usage reports (launches, features used, assistant response times, error types) to the Aptabase service, hosted in Europe. **Never** your page content, titles, images or messages. The window shows everything that was sent.
+
 ## 0.2.0
 
 ### Nouveautés

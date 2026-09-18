@@ -18,7 +18,7 @@ import { getVersion } from "@tauri-apps/api/app";
  */
 
 /** Clé de l'app Aptabase (publique par nature). Vide = statistiques indisponibles, réglage masqué. */
-export const CLE_APTABASE = "";
+export const CLE_APTABASE: string = "A-EU-4219356275";
 
 const CLE_REGLAGE = "projekt-statistiques";
 const API = "https://eu.aptabase.com/api/v0/event";
@@ -108,7 +108,7 @@ export function mesurer(nom: string, props: Record<string, Valeur> = {}) {
         systemProps: {
           locale: navigator.language,
           // Serveur de développement (tauri dev) : événements marqués « debug » dans Aptabase.
-          isDebug: location.port === "1420",
+          isDebug: typeof location !== "undefined" && location.port === "1420",
           appVersion,
           sdkVersion: "projekt-maison@1",
           ...systeme(),

@@ -1,6 +1,6 @@
 [package]
 name = "projekt"
-version = "0.2.0"
+version = "0.2.1"
 description = "Brainstorming desktop pour développeurs de jeux vidéo"
 edition = "2021"
 
